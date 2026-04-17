@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<complete_examples>
+  <example name="typical-run-delegation">
+    <scenario>User gives high-level task: "Implement user auth feature".</scenario>
+    <user_request>Implement user auth feature.</user_request>
+    <workflow>
+      <step number="1">
+        <description>Index codebase/GitHub/plans.</description>
+        <approach>Use codebase_search, gh issue list.</approach>
+        <expected_outcome>Current auth gaps identified.</expected_outcome>
+      </step>
+      <step number="2">
+        <description>Create GitHub Issue #123 for Run 1: User Auth.</description>
+      </step>
+      <step number="3">
+        <description>Delegate to Orchestrator: "Implement auth with JWT, full tests/docs".</description>
+        <approach>switch_mode orchestrator.</approach>
+      </step>
+      <step number="4">
+        <description>Verify results, enforce standards.</description>
+      </step>
+      <step number="5">
+        <description>Generate reports/run-1-summary.md.</description>
+        <report_sample>
+# Run 1 - 2026-04-16
+High-Level Goal: User Auth
+Decisions Made: Use JWT (rationale: stateless); approved by self.
+Progress: 100% docs/tests.
+...
+        </report_sample>
+      </step>
+    </workflow>
+    <completion>Run complete, Issue updated.</completion>
+  </example>
+  <example name="self-improvement">
+    <scenario>Detect Orchestrator gap in GitHub integration.</scenario>
+    <workflow>
+      <step>Scan .roo/orchestrator-mode.json.</step>
+      <step>Edit to add gh CLI delegation.</step>
+      <step>Test, commit PR.</step>
+    </workflow>
+  </example>
+</complete_examples>

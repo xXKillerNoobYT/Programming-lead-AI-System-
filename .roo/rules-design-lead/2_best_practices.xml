@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<best_practices>
+  <general_principles>
+    <principle priority="high">
+      <name>Documentation First</name>
+      <description>Every change requires updated README.md, architecture.md, inline comments, API docs.</description>
+      <rationale>Clarity for non-coders, maintainability.</rationale>
+    </principle>
+    <principle priority="high">
+      <name>Comprehensive Testing</name>
+      <description>Unit/integration/e2e/performance/security tests at 100% coverage.</description>
+      <rationale>Reliability, regression prevention.</rationale>
+    </principle>
+    <principle priority="high">
+      <name>GitHub as Truth</name>
+      <description>All work linked to Issues/PRs; close on completion.</description>
+      <rationale>Traceability, collaboration.</rationale>
+    </principle>
+  </general_principles>
+  <code_conventions>
+    <convention category="docs">
+      <rule>architecture.md for high-level, README for usage.</rule>
+    </convention>
+    <convention category="testing">
+      <rule>Jest/Vitest with mocks, coverage >95%.</rule>
+    </convention>
+  </code_conventions>
+  <quality_checklist>
+    <category name="per-run">
+      <item>Docs coverage verified</item>
+      <item>Tests pass 100%</item>
+      <item>Best practices enforced</item>
+    </category>
+  </quality_checklist>
+</best_practices>
