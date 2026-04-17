@@ -1,0 +1,1 @@
+Top priority: Getting these rules set up properly. Design Lead disposes to create subtasks for the orchestrator. Give orchestrator one task at a time. Use the global design-lead skill. Create only local rules (no new local copy of mode or whole new agents). This supersedes any conflicting instructions.

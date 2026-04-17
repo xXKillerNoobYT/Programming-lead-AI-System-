@@ -64,12 +64,25 @@ graph TD
 - **Local-Hybrid**: 95% local; hourly Grok.
 - **3rd-Party Agents Only**: User-configured mapping.
 
-## User Preferences
-Dashboard-editable: Agent mapping, parallelism, approvals, heartbeat interval, MemPalace/AutoGPT toggles, etc.
+## User Preferences & Smart Agent Model Mapping
+**Core Strategy (per user note on different agent models)**: Each mode uses a dedicated, optimized LM for intelligent behavior:
+- `design-lead`: High-level strategist (grok-4.20 or equivalent) — focuses on architecture, prioritization, reports.
+- `orchestrator`: Coordination specialist — excels at task breakdown, delegation sequencing, workflow planning.
+- `code`: Implementation coder LM — optimized for writing, refactoring, best practices.
+- `architect`: Planning/UX LM.
+- `debug`: Troubleshooting/diagnostics LM.
+- `security-review`, `documentation-writer`, `jest-test-engineer`, `user-story-creator`, `devops`, etc.: Domain-specific LMs (e.g., security-audit model, test-specialist).
+- `skill-writer`, `mode-writer`: Meta-capability LMs.
+
+**Implementation**:
+- Configurable per-mode mapping in preferences (JSON/Postgres).
+- Heartbeat/SOUL respects mapping for smart routing: always plan with Orchestrator LM before delegating to Code LM, etc.
+- UI editor in User Guidance tab for editing mappings, parallelism (max concurrent), approval thresholds, toggles (MemPalace, AutoGPT, heartbeat interval), planning rigor.
+- Persisted state; loaded on startup; dynamic mode creation support.
 
 ## Roadmap
-- **Phase 1 MVP**: Local Lead, Roo delegation, three chats, heartbeat.
-- **Phase 2**: Prefs, multi-agent.
+- **Phase 1 MVP**: Local Lead, Roo delegation, three chats, heartbeat. (Complete)
+- **Phase 2**: Prefs + smart multi-agent model mapping + planning enforcement. (Current Run 3)
 - **Phase 3**: Checks, multi-project.
 - **Phase 4**: Production scale.
 
