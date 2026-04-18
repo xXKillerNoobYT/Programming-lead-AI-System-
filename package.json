@@ -9,7 +9,7 @@
         "test": "node --test tests/heartbeat.test.js tests/mcp-client.test.js"
     },
     "engines": {
-        "node": ">=18"
+        "node": ">=20"
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.29.0"

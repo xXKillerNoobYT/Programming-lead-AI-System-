@@ -21,12 +21,14 @@
 
 'use strict';
 
+const { join, resolve } = require('node:path');
+
 // Load per-machine env vars from `.env` at repo root if present. Node 20+
 // built-in; no `dotenv` dependency required. Phase 4 §C.2 / D-20260418-021.
 // Silent no-op when `.env` is absent — `.env.example` documents the schema.
 try {
     if (typeof process.loadEnvFile === 'function') {
-        process.loadEnvFile();
+        process.loadEnvFile(join(__dirname, '.env'));
     }
 } catch (err) {
     if (err && err.code !== 'ENOENT') {
@@ -36,7 +38,6 @@ try {
 
 const { execFileSync } = require('node:child_process');
 const { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } = require('node:fs');
-const { join, resolve } = require('node:path');
 
 const {
     loadMcpConfig,

@@ -2,7 +2,7 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { writeFileSync, unlinkSync, mkdtempSync } = require('node:fs');
+const { writeFileSync, unlinkSync, mkdtempSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 
@@ -10,6 +10,8 @@ const {
     loadMcpConfig,
     classifyTransport,
     summariseStatus,
+    expandEnvPlaceholders,
+    expandStdioConfig,
     safeCallTool,
     withTimeout,
 } = require('../lib/mcp-client.js');
@@ -25,35 +27,47 @@ describe('loadMcpConfig', () => {
     test('parses a valid config', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, JSON.stringify({
-            mcpServers: {
-                foo: { command: 'echo', args: ['hi'] },
-                bar: { type: 'streamable-http', url: 'https://example.com' },
-            },
-        }));
-        const config = loadMcpConfig(path);
-        assert.equal(Object.keys(config.mcpServers).length, 2);
-        assert.equal(config.mcpServers.foo.command, 'echo');
-        assert.equal(config.mcpServers.bar.type, 'streamable-http');
-        unlinkSync(path);
+        try {
+            writeFileSync(path, JSON.stringify({
+                mcpServers: {
+                    foo: { command: 'echo', args: ['hi'] },
+                    bar: { type: 'streamable-http', url: 'https://example.com' },
+                },
+            }));
+            const config = loadMcpConfig(path);
+            assert.equal(Object.keys(config.mcpServers).length, 2);
+            assert.equal(config.mcpServers.foo.command, 'echo');
+            assert.equal(config.mcpServers.bar.type, 'streamable-http');
+        } finally {
+            try { unlinkSync(path); } catch { /* noop */ }
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 
     test('returns empty mcpServers on malformed JSON', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, '{ not json }');
-        const config = loadMcpConfig(path);
-        assert.deepEqual(config, { mcpServers: {} });
-        unlinkSync(path);
+        try {
+            writeFileSync(path, '{ not json }');
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config, { mcpServers: {} });
+        } finally {
+            try { unlinkSync(path); } catch { /* noop */ }
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 
     test('returns empty mcpServers when top-level key is missing', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, JSON.stringify({ otherField: 1 }));
-        const config = loadMcpConfig(path);
-        assert.deepEqual(config, { mcpServers: {} });
-        unlinkSync(path);
+        try {
+            writeFileSync(path, JSON.stringify({ otherField: 1 }));
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config, { mcpServers: {} });
+        } finally {
+            try { unlinkSync(path); } catch { /* noop */ }
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 });
 
@@ -96,6 +110,51 @@ describe('summariseStatus', () => {
     test('returns empty arrays for empty input', () => {
         const out = summariseStatus({});
         assert.deepEqual(out, { connected: [], failed: [], skipped: [] });
+    });
+});
+
+/* ---------------------- placeholder expansion ---------------------- */
+
+describe('expandEnvPlaceholders', () => {
+    test('expands ${VAR} placeholders from provided env', () => {
+        const out = expandEnvPlaceholders('x-${FOO}-y', { FOO: 'bar' });
+        assert.deepEqual(out, { ok: true, value: 'x-bar-y' });
+    });
+
+    test('reports missing vars for unresolved placeholders', () => {
+        const out = expandEnvPlaceholders('${A}-${B}', { A: '1' });
+        assert.equal(out.ok, false);
+        assert.deepEqual(out.missing, ['B']);
+    });
+});
+
+describe('expandStdioConfig', () => {
+    test('expands placeholders in command/args/env', () => {
+        const out = expandStdioConfig({
+            command: '${NODE_BIN}',
+            args: ['--cwd', '${WORKSPACE_DIR}'],
+            env: { TOKEN: '${API_TOKEN}', STATIC: 'ok' },
+        }, {
+            NODE_BIN: 'node',
+            WORKSPACE_DIR: '/repo',
+            API_TOKEN: 'secret',
+        });
+        assert.equal(out.ok, true);
+        assert.deepEqual(out.value, {
+            command: 'node',
+            args: ['--cwd', '/repo'],
+            env: { TOKEN: 'secret', STATIC: 'ok' },
+        });
+    });
+
+    test('returns missing vars when placeholders are unresolved', () => {
+        const out = expandStdioConfig({
+            command: 'npx',
+            args: ['${MISSING_ARG}'],
+            env: { TOKEN: '${MISSING_ENV}' },
+        }, {});
+        assert.equal(out.ok, false);
+        assert.deepEqual(out.missing, ['MISSING_ARG', 'MISSING_ENV']);
     });
 });
 

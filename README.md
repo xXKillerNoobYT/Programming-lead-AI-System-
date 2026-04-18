@@ -1,12 +1,12 @@
 # DevLead MCP – Autonomous AI Programming Lead
 
 ## Overview
-Pure orchestrator for software projects. Delegates to 3rd-party agents (Roo Code primary). Local-first (Ollama 25GB + hourly Grok), MCP-native, OpenClaw-style heartbeat, three chat pages.
+DevLead MCP is a local-first autonomous programming-lead runtime built around `heartbeat.js`, MCP tooling, and a Next.js dashboard.
 
 ## Quick Start
-1. `docker compose up` (Ollama + MCP servers + dashboard).
-2. Upload plan to User Guidance Chat.
-3. Watch Execution Log.
+1. `cp .env.example .env` and fill in required values.
+2. `npm install` at repo root (and in `dashboard/` if you will run the UI).
+3. Run `node heartbeat.js` (one-shot) or `node heartbeat.js --watch`.
 
 ## First-Time Setup (30 sec)
 
