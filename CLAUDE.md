@@ -52,11 +52,12 @@ When information conflicts, higher-priority sources win.
 
 | # | Source | Purpose | Writable? |
 |---|---|---|---|
-| 1 | `Docs/Plans/*.md` | Locked user intent | **No** |
+| 1 | `Docs/Plans/*.md` (except `Dev-Q&A.md`) | Locked user intent | **No** |
+| 1a | [`Docs/Plans/Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md) | Async design-question board — system posts, user answers, system cleans up (see §4) | **Yes** — the only writable file under `Docs/Plans/` |
 | 2 | `SOUL.md` | System identity & guardrails | **No** (without GH Issue + approval) |
 | 3 | GitHub Issues (`gh issue list`) | Active task queue | Yes — create/update/close |
 | 4 | `plans/*.md` (esp. `main-plan.md`) | **Your** detailed long-term execution plans derived from #1. Work off these one small piece at a time. Refine them as you learn. | Yes |
-| 5 | `decision-log.md` | Canonical decisions; reuse before re-asking | Append-only |
+| 5 | `decision-log.md` | Canonical decisions; reuse before re-asking. When the user answers a `Dev-Q&A.md` question, record here before removing from Q&A. | Append-only |
 | 6 | [`architecture.md`](architecture.md), [`memory.md`](memory.md) | Living context docs | Update when workflow changes |
 | 7 | `reports/run-*.md` | Progress reports | Append per run |
 | 8 | `.roo/rules/*.md` | Shared workflow rules (follow these) | No (rules live here) |
@@ -81,9 +82,10 @@ Execute these steps **in order**. Treat them as a checklist.
 Run in parallel where possible:
 - `git status` and `git log --oneline -10`
 - Read `plans/main-plan.md` → current phase
-- `gh issue list --state open --limit 20`
+- `gh issue list --state open --limit 30` (use `--limit 30`+ so new Issues aren't silently missed)
 - Read the most recent `reports/run-*.md` for continuity
 - Scan last 5 entries in `decision-log.md`
+- **Read [`Docs/Plans/Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md)** for any user answers that arrived since the last tick — each answered question must be transcribed to `decision-log.md` as a new `D-` entry AND removed from Q&A in this heartbeat (see §4)
 - Read `memory.md` for durable observations
 
 ### Step 2 — Pick ONE atomic task (single-task rule)
@@ -161,10 +163,34 @@ Ask the user **only** when ALL of these are true:
 - The answer is not in existing code, `architecture.md`, or `memory.md`
 - Two or more reasonable defaults exist **and** the choice is hard to reverse
 
-When you must ask:
-- Use `AskUserQuestion` and **batch** related questions into a single prompt
+When you must ask — pick the right channel:
+
+### 4a. Synchronous (in-session only): `AskUserQuestion`
+Use only when the user is live in the session and the heartbeat truly cannot make progress without the answer.
+- Batch related questions into a single prompt
 - Log the blocker in `memory.md`
 - **Pick the next unblocked task instead of idling** — the heartbeat must not stall
+
+### 4b. Asynchronous (default for `/loop` + cron heartbeats): [`Docs/Plans/Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md)
+This is the file-based Q&A board for questions that don't need a synchronous answer. User directive 2026-04-17: *"make sure systome puts design questions in this for the project i'll answer them every now and then and that will unblock tasks. Clean it out of Q&A for tasks that have been completed already. The answer can be stored long term in the decision-log.md."*
+
+**Write protocol** (when posting a new question):
+1. Append a new `### Q-YYYYMMDD-### — Short Title` block to the "Open Questions" section (see the Entry Format at the top of `Dev-Q&A.md`). Q-IDs share the YYYYMMDD-### format but use a `Q-` prefix; they are independent of D-IDs.
+2. Populate: **Posted**, **Blocks** (Issue #s), **Context**, **Options considered** (A/B/C…), **Recommendation** (non-binding), **Hard-to-reverse?** (yes/no), and leave **User answer** empty.
+3. Do not block on it. **Keep working on other Issues.** Note in the current run report that a new Q was posted.
+
+**Read/clean protocol** (every Step 1 orient):
+1. Read `Dev-Q&A.md`. For each question with a non-empty **User answer**:
+   - Record the decision as a new `D-YYYYMMDD-###` entry in `decision-log.md`, citing the Q-ID it resolves
+   - Remove the question block from `Dev-Q&A.md`
+   - Act on the answer this heartbeat if it unblocks the current pick; else file/update the relevant Issue
+2. For each question whose blocking task is now completed (done differently or no longer needed):
+   - Remove the question block
+   - Note the removal in the current run report (not decision-log — it's a cleanup, not a decision)
+3. For each question that is no longer relevant (scope changed, rule changed):
+   - Remove; note in run report
+
+**Rule applies to `heartbeat.js` too.** Once the product runtime can post its own questions, it uses this same file with the same read/clean protocol. Per the multi-layer-decomposition directive: *"this is for you claude code & the program."*
 
 ---
 
@@ -175,7 +201,7 @@ These are blocking. If one is needed, stop and ask.
 - Force-push, `git reset --hard`, dangerous `rm -rf` operations (e.g., deleting outside the repo, targeting `/` or `~`, broad globs, or non-generated source/data directories); **removing generated in-repo build artifacts** such as `dashboard/.next/` or `dashboard/coverage/` is allowed when needed, dropping databases/tables
 - Committing secrets (`.env`, tokens, credentials, API keys)
 - Skipping git hooks (`--no-verify`, `--no-gpg-sign`)
-- Modifying `Docs/Plans/*` (locked user intent)
+- Modifying `Docs/Plans/*` (locked user intent) — **exception**: [`Docs/Plans/Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md) is the one writable file in that folder; edits there follow §4b's read/write/clean protocol
 - Modifying `SOUL.md` (requires GH Issue per SOUL directive)
 - Publishing to external services (npm publish, Docker Hub, PyPI, etc.)
 - Closing GH Issues you did not resolve
@@ -193,6 +219,7 @@ These are blocking. If one is needed, stop and ask.
 - **Run-complete ↔ Issue-close pairing** — every `decision-log.md` entry that marks a Run as complete MUST close the corresponding GH Issue(s) in the same heartbeat (via `gh issue close` with a comment citing the Decision ID + Run report). No decision logged as "Run N complete" may coexist with an open Issue for that Run. Captured from Issue #5 (D-20260417-011).
 - **GitHub is source of truth for Issues** — update Issues only via `gh` CLI or MCP; never edit `.vscode/github-issues/*.md` directly. That folder is a one-way pull cache and local edits are discarded on next sync.
 - **Heartbeat pick order: oldest-first is the default, not a hard rule** — in Step 2, the default heuristic is to sort open `status:backlog` Issues by creation time ascending and pick the head. Per user directive 2026-04-17 (reaffirmed and softened 2026-04-17): oldest-first is a *recommendation*, not a requirement. Deviate when any of these apply: (a) the user explicitly redirects, (b) a newer Issue is an active blocker for older work, (c) a newer Issue directly advances the **core backbone** (DevLead MCP runtime: `heartbeat.js`, MCP orchestrator, branch/agent management) while the older queue is entirely housekeeping/meta-work — the end-goal overrides age. Always continue `status:in-progress` first. Finish before switching — spawn child Issues if scope grows, do not context-switch mid-heartbeat. Record the reason in the run report whenever you deviate from oldest-first.
+- **Async design questions via [`Docs/Plans/Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md)** — per user directive 2026-04-17: *"make sure systome puts design questions in this for the project i'll answer them every now and then and that will unblock tasks. Clean it out of Q&A for tasks that have been completed already. The answer can be stored long term in the decision-log.md."* See §4b for the full read/write/clean protocol. Short form: (a) post with `Q-YYYYMMDD-###` header when a design decision blocks work but the heartbeat can keep moving elsewhere; (b) every Step 1 orient, read the file — transcribe answers to `decision-log.md` as new `D-` entries AND delete the question block; (c) also delete questions whose blocking task got done a different way or became moot (note in run report). Applies to both Claude Code and `heartbeat.js` once it can post its own questions.
 - **Multi-layer decomposition via GH sub-issues** — per user directive 2026-04-17: *"The issues need to be taken care of broken down into small tasks if they're large using the child task feature … I don't care how many layers there has to be in order to do this properly but it needs to be smart about it."* Rules:
   1. **If an Issue is too big for one heartbeat, decompose it into sub-issues using GitHub's native child-issue feature**, not just text references. Create children via `gh api graphql` with the `addSubIssue` mutation (or `gh issue edit --add-sub-issue` once that flag ships). Each child is a standalone atomic Issue with its own AC and labels; the parent tracks the relationship.
   2. **Children must close before their parent closes.** When picking work (§3 Step 2), prefer an open *leaf* (no open children) before picking any Issue with open children — the parent is not ready.
