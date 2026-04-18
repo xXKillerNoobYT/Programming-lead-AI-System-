@@ -77,6 +77,25 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 
     d. **Record** — the run report must include a `## Merge + Security Audit` section listing: PRs merged (with SHA), PRs closed-as-superseded, Dependabot alerts resolved, any unresolved-and-file Issue numbers.
 
+12. **Schedule the next tick (always — last station before end)** — per **D-20260418-014** (cadence retune) + **D-20260418-016** (wiring). After committing and closing the Issue, call:
+
+    ```
+    ScheduleWakeup({
+      delaySeconds: <clamp(ideal, 60, 270)>,
+      prompt: "<<autonomous-loop-dynamic>>",
+      reason: "tick N complete, next tick in Xm (backlog: N open | plan: healthy/fuzzy | PRs: N pending merge-audit)"
+    })
+    ```
+
+    **Ideal-delay heuristic** (pick the first that matches):
+    - Backlog empty AND no PRs pending AND no active `status:in-progress` → **270s** (≈4.5 min — idle ceiling, stays cache-warm)
+    - Something actively queued (backlog ≥ 1, or PR pending merge-audit, or leaf sub-issue waiting) → **60s** (minimum; go fast)
+    - Tick ended on an UNRESOLVED collision per the Singular-Heartbeat rule → **270s** (let the other session finish first, don't race it)
+
+    **Clamp is mandatory**: ScheduleWakeup's hard floor is 60s; the 270s ceiling stays under the 5-min prompt-cache TTL so next-tick re-entry is cache-warm. Do not exceed 270s without a recorded Decision updating the clamp.
+
+    **End of tick.** After `ScheduleWakeup` returns, the tick is complete. The harness will invoke `/heartbeat` again at the scheduled time.
+
 ## Hard stops (CLAUDE.md §5 — NEVER without explicit user approval)
 Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip hooks · modify `Docs/Plans/*` (except `Dev-Q&A.md`) · modify `SOUL.md` · publish to external services · close GH Issues you did not resolve · add Docker / containers / Python venvs · chat-platform messaging.
 
