@@ -44,10 +44,11 @@ If the Issue is creative or spans >1 heartbeat:
 Skip for atomic mechanical Issues (single-file edits, doc-only fixes, settings tweaks).
 
 ### 4. Branch (code-producing Issues)
-- `git checkout main && git pull --ff-only`
-- `git checkout -b issue-<N>/<slug>`
+- `git fetch origin`
+- `git checkout beta && git pull --ff-only`  (fall back to `main` ONLY if `beta` doesn't exist yet — pre-stack-drain state)
+- `git checkout -b <type>/issue-<N>-<slug>` where `<type>` is `feature`, `bugfix`, or `hotfix`
 
-Per D-20260418-009 user directive: branches per Issue (not worktrees) unless parallel ticks genuinely require isolation. Docs-only Issues MAY skip this station if they commit directly to the current dev branch — note in run report.
+Per **D-20260418-026** (branching strategy): feature/bugfix branches off `beta`; hotfixes off `main` (rare, user-authorized only). Per D-20260418-009: branches per Issue (not worktrees) unless parallel ticks genuinely require isolation. Docs-only Issues MAY skip this station if they commit to a `meta/<slug>` branch-tag (per D-20260418-025) — note in run report.
 
 ### 5. Build with TDD (code-producing Issues — per §6 TDD scope)
 Invoke **`superpowers:test-driven-development`** skill. Follow red → green → refactor.
@@ -76,15 +77,17 @@ Invoke **`commit-commands:commit-push-pr`** skill. Pushes branch and opens PR ag
 ### 10. Review
 Invoke **`pr-review-toolkit:review-pr`** skill — a panel of `code-reviewer`, `silent-failure-hunter`, `pr-test-analyzer`, `type-design-analyzer`, and `comment-analyzer` subagents. Capture each verdict in the run report.
 
-### 11. Merge (gated auto-merge of THIS tick's PR)
-Per CLAUDE.md §6 auto-merge policy. All FIVE gates must pass:
+### 11. Merge (gated auto-merge of THIS tick's PR → `beta`)
+Per CLAUDE.md §6 auto-merge policy + **D-20260418-026** branching strategy. Target is **`beta`**, not `main`. All FIVE gates must pass:
 1. Full relevant suite green on the PR branch
 2. No review finding rated ≥ blocker
 3. No open `silent-failure-hunter` findings on the PR
-4. No merge conflicts vs. `main`
+4. No merge conflicts vs. `beta`
 5. The Issue (referenced in the PR body) carries the `auto-merge:ok` label
 
 If all five pass: `gh pr merge <N> --squash --delete-branch` (NEVER `--admin` — that bypasses branch protection). Else: leave PR open, comment with the blocker summary, move on. The next heartbeat (or the user) picks it up.
+
+**Pre-stack-drain fallback**: if `beta` branch does not yet exist (the 15-PR Q-002 click-through hasn't landed yet), PRs target `main` as they do today. Once `beta` is created off cleaned `main`, switch targets on new PRs from that tick forward.
 
 ### 11b. Merge + Security Audit (conditional cross-tick sweep)
 A tick **qualifies** for this station if ANY of:
@@ -98,7 +101,7 @@ a. **Safe merges of OTHER MERGEABLE+CLEAN PRs** — for each: `gh pr view N` con
 
 b. **Dependabot alerts** — `gh api repos/{owner}/{repo}/dependabot/alerts --jq '.[] | select(.state == "open")'`. For each `critical`/`high`: merge the Dependabot PR if one exists (under 11b.a); else file an Issue (Polsia Rule 2). Batch `medium`/`low` into one triage Issue.
 
-c. **Supersession sweep — 3-day grace** (D-20260418-012): on first detection of a CONFLICTING+DIRTY PR whose commits are already in `main`, post a dated "Superseded by … Auto-close scheduled for … if no new activity" comment; do NOT close this tick. On subsequent ticks, close if (i) the comment exists, (ii) the scheduled date has passed, (iii) no new commits landed since. Never auto-close a PR with unique commits.
+c. **Supersession sweep — 6-hour grace** (per **D-20260418-027**, retuning D-20260418-012 per user directive 2026-04-18): on first detection of a CONFLICTING+DIRTY PR whose commits are already in `main` (or `beta`, once that branch exists), post a timestamped "Superseded by ... Auto-close scheduled for `<now + 6h>` if no new activity" comment; do NOT close this tick. On subsequent ticks, close if (i) the comment exists, (ii) the scheduled time has passed, (iii) no new commits landed since. Never auto-close a PR with unique commits. The 6-hour window matches the 1–4.5-min self-pacing cadence from D-20260418-014 — at ≥15 ticks/hour, 6h is ample for the PR owner to react.
 
 d. **Record** — run report must include a `## Merge + Security Audit` section listing PRs merged (with SHA), PRs closed-as-superseded, Dependabot alerts resolved, and any filed Issue numbers.
 
