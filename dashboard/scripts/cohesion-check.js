@@ -19,7 +19,7 @@
 // string interpolation" AC in Issue #23.
 
 const { spawnSync } = require('node:child_process');
-const { mkdirSync, writeFileSync } = require('node:fs');
+const { mkdirSync, writeFileSync, readFileSync, existsSync } = require('node:fs');
 const path = require('node:path');
 
 const CHECKS = [
@@ -96,6 +96,41 @@ function writeReport(results, decisionId) {
   return outPath;
 }
 
+// Phase 3 §A.4 (D-20260418-023): on a fully green run, persist the
+// current coverage percentages to reports/coverage-floor.json so future
+// runs enforce "don't drop below last-green." Only ratchets up — a red
+// run never writes the floor.
+const COVERAGE_SUMMARY_PATH = path.join(DASHBOARD_ROOT, 'coverage', 'coverage-summary.json');
+const COVERAGE_FLOOR_PATH = path.join(__dirname, '..', '..', 'reports', 'coverage-floor.json');
+
+function writeCoverageFloorIfGreen(results, decisionId, ts) {
+  const overallPassed = results.every((r) => r.passed);
+  if (!overallPassed) return null;
+  if (!existsSync(COVERAGE_SUMMARY_PATH)) return null;
+
+  let summary;
+  try {
+    summary = JSON.parse(readFileSync(COVERAGE_SUMMARY_PATH, 'utf8'));
+  } catch (err) {
+    console.warn(`[cohesion-check] coverage-summary.json parse failed: ${err.message}`);
+    return null;
+  }
+
+  const total = summary?.total;
+  if (!total || typeof total.statements?.pct !== 'number') return null;
+
+  const floor = {
+    ts,
+    decisionId: decisionId ?? null,
+    statements: total.statements.pct,
+    branches: total.branches.pct,
+    functions: total.functions.pct,
+    lines: total.lines.pct,
+  };
+  writeFileSync(COVERAGE_FLOOR_PATH, JSON.stringify(floor, null, 2) + '\n');
+  return { path: COVERAGE_FLOOR_PATH, floor };
+}
+
 function main() {
   const failFast = !process.argv.includes('--all');
   const decisionId = process.env.COHESION_DECISION_ID ?? null;
@@ -107,11 +142,21 @@ function main() {
   );
 
   const results = runAll(failFast);
+  const ts = new Date().toISOString();
   const outPath = writeReport(results, decisionId);
   const overallPassed = results.every((r) => r.passed);
 
   console.log(`\n[cohesion-check] report → ${path.relative(process.cwd(), outPath)}`);
   console.log(overallPassed ? '[cohesion-check] ✓ ALL PASSED' : '[cohesion-check] ✗ FAILED');
+
+  // §A.4: persist coverage floor on green runs only.
+  const floorResult = writeCoverageFloorIfGreen(results, decisionId, ts);
+  if (floorResult) {
+    const { floor } = floorResult;
+    console.log(
+      `[cohesion-check] coverage floor updated → stmts ${floor.statements}% / branches ${floor.branches}% / funcs ${floor.functions}% / lines ${floor.lines}%`
+    );
+  }
 
   // Summary table for humans
   console.log('\nSummary:');
@@ -128,4 +173,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { CHECKS, runSingle, runAll, writeReport };
+module.exports = { CHECKS, runSingle, runAll, writeReport, writeCoverageFloorIfGreen };
