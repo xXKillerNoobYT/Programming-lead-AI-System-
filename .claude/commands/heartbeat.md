@@ -11,6 +11,30 @@ description: Execute one tick of the autonomous programming-lead heartbeat loop 
 
 The SOUL is the load-bearing identity: **singular heartbeat, no parallel peer**. If you see parallel-session signals mid-tick (D-ID collisions, Run-N title thrashing, unattributed commits on your branch), stop and end the tick per the Singular-Heartbeat rule.
 
+**Skill discipline**: Per `superpowers:using-superpowers` — invoke any relevant skill BEFORE acting, even if a skill *might* apply (1%-chance rule). The catalog immediately below names which skill activates at which station; any mid-station decision that isn't in the catalog triggers a fresh `superpowers:using-superpowers` check.
+
+## Superpowers catalog (skills this pipeline uses — per **D-20260418-029**)
+
+| Station | Skill / Subagent | When |
+|---|---|---|
+| (pre-tick) | `superpowers:using-superpowers` | Any mid-tick decision not pre-mapped in this catalog |
+| 2 | `issue-triage-picker` (project subagent) | Always |
+| 3 | `superpowers:brainstorming` | Creative/multi-step Issues only |
+| 3 | `superpowers:writing-plans` | When work spans > 1 heartbeat |
+| 3 | `superpowers:dispatching-parallel-agents` | Plan identifies ≥ 2 truly-independent subtasks |
+| 3 | `superpowers:subagent-driven-development` | Plan decomposes into subagent-executable pieces |
+| 3 | `superpowers:executing-plans` | A written plan exists and needs checkpointed execution |
+| 5 | `superpowers:test-driven-development` | Always for production-code Issues (per D-028) |
+| 5b | `superpowers:systematic-debugging` | On ≥ 3 failed fix attempts or confusing behavior |
+| 7 | `superpowers:verification-before-completion` | Always before claiming done |
+| 8 | `commit-commands:commit` (separate plugin) | Always |
+| 9 | `commit-commands:commit-push-pr` (separate plugin) | Always (unless meta-branch tick) |
+| 10 | `pr-review-toolkit:review-pr` (separate plugin) | Always after Station 9 |
+| 10b | `superpowers:receiving-code-review` | Always after Station 10 returns findings |
+| 11 | `superpowers:finishing-a-development-branch` | Always before attempting the 5-gate merge |
+| 12 | `run-report-validator` (project subagent) | Optional; recommended for non-trivial ticks |
+| (escape) | `post-dev-qa` (project skill) | Any station that hits a blocking design question without a live user |
+
 ---
 
 Execute **one tick** of the intelligent heartbeat pipeline per `CLAUDE.md` §3 + **D-20260418-009**. The pipeline is a sequence of numbered stations; each station names the skill or subagent it invokes. Skip a station only when it does not apply — and note why in the run report.
@@ -41,7 +65,13 @@ If the Issue is creative or spans >1 heartbeat:
 - Invoke `superpowers:brainstorming` skill to resolve intent + design
 - Invoke `superpowers:writing-plans` skill to write a `plans/*.md` entry
 
-Skip for atomic mechanical Issues (single-file edits, doc-only fixes, settings tweaks).
+If the plan identifies **≥ 2 truly-independent subtasks** (no shared state, no sequential dependencies):
+- Consider `superpowers:dispatching-parallel-agents` for concurrent execution
+- OR `superpowers:subagent-driven-development` when each subtask fits a subagent prompt-contract
+
+If a written plan in `plans/*.md` needs checkpointed execution across future ticks, invoke `superpowers:executing-plans` at plan-consumption time — not this tick. This tick just writes the plan and opens atomic sub-issues per D-20260417-018.
+
+Skip Station 3 entirely for atomic mechanical Issues (single-file edits, doc-only fixes, settings tweaks).
 
 ### 4. Branch (code-producing Issues)
 - `git fetch origin`
@@ -77,7 +107,15 @@ Invoke **`commit-commands:commit-push-pr`** skill. Pushes branch and opens PR ag
 ### 10. Review
 Invoke **`pr-review-toolkit:review-pr`** skill — a panel of `code-reviewer`, `silent-failure-hunter`, `pr-test-analyzer`, `type-design-analyzer`, and `comment-analyzer` subagents. Capture each verdict in the run report.
 
+### 10b. Respond to review findings
+Invoke **`superpowers:receiving-code-review`** skill. It enforces: technical rigor over performative agreement, verification-before-implementation of suggestions, and pushback on unclear/questionable feedback. This is what stops the "accept every reviewer comment" anti-pattern and also stops dismissing real findings.
+
+Summarize the response decisions in the run report (e.g., "accepted: X; pushed back with rationale: Y; implemented with modification: Z"). If any finding is rated ≥ blocker by the review panel AND you disagree, file a Dev-Q&A entry rather than merging unilaterally.
+
 ### 11. Merge (gated auto-merge of THIS tick's PR → `beta`)
+
+**Pre-gate sanity**: invoke **`superpowers:finishing-a-development-branch`** skill. It asks: is the work actually complete? Are tests real and passing? Is documentation updated? Are there any dangling TODOs? Branch ready to be final? Use its structured options to confirm before running the 5-gate check — it catches the "functionally done but not really complete" case.
+
 Per CLAUDE.md §6 auto-merge policy + **D-20260418-026** branching strategy. Target is **`beta`**, not `main`. All FIVE gates must pass:
 1. Full relevant suite green on the PR branch
 2. No review finding rated ≥ blocker

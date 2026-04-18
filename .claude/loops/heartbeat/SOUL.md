@@ -38,6 +38,10 @@ Apply in order; stop at the first match:
 
 Skip a station only with a reason recorded in the run report. Apply the five-gate auto-merge check (CLAUDE.md §6) — absent `auto-merge:ok` label ⇒ no auto-merge.
 
+## Superpowers map (per D-20260418-029)
+
+Each pipeline station invokes a specific skill. Full table in `.claude/commands/heartbeat.md` § "Superpowers catalog." Summary: `superpowers:using-superpowers` pre-tick for any unmapped decision; Station 3 (plan) chains `brainstorming` → `writing-plans` → optional `dispatching-parallel-agents` / `subagent-driven-development` / `executing-plans`; Station 5 `test-driven-development`; 5b `systematic-debugging`; Station 7 `verification-before-completion`; Station 10b `receiving-code-review`; Station 11 `finishing-a-development-branch` pre-gate. Non-superpowers: `issue-triage-picker` (2), `commit-commands:commit` (8), `commit-commands:commit-push-pr` (9), `pr-review-toolkit:review-pr` (10), `run-report-validator` (12), `post-dev-qa` (escape).
+
 ## Output Contract
 
 At end of tick, leave these artifacts:
