@@ -8,7 +8,14 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "check:lint": "next lint",
+    "check:types": "tsc --noEmit",
+    "check:tests": "jest",
+    "check:coverage-threshold": "node scripts/check-coverage-threshold.js",
+    "check:arch": "node scripts/check-arch.js",
+    "check:deps": "npm audit --audit-level=high --omit=dev",
+    "check:all": "npm run check:lint && npm run check:types && npm run check:tests && npm run check:coverage-threshold && npm run check:arch && npm run check:deps"
   },
   "dependencies": {
     "next": "15.0.0-rc.0",
