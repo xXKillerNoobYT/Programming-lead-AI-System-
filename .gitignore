@@ -13,6 +13,10 @@ dashboard/coverage/
 # Cohesion-check run artifacts — keep dir, ignore contents (Phase 3 §A.2)
 reports/cohesion/*.json
 
+# PM2 log files — keep dir (`.gitkeep`), ignore contents (Phase 4 §A.1)
+logs/*
+!logs/.gitkeep
+
 # Environment variables (never commit)
 .env
 .env.local
