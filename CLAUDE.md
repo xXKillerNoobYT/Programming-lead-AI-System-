@@ -120,7 +120,7 @@ Before acting on anything non-trivial:
 
 ### Step 4 — Execute (the intelligent pipeline)
 
-Per **D-20260418-008**, the execute phase is a pipeline of skill-driven stations, not a loose bullet list. Run the applicable stations in order. Skip a station only when it does not apply (and note why in the run report). This mirrors onto the `heartbeat.js` runtime — see §6 "Heartbeat pipeline" bullet.
+Per **D-20260418-009**, the execute phase is a pipeline of skill-driven stations, not a loose bullet list. Run the applicable stations in order. Skip a station only when it does not apply (and note why in the run report). This mirrors onto the `heartbeat.js` runtime — see §6 "Heartbeat pipeline" bullet.
 
 **4a. Brainstorm & plan** — if the Issue is creative or multi-step:
 - Invoke `superpowers:brainstorming` to resolve intent + design.
@@ -270,10 +270,10 @@ These are blocking. If one is needed, stop and ask.
   4. **Be smart about it.** Do not decompose trivially; aim for the smallest decomposition that makes each leaf finishable in one heartbeat. If a decomposition produces >6 siblings, it is likely too flat — group related children under an intermediate sub-epic instead.
   5. **Parent Issue body should list its children** (or link to the GitHub-rendered sub-issue list). When all children close, the parent's AC "all sub-issues closed" auto-trips and the parent can be closed with a final Decision ID.
   6. **This rule applies to BOTH** (a) Claude Code as orchestrator creating Issues for the coding agent, and (b) the product runtime (`heartbeat.js`) once it gains the ability to decompose plans itself. Per user directive: *"this is for you claude code & the program that i want this applyed to."*
-- **TDD is mandatory for code-producing Issues** (agent side AND runtime side; per **D-20260418-008**). Scope = *pragmatic default*: required for `heartbeat.js`, `dashboard/`, `lib/`, `scripts/` that ship to production, and MCP-server code. Exempt: one-off diagnostic scripts, fixtures, generated files, and docs/config-only edits. Exempt Issues must say so explicitly in the run report (one line: "TDD exempt — docs-only"). Scope revisits on tick 30 per Issue #40.
-- **Heartbeat pipeline (intelligent, skill-chained)** — per **D-20260418-008**, §3 Step 4 is a pipeline of stations (brainstorm → plan → branch → TDD → capture → verify → commit → PR → review → merge → record → plan-ahead). Skip a station only with reason in the run report. This applies to BOTH Claude Code `/loop` AND the `heartbeat.js` runtime (when it can delegate to coding agents via MCP, the delegated-task contract must require red+green test logs + diff).
-- **Auto-merge policy — gated** (per **D-20260418-008**; user decision "policy B" 2026-04-18). The heartbeat may auto-merge a PR it opens only when ALL five gates pass: (1) full suite green; (2) no review finding ≥ blocker; (3) no `silent-failure-hunter` findings; (4) no merge conflicts; (5) Issue labeled `auto-merge:ok`. Any failure → PR stays open with blocker comment. Never auto-merge from a branch not prefixed `issue-<N>/`, and never bypass review. Absent label ⇒ no auto-merge, even if all other gates pass.
-- **Self-pacing cadence** — per **D-20260418-008**, each tick ends with `ScheduleWakeup(delaySeconds = clamp(ideal, 900, 3600), prompt = "<<autonomous-loop-dynamic>>")`. Minimum 15 min (avoids thrashing), maximum 60 min (avoids idling). Matches user directive 2026-04-18: *"once an hour or 15 minutes after the last one stopped."*
+- **TDD is mandatory for code-producing Issues** (agent side AND runtime side; per **D-20260418-009**). Scope = *pragmatic default*: required for `heartbeat.js`, `dashboard/`, `lib/`, `scripts/` that ship to production, and MCP-server code. Exempt: one-off diagnostic scripts, fixtures, generated files, and docs/config-only edits. Exempt Issues must say so explicitly in the run report (one line: "TDD exempt — docs-only"). Scope revisits on tick 30 per Issue #40.
+- **Heartbeat pipeline (intelligent, skill-chained)** — per **D-20260418-009**, §3 Step 4 is a pipeline of stations (brainstorm → plan → branch → TDD → capture → verify → commit → PR → review → merge → record → plan-ahead). Skip a station only with reason in the run report. This applies to BOTH Claude Code `/loop` AND the `heartbeat.js` runtime (when it can delegate to coding agents via MCP, the delegated-task contract must require red+green test logs + diff).
+- **Auto-merge policy — gated** (per **D-20260418-009**; user decision "policy B" 2026-04-18). The heartbeat may auto-merge a PR it opens only when ALL five gates pass: (1) full suite green; (2) no review finding ≥ blocker; (3) no `silent-failure-hunter` findings; (4) no merge conflicts; (5) Issue labeled `auto-merge:ok`. Any failure → PR stays open with blocker comment. Never auto-merge from a branch not prefixed `issue-<N>/`, and never bypass review. Absent label ⇒ no auto-merge, even if all other gates pass.
+- **Self-pacing cadence** — per **D-20260418-009**, each tick ends with `ScheduleWakeup(delaySeconds = clamp(ideal, 900, 3600), prompt = "<<autonomous-loop-dynamic>>")`. Minimum 15 min (avoids thrashing), maximum 60 min (avoids idling). Matches user directive 2026-04-18: *"once an hour or 15 minutes after the last one stopped."*
 - **Documentation** — when workflow behavior changes, update `README.md` / `architecture.md` / `memory.md` in the same commit
 - **Testing pyramid** — 70% unit, 20% integration, 10% E2E (per `plans/main-plan.md`)
 - **Three-chat dashboard** — Coding AI Relay, User Guidance, Execution Log (do not add or remove tabs without an Issue + decision)
@@ -287,7 +287,7 @@ This file + the plans under `Docs/Plans/` are the authoritative workflow guidanc
 - **Native**: `Read`, `Edit`, `Write`, `Grep`, `Glob`, `Bash` (node, npm, git, `gh`)
 - **Subagents**: `Agent` tool — use `Explore` for codebase search, `general-purpose` for multi-step tasks, specialized agents (code-reviewer, plugin-validator, etc.) when they fit
 - **Project MCP servers** (configured in [`.mcp.json`](.mcp.json); activate after Claude Code restarts):
-  - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) backed by `$MEMPALACE_PALACE_PATH` (required env var — see [`README.md`](README.md) "Setup" section; historically a hardcoded absolute Windows path, parameterised for portability per D-20260418-008 / Issue #17). Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.
+  - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) backed by `$MEMPALACE_PALACE_PATH` (required env var — see [`README.md`](README.md) "Setup" section; historically a hardcoded absolute Windows path, parameterised for portability per D-20260418-009 / Issue #17). Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.
   - `sequentialthinking` — step-by-step reasoning for hard decomposition problems.
   - `context7` — up-to-date library/API docs (prefer over web search for SDKs and frameworks).
   - `puppeteer` — browser automation (headed verification of the Next.js dashboard).
@@ -331,7 +331,7 @@ A phase in `plans/main-plan.md` is complete when **all** are true:
 - `decision-log.md` is up to date
 - Living docs (`architecture.md`, `memory.md`) reflect the new state
 - Commits pushed to the canonical branch per git convention
-- **Every code change in the phase has a test that was observed to fail before the fix existed** (red → green evidence in the relevant run report) — per **D-20260418-008**
+- **Every code change in the phase has a test that was observed to fail before the fix existed** (red → green evidence in the relevant run report) — per **D-20260418-009**
 - **TDD-exempt Issues** (docs/config-only per §6 TDD-scope bullet) explicitly declared so in their run report
 
 When a phase completes: open the next phase's first Issue and start the next heartbeat.
