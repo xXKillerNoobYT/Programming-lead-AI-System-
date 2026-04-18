@@ -18,7 +18,7 @@
     "check:all": "npm run check:lint && npm run check:types && npm run check:tests && npm run check:coverage-threshold && npm run check:arch && npm run check:deps"
   },
   "dependencies": {
-    "next": "15.0.0-rc.0",
+    "next": "15.5.15",
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
     "ws": "^8.18.0"
@@ -33,7 +33,7 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
-    "eslint-config-next": "15.0.0-rc.0",
+    "eslint-config-next": "15.5.15",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "jsdom": "^29.0.2",
