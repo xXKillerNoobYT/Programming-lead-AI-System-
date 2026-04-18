@@ -6,7 +6,7 @@
     "scripts": {
         "heartbeat": "node heartbeat.js",
         "heartbeat:watch": "node heartbeat.js --watch",
-        "test": "node --test tests/heartbeat.test.js"
+        "test": "node --test tests/heartbeat.test.js tests/auto-merge-gate.test.js"
     },
     "engines": {
         "node": ">=18"
