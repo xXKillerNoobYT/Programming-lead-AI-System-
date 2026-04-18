@@ -15,7 +15,8 @@
     "check:coverage-threshold": "node scripts/check-coverage-threshold.js",
     "check:arch": "node scripts/check-arch.js",
     "check:deps": "npm audit --audit-level=high --omit=dev",
-    "check:all": "npm run check:lint && npm run check:types && npm run check:tests && npm run check:coverage-threshold && npm run check:arch && npm run check:deps"
+    "check:all": "node scripts/cohesion-check.js",
+    "check:all:shell": "npm run check:lint && npm run check:types && npm run check:tests && npm run check:coverage-threshold && npm run check:arch && npm run check:deps"
   },
   "dependencies": {
     "next": "15.5.15",
