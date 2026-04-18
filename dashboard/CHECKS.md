@@ -13,7 +13,7 @@ Ref: [`plans/phase-3-plan.md`](../plans/phase-3-plan.md) §A.1 · D-20260418-008
 | `check:coverage-threshold` | `node scripts/check-coverage-threshold.js` | Jest with `--coverageThreshold` from `reports/coverage-floor.json` (defaults to 90% until §A.4 writes the floor) |
 | `check:arch` | `node scripts/check-arch.js` | Architecture-lint placeholder (fills in at §A.5) |
 | `check:deps` | `npm audit --audit-level=high --omit=dev` | Non-zero on high/critical runtime vulns |
-| `check:all` | sequential `&&` chain | Runs all of the above in order, fails fast at first non-zero |
+| `check:all` | `node scripts/cohesion-check.js` | Runs the check suite via the cohesion runner (fail-fast by default) |
 
 ## Invocation
 From `dashboard/`:
