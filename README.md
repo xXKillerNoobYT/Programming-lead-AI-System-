@@ -1,12 +1,12 @@
 # DevLead MCP – Autonomous AI Programming Lead
 
 ## Overview
-Pure orchestrator for software projects. Delegates to 3rd-party agents (Roo Code primary). Local-first (Ollama 25GB + hourly Grok), MCP-native, OpenClaw-style heartbeat, three chat pages.
+DevLead MCP is an autonomous software-development system with heartbeat-driven execution and a three-chat dashboard (Coding Relay, User Guidance, Execution Log). Claude Code is the active coding lead, and local Node.js is the supported runtime.
 
 ## Quick Start
-1. `docker compose up` (Ollama + MCP servers + dashboard).
-2. Upload plan to User Guidance Chat.
-3. Watch Execution Log.
+1. `cp .env.example .env` and fill in required values.
+2. `npm install` at repo root, then `cd dashboard && npm install && cd ..`.
+3. Start Claude Code in the repo root and run `node heartbeat.js` (or `node heartbeat.js --watch`).
 
 ## First-Time Setup (30 sec)
 
