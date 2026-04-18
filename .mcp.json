@@ -59,7 +59,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "C:/Users/weird/.GitHub/Programming-lead-AI-System-"
+        "${MCP_FILESYSTEM_ROOT}"
       ]
     }
   }

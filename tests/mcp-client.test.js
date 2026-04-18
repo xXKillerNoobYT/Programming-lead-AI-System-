@@ -2,13 +2,14 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { writeFileSync, unlinkSync, mkdtempSync } = require('node:fs');
+const { writeFileSync, unlinkSync, mkdtempSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 
 const {
     loadMcpConfig,
     classifyTransport,
+    connectServers,
     summariseStatus,
     safeCallTool,
     withTimeout,
@@ -25,35 +26,60 @@ describe('loadMcpConfig', () => {
     test('parses a valid config', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, JSON.stringify({
-            mcpServers: {
-                foo: { command: 'echo', args: ['hi'] },
-                bar: { type: 'streamable-http', url: 'https://example.com' },
-            },
-        }));
-        const config = loadMcpConfig(path);
-        assert.equal(Object.keys(config.mcpServers).length, 2);
-        assert.equal(config.mcpServers.foo.command, 'echo');
-        assert.equal(config.mcpServers.bar.type, 'streamable-http');
-        unlinkSync(path);
+        try {
+            writeFileSync(path, JSON.stringify({
+                mcpServers: {
+                    foo: { command: 'echo', args: ['hi'] },
+                    bar: { type: 'streamable-http', url: 'https://example.com' },
+                },
+            }));
+            const config = loadMcpConfig(path);
+            assert.equal(Object.keys(config.mcpServers).length, 2);
+            assert.equal(config.mcpServers.foo.command, 'echo');
+            assert.equal(config.mcpServers.bar.type, 'streamable-http');
+        } finally {
+            try { unlinkSync(path); } catch { /* ignore */ }
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 
     test('returns empty mcpServers on malformed JSON', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, '{ not json }');
-        const config = loadMcpConfig(path);
-        assert.deepEqual(config, { mcpServers: {} });
-        unlinkSync(path);
+        try {
+            writeFileSync(path, '{ not json }');
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config, { mcpServers: {} });
+        } finally {
+            try { unlinkSync(path); } catch { /* ignore */ }
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 
     test('returns empty mcpServers when top-level key is missing', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, JSON.stringify({ otherField: 1 }));
-        const config = loadMcpConfig(path);
-        assert.deepEqual(config, { mcpServers: {} });
-        unlinkSync(path);
+        try {
+            writeFileSync(path, JSON.stringify({ otherField: 1 }));
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config, { mcpServers: {} });
+        } finally {
+            try { unlinkSync(path); } catch { /* ignore */ }
+            rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
+    test('returns empty mcpServers when key is not an object', () => {
+        const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
+        const path = join(dir, 'mcp.json');
+        try {
+            writeFileSync(path, JSON.stringify({ mcpServers: ['bad'] }));
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config, { mcpServers: {} });
+        } finally {
+            try { unlinkSync(path); } catch { /* ignore */ }
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 });
 
@@ -99,6 +125,21 @@ describe('summariseStatus', () => {
     });
 });
 
+/* ---------------------------- connectServers ---------------------------- */
+
+describe('connectServers', () => {
+    test('skips non-stdio transports without attempting connection', async () => {
+        const out = await connectServers({
+            mcpServers: {
+                remote: { type: 'streamable-http', url: 'https://example.com' },
+                unknownish: { foo: 'bar' },
+            },
+        });
+        assert.deepEqual(out.remote, { status: 'skipped', reason: 'unsupported transport: streamable-http' });
+        assert.deepEqual(out.unknownish, { status: 'skipped', reason: 'unsupported transport: unknown' });
+    });
+});
+
 /* ---------------------------- safeCallTool ---------------------------- */
 
 describe('safeCallTool', () => {
@@ -128,6 +169,11 @@ describe('safeCallTool', () => {
         };
         const out = await safeCallTool(record, 'ping', { msg: 'hi' });
         assert.deepEqual(out.result, { echoed: { name: 'ping', args: { msg: 'hi' } } });
+    });
+
+    test('treats missing tools list as empty without throwing', async () => {
+        const out = await safeCallTool({ status: 'connected', client: {} }, 'ping');
+        assert.match(out.error, /tool "ping" not found/);
     });
 
     test('returns error when fake client throws', async () => {
