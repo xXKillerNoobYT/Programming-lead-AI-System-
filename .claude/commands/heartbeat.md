@@ -58,6 +58,8 @@ Read state in parallel:
 - Exception: if the branch has been stale ≥ 3 days, file a Dev-Q&A entry + continue the stale branch's Issue (or close it with user approval).
 - `hotfix/*` branches are user-authorized per incident and don't block new `feature/bugfix/*` picks.
 
+**`status:needs-user` filter (per D-20260418-033)**: Issues labeled `status:needs-user` are on the user's plate, not mine. Exclude them from the picker's ranked output. If the ONLY remaining open Issues are all `status:needs-user`, Station 14's ideal-delay heuristic picks bucket 4 ("live user + backlog awaiting user") → 270s cache-warm wait, and the next tick re-checks.
+
 Invoke the **`issue-triage-picker`** subagent (via `Agent` tool). It returns a ranked candidate + reason per the 4-layer tree:
 1. `status:in-progress` Issue → continue it
 2. Open leaf sub-issue of open parent → pick leaf (D-20260417-018)
