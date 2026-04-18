@@ -2,7 +2,7 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { writeFileSync, unlinkSync, mkdtempSync } = require('node:fs');
+const { writeFileSync, rmSync, mkdtempSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 
@@ -25,35 +25,56 @@ describe('loadMcpConfig', () => {
     test('parses a valid config', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, JSON.stringify({
-            mcpServers: {
-                foo: { command: 'echo', args: ['hi'] },
-                bar: { type: 'streamable-http', url: 'https://example.com' },
-            },
-        }));
-        const config = loadMcpConfig(path);
-        assert.equal(Object.keys(config.mcpServers).length, 2);
-        assert.equal(config.mcpServers.foo.command, 'echo');
-        assert.equal(config.mcpServers.bar.type, 'streamable-http');
-        unlinkSync(path);
+        try {
+            writeFileSync(path, JSON.stringify({
+                mcpServers: {
+                    foo: { command: 'echo', args: ['hi'] },
+                    bar: { type: 'streamable-http', url: 'https://example.com' },
+                },
+            }));
+            const config = loadMcpConfig(path);
+            assert.equal(Object.keys(config.mcpServers).length, 2);
+            assert.equal(config.mcpServers.foo.command, 'echo');
+            assert.equal(config.mcpServers.bar.type, 'streamable-http');
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 
     test('returns empty mcpServers on malformed JSON', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, '{ not json }');
-        const config = loadMcpConfig(path);
-        assert.deepEqual(config, { mcpServers: {} });
-        unlinkSync(path);
+        try {
+            writeFileSync(path, '{ not json }');
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config, { mcpServers: {} });
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 
     test('returns empty mcpServers when top-level key is missing', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        writeFileSync(path, JSON.stringify({ otherField: 1 }));
-        const config = loadMcpConfig(path);
-        assert.deepEqual(config, { mcpServers: {} });
-        unlinkSync(path);
+        try {
+            writeFileSync(path, JSON.stringify({ otherField: 1 }));
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config, { mcpServers: {} });
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
+    test('returns empty mcpServers when mcpServers is not an object', () => {
+        const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
+        const path = join(dir, 'mcp.json');
+        try {
+            writeFileSync(path, JSON.stringify({ mcpServers: 'not-an-object' }));
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config, { mcpServers: {} });
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 });
 

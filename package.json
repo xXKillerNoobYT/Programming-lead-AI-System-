@@ -6,7 +6,10 @@
     "scripts": {
         "heartbeat": "node heartbeat.js",
         "heartbeat:watch": "node heartbeat.js --watch",
-        "test": "node --test tests/heartbeat.test.js"
+        "start:pm2": "pm2 start ops/pm2/ecosystem.config.js",
+        "stop:pm2": "pm2 stop devlead-heartbeat",
+        "logs:pm2": "pm2 logs devlead-heartbeat --lines 100",
+        "test": "node --test tests/heartbeat.test.js tests/mcp-client.test.js"
     },
     "engines": {
         "node": ">=18"
