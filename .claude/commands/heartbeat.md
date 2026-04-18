@@ -4,151 +4,46 @@ description: Execute one tick of the autonomous programming-lead heartbeat loop 
 
 # Heartbeat
 
-## Read these BEFORE you execute
+Execute **one tick** of the Polsia-style heartbeat loop as the autonomous programming lead for this repository, following `CLAUDE.md` §3 exactly.
 
-- [`.claude/loops/heartbeat/SOUL.md`](../loops/heartbeat/SOUL.md) — my identity, numbered priority rules, Singular-Heartbeat rule, and output contract.
-- [`.claude/loops/heartbeat/memory.md`](../loops/heartbeat/memory.md) — patterns, contradictions, and durable observations from prior ticks.
+## What to do
 
-The SOUL is the load-bearing identity: **singular heartbeat, no parallel peer**. If you see parallel-session signals mid-tick (D-ID collisions, Run-N title thrashing, unattributed commits on your branch), stop and end the tick per the Singular-Heartbeat rule.
+1. **Orient (Step 1)** — read state in parallel:
+   - `git status` and `git log --oneline -10`
+   - `plans/main-plan.md` for current phase
+   - `gh issue list --state open --limit 20`
+   - the most recent `reports/run-*-summary.md` for continuity
+   - the last ~5 entries in `decision-log.md`
+   - `memory.md` for durable observations
+   - `Docs/Plans/Dev-Q&A.md` for new user answers (CLAUDE.md §4b)
 
----
+2. **Pick ONE atomic task (Step 2, softened oldest-first per D-20260417-014)** in this priority order:
+   1. an in-progress Issue — continue it
+   2. a **leaf** Issue (no open children) over any Issue with open children (D-20260417-018)
+   3. the oldest open `status:backlog` Issue, **unless** a newer Issue is a blocker or advances the core backbone while backlog is all housekeeping
+   4. if plans are exhausted, summarize and stop
 
-Execute **one tick** of the intelligent heartbeat pipeline per `CLAUDE.md` §3 + **D-20260418-009**. The pipeline is a sequence of numbered stations; each station names the skill or subagent it invokes. Skip a station only when it does not apply — and note why in the run report.
+3. **Keep backlog ≥ 3 (Step 2b)** — if fewer than 3 `status:backlog` Issues remain, decompose `plans/main-plan.md` into new Issues (use `gh issue edit --add-parent` / sub-issues where applicable, per D-20260417-018).
 
-## Pipeline (14 stations)
+4. **Consult prior decisions (Step 3)** — search `decision-log.md` for relevant `D-YYYYMMDD-###` entries; reuse them rather than re-asking.
 
-### 1. Orient
-Read state in parallel:
-- `git status` and `git log --oneline -10`
-- `plans/main-plan.md` — current phase
-- `gh issue list --state open --limit 30`
-- Latest `reports/run-*-summary.md` for continuity
-- Last ~5 entries in `decision-log.md`
-- `memory.md` for durable observations
-- `Docs/Plans/Dev-Q&A.md` for new user answers (CLAUDE.md §4b — transcribe answers to `decision-log.md` as new `D-` entries and remove the question block)
+5. **Execute (Step 4)** — follow `.roo/rules/rules.md`, prefer `Edit` over `Write`, write tests alongside code, respect no-Docker.
 
-### 2. Pick ONE atomic task
-Invoke the **`issue-triage-picker`** subagent (via `Agent` tool). It returns a ranked candidate + reason per the 4-layer tree:
-1. `status:in-progress` Issue → continue it
-2. Open leaf sub-issue of open parent → pick leaf (D-20260417-018)
-3. Softened oldest-first with backbone/user-redirect/blocker overrides (D-20260417-014)
-4. If backlog empty → decompose the current phase plan into a new Issue
+6. **Capture gaps (Step 4b / Polsia Rule 2)** — any bug/inconsistency/TODO found mid-flight becomes a new GH Issue immediately, not a silent fix.
 
-Mark the picked Issue `status:in-progress`.
+7. **Verify (Step 5)** — run `npm test` + any relevant build; never claim green without command output.
 
-### 3. Plan (conditional — creative/multi-step Issues only)
-If the Issue is creative or spans >1 heartbeat:
-- Invoke `superpowers:brainstorming` skill to resolve intent + design
-- Invoke `superpowers:writing-plans` skill to write a `plans/*.md` entry
+8. **Record (Step 6)** — append to `reports/run-N-summary.md` (create `run-(N+1)-summary.md` if starting a new run); append a new `D-YYYYMMDD-###` in `decision-log.md`; update `memory.md` only for durable facts.
 
-Skip for atomic mechanical Issues (single-file edits, doc-only fixes, settings tweaks).
+9. **Commit (Step 7)** — conventional message citing the Decision ID and Issue #; never force-push, never skip hooks, never amend pushed commits.
 
-### 4. Branch (code-producing Issues)
-- `git checkout main && git pull --ff-only`
-- `git checkout -b issue-<N>/<slug>`
-
-Per D-20260418-009 user directive: branches per Issue (not worktrees) unless parallel ticks genuinely require isolation. Docs-only Issues MAY skip this station if they commit directly to the current dev branch — note in run report.
-
-### 5. Build with TDD (code-producing Issues — per §6 TDD scope)
-Invoke **`superpowers:test-driven-development`** skill. Follow red → green → refactor.
-
-**No production code without a failing test first.** Capture verbatim red-run output and green-run output in the run report. That evidence is what proves TDD happened.
-
-Scope (per CLAUDE.md §6): required for `heartbeat.js`, `dashboard/`, `lib/`, `scripts/` that ship to production, and MCP server code. Exempt: docs, config files, one-off scripts, fixtures. Exempt Issues must declare "TDD exempt — <reason>" in the run report.
-
-### 5b. Debug (conditional — on ≥3 failed fix attempts)
-If TDD's green phase stalls: invoke **`superpowers:systematic-debugging`** skill. Follow its four phases (root-cause → pattern analysis → hypothesis → implementation) before any more fix attempts.
-
-### 6. Capture gaps (Polsia Rule 2 — always)
-Any bug/TODO/doc-drift/inconsistency noticed mid-flight → open a new GH Issue immediately. Do not let captures die in context. Trivial fixes may be applied *after* the Issue exists.
-
-### 7. Verify
-Invoke **`superpowers:verification-before-completion`** skill. Run the full relevant suite — root `node --test`, dashboard `npm test`, any build/lint/type-check the project exposes. Paste command + result into the run report.
-
-For UI changes: start dev server (`npm install && npm run dev` in `dashboard/` — user's preferred dev command) and verify via `mcp__plugin_playwright_playwright__*` tools. Coverage must not regress.
-
-### 8. Commit
-Invoke **`commit-commands:commit`** skill. Conventional message citing Decision ID + Issue #. Never force-push, never skip hooks, never amend pushed commits.
-
-### 9. PR
-Invoke **`commit-commands:commit-push-pr`** skill. Pushes branch and opens PR against `main`. Skip only for docs-only fixes explicitly authorized for direct-to-dev-branch.
-
-### 10. Review
-Invoke **`pr-review-toolkit:review-pr`** skill — a panel of `code-reviewer`, `silent-failure-hunter`, `pr-test-analyzer`, `type-design-analyzer`, and `comment-analyzer` subagents. Capture each verdict in the run report.
-
-### 11. Merge (gated auto-merge of THIS tick's PR)
-Per CLAUDE.md §6 auto-merge policy. All FIVE gates must pass:
-1. Full relevant suite green on the PR branch
-2. No review finding rated ≥ blocker
-3. No open `silent-failure-hunter` findings on the PR
-4. No merge conflicts vs. `main`
-5. The Issue (referenced in the PR body) carries the `auto-merge:ok` label
-
-If all five pass: `gh pr merge <N> --squash --delete-branch` (NEVER `--admin` — that bypasses branch protection). Else: leave PR open, comment with the blocker summary, move on. The next heartbeat (or the user) picks it up.
-
-### 11b. Merge + Security Audit (conditional cross-tick sweep)
-A tick **qualifies** for this station if ANY of:
-- ≥ 2 open PRs against `main` where `mergeable == MERGEABLE` and `mergeStateStatus == CLEAN` (branch drift accumulating)
-- Any open Dependabot alert with severity `critical` OR `high`
-- The latest run report's `Open Concerns` names an unmerged PR
-
-When it qualifies, in priority order:
-
-a. **Safe merges of OTHER MERGEABLE+CLEAN PRs** — for each: `gh pr view N` confirm no secret-touching diff, then `gh pr merge N --squash --delete-branch` (never `--admin`). On protection-rule block: file a Dev-Q&A entry explaining which rule. `git fetch` after each merge.
-
-b. **Dependabot alerts** — `gh api repos/{owner}/{repo}/dependabot/alerts --jq '.[] | select(.state == "open")'`. For each `critical`/`high`: merge the Dependabot PR if one exists (under 11b.a); else file an Issue (Polsia Rule 2). Batch `medium`/`low` into one triage Issue.
-
-c. **Supersession sweep — 3-day grace** (D-20260418-012): on first detection of a CONFLICTING+DIRTY PR whose commits are already in `main`, post a dated "Superseded by … Auto-close scheduled for … if no new activity" comment; do NOT close this tick. On subsequent ticks, close if (i) the comment exists, (ii) the scheduled date has passed, (iii) no new commits landed since. Never auto-close a PR with unique commits.
-
-d. **Record** — run report must include a `## Merge + Security Audit` section listing PRs merged (with SHA), PRs closed-as-superseded, Dependabot alerts resolved, and any filed Issue numbers.
-
-### 12. Record
-- Append/create `reports/run-N-summary.md` with the usual structure (Overview, Changes, Tests with command output, Decisions, Metrics, Next task, Open concerns)
-- Append a new `D-YYYYMMDD-###` entry in `decision-log.md`
-- Update project-level `memory.md` ONLY for durable facts that affect future runs (not task-specific noise)
-- Close the GH Issue(s) with a comment citing the Decision ID + run report path — per CLAUDE.md §6 Run-complete ↔ Issue-close pairing
-- Optional: dispatch the **`run-report-validator`** subagent to verify the fresh run report against D-007's false-green checklist + CLAUDE.md §6 discipline before committing
-
-### 13. Plan ahead
-- Count `status:backlog` Issues. If < 3: decompose `plans/main-plan.md` (or the active phase plan) into new Issues until backlog ≥ 3.
-- If `plans/` is too fuzzy to produce 3 clear Issues, **refine the plan first** (that becomes the task) — write the next section of `plans/main-plan.md` or create `plans/run-N-<topic>-plan.md`, then decompose. Do not produce vague Issues off vague plans.
-
-### 14. Schedule the next tick (always — last station before end)
-Per **D-20260418-014** + **D-20260418-016**. After committing and closing the Issue, call:
-
-```
-ScheduleWakeup({
-  delaySeconds: clamp(ideal, 60, 270),
-  prompt: "<<autonomous-loop-dynamic>>",
-  reason: "tick N complete, next tick in Xm (backlog: N open | plan: healthy/fuzzy | PRs: N pending merge-audit)"
-})
-```
-
-**Ideal-delay heuristic** (pick the first that matches):
-- Backlog empty AND no PRs pending AND no `status:in-progress` → **270s** (≈4.5 min, cache-warm idle)
-- Something actively queued (backlog ≥ 1, PR pending merge-audit, leaf sub-issue waiting) → **60s** (go fast)
-- Tick ended on an UNRESOLVED Singular-Heartbeat collision → **270s** (let the other session finish)
-
-**Clamp is mandatory**: 60s is ScheduleWakeup's hard floor; 270s stays under the 5-min prompt-cache TTL so re-entry is cache-warm.
-
-**End of tick.** After `ScheduleWakeup` returns, the tick is complete. The harness will invoke `/heartbeat` again at the scheduled time.
-
----
-
-## Escape hatch — Design questions
-
-At ANY station: if a blocking design decision emerges that cannot be safely auto-resolved and no live user is in session, invoke the **`post-dev-qa`** skill to file a `Q-YYYYMMDD-###` block in `Docs/Plans/Dev-Q&A.md`. Then pick a different queued Issue and continue — do not stall.
+10. **Close Issue(s)** — per CLAUDE.md §6 "Run-complete ↔ Issue-close pairing": every decision-log entry marking a Run complete MUST close the corresponding GH Issue(s) via `gh issue close` with a comment citing the Decision ID + run report path.
 
 ## Hard stops (CLAUDE.md §5 — NEVER without explicit user approval)
-
 Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip hooks · modify `Docs/Plans/*` (except `Dev-Q&A.md`) · modify `SOUL.md` · publish to external services · close GH Issues you did not resolve · add Docker / containers / Python venvs · chat-platform messaging.
 
-## One tick, one task (Singular-Heartbeat rule)
-
-Per D-20260418-013: only ONE tick runs at a time. Do not start a second Issue in the same tick. If the chosen Issue is too large, open child sub-Issues (`gh api graphql` `addSubIssue` mutation, per D-20260417-018) and pick a leaf. Finish → close → report → commit, then schedule next tick and end.
-
-If you see parallel-session signals mid-tick (D-ID collisions, Run-N title thrashing, unattributed commits on your branch, `decision-log.md` gaining entries you didn't write), STOP — commit what you have, note the collision in the run report, schedule the next tick with a 270s delay to let the peer finish, and end the tick. Do not race.
+## One tick, one task
+Do not start multiple Issues in a single tick. If the chosen Issue is too large, open child sub-Issues (`gh api graphql` `addSubIssue` mutation, per D-20260417-018) and pick a leaf. Finish → close → report → commit, then end the tick.
 
 ## Heartbeat ≡ both surfaces
-
-Per D-20260417-021 + the "heartbeat rules apply to /loop AND heartbeat.js" memory: every convention in this file must also flow into the `heartbeat.js` product runtime. If a rule makes sense on only one side, stop and re-check.
+Per `feedback_heartbeat_rules_apply_to_loop_and_program.md` + D-20260417-021: every heartbeat convention applied here in Claude Code's `/loop` must also flow into the `heartbeat.js` product runtime. If a rule only makes sense on one side, stop and re-check.
