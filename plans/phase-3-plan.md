@@ -14,15 +14,15 @@ Phase 3 takes the system from **"works on the happy path"** (Phases 1 & 2) to **
 
 1. **Cohesion layer** — nothing ships unreviewed. Every heartbeat's output passes a programmatic check battery before being accepted.
 2. **Multi-project** — one DevLead instance manages several repos concurrently, with isolation per project (state, memory, preferences, reports).
-3. **Hardening** — the heartbeat is guardrailed against external actions (Part 4 §4), recoverable after crashes, and observable from the dashboard (Part 6 §10).
+3. **Hardening** — the heartbeat is guardrailed against external actions (Part 4 §4), recoverable after crashes, and observable from the dashboard (Part 7 §10).
 
 ### 1.2 In scope
 - Cohesion-check infrastructure: lint, types, tests, coverage-threshold, architecture-lint, dep-graph, chaos harness.
 - Rollback-on-failure: auto-revert a merge if the cohesion check regresses.
 - Multi-project isolation: per-project `plans/`, `reports/`, MemPalace wing, SOUL.md.
 - Heartbeat guardrails: no external HTTP or raw shell spawn outside MCP-wrapped calls; lockfile-based pause; audit trail.
-- Observability: VRAM graph, hourly-Grok countdown, coverage trend, queue-depth chart — all in the Log tab (Part 6 §7.3 §10).
-- UI upgrade per Part 6 §20 items 1–11 (shell through accessibility pass). Items 12–16 can slip to late Phase 3 or Phase 4 depending on capacity.
+- Observability: VRAM graph, hourly-Grok countdown, coverage trend, queue-depth chart — all in the Log tab (Part 7 §7.3 §10).
+- UI upgrade per Part 7 §20 items 1–11 (shell through accessibility pass). Items 12–16 can slip to late Phase 3 or Phase 4 depending on capacity.
 - Preferences hardening (conflict resolution, approval auto-expiry, live-effect toasts).
 
 ### 1.3 Out of scope (deferred to Phase 4)
@@ -48,11 +48,11 @@ Phase 3 takes the system from **"works on the happy path"** (Phases 1 & 2) to **
 | Deliverable | Decision | Phase 3 usage |
 |---|---|---|
 | `heartbeat.js` Node scheduler | D-20260417-003 | Wrap with guardrails + audit trail (§C) |
-| 3-tab dashboard shell | D-20260418-002 | Upgrade per Part 6 §20 (§D) |
+| 3-tab dashboard shell | D-20260418-002 | Upgrade per Part 7 §20 (§D) |
 | Preferences editor + localStorage | D-20260417-004 | Add conflict resolution + live-effect (§F.1) |
 | Smart agent/model mapping | D-20260417-004 | Extend with dep-graph-aware parallelism (§B.5) |
 | Green test baseline (12/12, 95.45%) | D-20260417-010 | Becomes regression floor for coverage-threshold check (§A.4) |
-| Part 6 UI Master Plan | D-20260417-009 | Referenced by every §D Issue |
+| Part 7 UI Master Plan | D-20260417-009 | Referenced by every §D Issue |
 | `.mcp.json` config | D-20260417-006 | Mempalace server consumed by §B.2 |
 
 ### 2.2 What Phase 3 explicitly requires be true before starting
@@ -75,7 +75,7 @@ Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will 
 - **A.2** Create `dashboard/scripts/cohesion-check.js` that runs all `check:*` in sequence, surfaces first failure with a captured stdout/stderr block, exits 0 only if every check passes, and writes `reports/cohesion/<timestamp>.json`.
 - **A.3** Wire `cohesion-check` into the heartbeat loop in `heartbeat.js` (or its successor per #18) as the gate between "agent report received" and "decision logged."
 - **A.4** Coverage-threshold enforcement: write last-green coverage to `reports/coverage-floor.json` on green; `check:coverage-threshold` reads it and fails if the current run drops below it by > 1 pp.
-- **A.5** Surface cohesion-check results in the Log tab per Part 6 §7.3 column B (one evidence block per check, click-to-expand, DecisionIdPill on the commit that triggered it).
+- **A.5** Surface cohesion-check results in the Log tab per Part 7 §7.3 column B (one evidence block per check, click-to-expand, DecisionIdPill on the commit that triggered it).
 - **A.6** Chaos harness: `dashboard/scripts/chaos.js` simulates (a) MCP-server crash via killed child process, (b) network timeout via blocked fetch, (c) VRAM overload via large-buffer allocation. AC: heartbeat degrades gracefully in all three.
 - **A.7** Rollback-on-failure: if cohesion check fails on a post-merge commit, `scripts/auto-revert.js` creates a revert commit tagged `revert:D-YYYYMMDD-###` and opens a `type:bug` Issue.
 
@@ -83,7 +83,7 @@ Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will 
 - **B.1** Refactor `heartbeat.js` to accept `--project-id=<id>` and isolate run-state under `projects/<id>/`.
 - **B.2** Per-project MemPalace wing: `mempalace_kg_add` calls tag `wing=<id>`; retrieval filters by active project.
 - **B.3** Per-project `plans/`, `reports/`, `decision-log.md`, `memory.md` live under `projects/<id>/` — top-level versions stay as the "devlead itself" meta-project.
-- **B.4** Dashboard multi-project switcher UI (Part 6 §9 implementation): route scaffolding `/projects/<id>/(coding|guidance|log)`.
+- **B.4** Dashboard multi-project switcher UI (Part 7 §9 implementation): route scaffolding `/projects/<id>/(coding|guidance|log)`.
 - **B.5** Global concurrency cap across all active projects — read from preference `maxGlobalParallel` (default 3).
 - **B.6** Per-project `SOUL.md` (Part 4 §5) with dashboard editor at `/projects/<id>/soul` (plain textarea + preview is fine for Phase 3).
 - **B.7** Migration script: port the existing single-project layout into `projects/devlead-mcp/` without losing history.
@@ -95,31 +95,31 @@ Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will 
 - **C.4** Retry/backoff: on agent-delegation failure, retry 3× with exponential backoff (2 s / 8 s / 30 s); on 4th failure escalate to User Guidance.
 - **C.5** Tick timeout: if a heartbeat exceeds `maxTickDurationMs` (default 5 min), abort the tick, log a `C.5-timeout` decision, and wait for the next scheduled wake.
 
-### D. UI Upgrade (subset of Part 6 §20)  *(area:ui)*
-- **D.1** Shell + routing (Part 6 §6, §3.1): top bar + left rail + main + optional inspector; WebSocket store; project routing.
-- **D.2** Design tokens + shadcn install (Part 6 §4, §5.1): Tailwind config tokens, shadcn CLI init, base component set.
-- **D.3** Coding tab skeleton (Part 6 §7.1): `HandoffThread`, `AgentBadge`, filter bar, inspector.
-- **D.4** Guidance tab skeleton (Part 6 §7.2): `ClarifyingQCard`, `DesignerInput` with slash-commands, timeline.
-- **D.5** Log tab skeleton (Part 6 §7.3): 3-column layout, feed with `DecisionIdPill` + `EvidenceBlock`.
-- **D.6** Preferences editor (Part 6 §8): migrate `defaultPreferences` from `page.tsx`, introduce `PrefEditorField`, add import/export.
-- **D.7** Heartbeat indicator + pause (Part 6 §6.3, §11): top-bar component wired to WebSocket + lockfile (§C.3).
-- **D.8** Accessibility pass (Part 6 §13): axe-core in dev, pa11y-ci in CI (but Phase 4 owns CI wiring; Phase 3 lands the axe-core devDep).
-- **D.9** Theming polish (Part 6 §14): light/dark/system, blocking theme script, syntax-highlight swap.
-- **D.10** Responsive pass (Part 6 §15): mobile bottom bar, bottom-sheet modals, 44 px targets.
-- **D.11** Visual Quality Bar enforcement: add a Storybook page per new component (Part 6 §4.5 checklist).
+### D. UI Upgrade (subset of Part 7 §20)  *(area:ui)*
+- **D.1** Shell + routing (Part 7 §6, §3.1): top bar + left rail + main + optional inspector; WebSocket store; project routing.
+- **D.2** Design tokens + shadcn install (Part 7 §4, §5.1): Tailwind config tokens, shadcn CLI init, base component set.
+- **D.3** Coding tab skeleton (Part 7 §7.1): `HandoffThread`, `AgentBadge`, filter bar, inspector.
+- **D.4** Guidance tab skeleton (Part 7 §7.2): `ClarifyingQCard`, `DesignerInput` with slash-commands, timeline.
+- **D.5** Log tab skeleton (Part 7 §7.3): 3-column layout, feed with `DecisionIdPill` + `EvidenceBlock`.
+- **D.6** Preferences editor (Part 7 §8): migrate `defaultPreferences` from `page.tsx`, introduce `PrefEditorField`, add import/export.
+- **D.7** Heartbeat indicator + pause (Part 7 §6.3, §11): top-bar component wired to WebSocket + lockfile (§C.3).
+- **D.8** Accessibility pass (Part 7 §13): axe-core in dev, pa11y-ci in CI (but Phase 4 owns CI wiring; Phase 3 lands the axe-core devDep).
+- **D.9** Theming polish (Part 7 §14): light/dark/system, blocking theme script, syntax-highlight swap.
+- **D.10** Responsive pass (Part 7 §15): mobile bottom bar, bottom-sheet modals, 44 px targets.
+- **D.11** Visual Quality Bar enforcement: add a Storybook page per new component (Part 7 §4.5 checklist).
 
 ### E. Observability  *(area:observability)*
-- **E.1** `VramGraph` component + `monitor_vram` MCP wiring (Part 6 §10).
+- **E.1** `VramGraph` component + `monitor_vram` MCP wiring (Part 7 §10).
 - **E.2** `HourlyGrokCountdown` — local timer synced to last escalation timestamp.
 - **E.3** `CoverageTrend` chart reading `reports/coverage-floor.json` history.
 - **E.4** `QueueDepth` bar with red-below-3 warning (Polsia Rule 4 surface).
-- **E.5** WebSocket broadcaster: single `/ws` endpoint; typed messages per Part 6 §6.2.
+- **E.5** WebSocket broadcaster: single `/ws` endpoint; typed messages per Part 7 §6.2.
 
 ### F. Polish & Edge Cases  *(area:polish)*
-- **F.1** Preferences conflict resolution banner (Part 6 §8.5) when project-level and global prefs disagree.
+- **F.1** Preferences conflict resolution banner (Part 7 §8.5) when project-level and global prefs disagree.
 - **F.2** Approval auto-expiry — preference-configurable timeout; applies safe default + records decision ID.
 - **F.3** Skippable clarifying-Q flow end-to-end (Lead posts Q → user answers/skips/applies-default → decision logged → next tick acts).
-- **F.4** Dependabot alerts surfaced in Log tab column C (Part 6 §7.3) via GitHub MCP.
+- **F.4** Dependabot alerts surfaced in Log tab column C (Part 7 §7.3) via GitHub MCP.
 
 ---
 
@@ -164,7 +164,7 @@ Issues will be created in this order. Each one lands on `status:backlog` and is 
 **Wave 1 — unblocks everything** (create first 3 from this wave to hit queue-depth ≥ 3 today):
 1. **§A.1** Add `check:*` scripts to `dashboard/package.json`.
 2. **§A.2** Create `cohesion-check.js` runner + `reports/cohesion/` output.
-3. **§D.1** Shell + routing per Part 6 §6 (unblocks every other UI issue).
+3. **§D.1** Shell + routing per Part 7 §6 (unblocks every other UI issue).
 
 **Wave 2 — parallelizable once Wave 1 lands:**
 - §A.3, §A.4, §A.5 (cohesion wiring + coverage floor + Log tab surfaces)

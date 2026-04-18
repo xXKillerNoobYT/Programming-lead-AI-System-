@@ -1,0 +1,72 @@
+# CI gate for every PR targeting main.
+# Phase 4 §B.1 · D-20260418-018 · Issue #26.
+#
+# Wraps the Phase 3 §A.2 cohesion-check runner (dashboard/scripts/cohesion-check.js,
+# D-20260418-015). Adding a check to that runner automatically extends this gate —
+# no CI edits needed.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  # Cancel in-flight runs when a new commit lands on the same PR branch.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cohesion:
+    name: Cohesion checks (lint · types · tests · coverage · arch · deps)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            dashboard/package-lock.json
+
+      - name: Install root deps
+        run: npm ci
+
+      - name: Install dashboard deps
+        working-directory: dashboard
+        run: npm ci
+
+      - name: Root tests (node:test)
+        run: npm test
+
+      - name: Dashboard cohesion check
+        working-directory: dashboard
+        env:
+          COHESION_DECISION_ID: ${{ github.event.pull_request.head.sha }}
+        # --all so we get a full report even if one check fails; the script
+        # still exits non-zero on any failure (fail-fast semantics enforced
+        # by the overall `passed` result).
+        run: node scripts/cohesion-check.js --all
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-coverage
+          path: dashboard/coverage/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload cohesion report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cohesion-report
+          path: reports/cohesion/
+          if-no-files-found: warn
+          retention-days: 14

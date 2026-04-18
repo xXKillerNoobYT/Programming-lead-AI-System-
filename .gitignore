@@ -10,6 +10,9 @@ dashboard/tsconfig.tsbuildinfo
 # Jest coverage
 dashboard/coverage/
 
+# Cohesion-check run artifacts — keep dir, ignore contents (Phase 3 §A.2)
+reports/cohesion/*.json
+
 # Environment variables (never commit)
 .env
 .env.local

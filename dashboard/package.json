@@ -8,7 +8,15 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "check:lint": "next lint",
+    "check:types": "tsc --noEmit",
+    "check:tests": "jest",
+    "check:coverage-threshold": "node scripts/check-coverage-threshold.js",
+    "check:arch": "node scripts/check-arch.js",
+    "check:deps": "npm audit --audit-level=high --omit=dev",
+    "check:all": "node scripts/cohesion-check.js",
+    "check:all:shell": "npm run check:lint && npm run check:types && npm run check:tests && npm run check:coverage-threshold && npm run check:arch && npm run check:deps"
   },
   "dependencies": {
     "next": "15.5.15",
@@ -17,6 +25,7 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
@@ -25,8 +34,9 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
-    "eslint-config-next": "15.0.0-rc.0",
+    "eslint-config-next": "15.5.15",
     "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "jsdom": "^29.0.2",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
