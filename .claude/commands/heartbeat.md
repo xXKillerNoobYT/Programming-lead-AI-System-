@@ -185,13 +185,11 @@ ScheduleWakeup({
 })
 ```
 
-**Ideal-delay heuristic** (per **D-20260418-043** + **D-20260418-151** adaptive: 60s normal, 270s after 3 consecutive no-ops):
-- **Default: 60s** — the loop fires ~1 minute after each tick ends.
-- **270s triggers on ANY of**:
-  - Tick ended on an UNRESOLVED Singular-Heartbeat collision (let the other session finish; don't race)
-  - User explicitly asks to slow down (record as a new Decision ID)
-  - **≥3 consecutive no-op ticks** (D-151 adaptive rule). Reset back to 60s the tick real work lands. Track the no-op streak by scanning `decision-log.md` backwards for the last non-no-op D-ID — if the last 3+ entries are all `Run N no-op`, fire at 270s this tick.
-- All other cases (queued work, idle backlog ≤2 no-ops, live user awaiting action, post-user-activity) → **60s**.
+**Ideal-delay heuristic** (three-tier adaptive per **D-20260418-043** + **D-20260418-151** + **D-20260418-153**):
+- **Tier 1 (default): 60s** — 0-2 consecutive no-ops + all real-work ticks.
+- **Tier 2: 270s** — ≥3 consecutive no-ops (D-151), OR Singular-Heartbeat collision, OR user-slowdown-directive.
+- **Tier 3: 3600s (1h)** — ≥6 consecutive no-ops (D-153) OR all-work-blocked-on-unanswered-Qs. Pays cache-miss on re-entry (crosses 5-min TTL) but reduces quota burn ~80% during long Q-blocked waits.
+- Detect no-op streak by scanning `decision-log.md` backwards for the last non-no-op D-ID. Any real-work tick resets the count to 0.
 
 **Clamp is mandatory**: 60s is ScheduleWakeup's hard floor; 270s stays under the 5-min prompt-cache TTL so re-entry is cache-warm.
 
