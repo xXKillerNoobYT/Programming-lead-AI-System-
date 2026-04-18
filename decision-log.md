@@ -1,11 +1,21 @@
-# Decision Log
+g # Decision Log
 
 ## Format
-| Date | Decision | Rationale | Alternatives Considered | Owner |
+| Decision ID | Date | Decision | Rationale | Alternatives Considered | Owner |
+
+## Decision ID Convention
+- Format: `D-YYYYMMDD-###`
+- Required in all Design Lead handoffs, Orchestrator subtasks, and run reports.
+- Reuse existing IDs where applicable; avoid re-asking already-decided questions.
 
 ## Entries
 *(Initial empty - populate as decisions made)*
 
-| 2026-04-17 | Consolidate plans into main-plan.md | Align with Run 1 subtask | Keep separate parts | Architect |
-| 2026-04-17 | Run 1 complete: foundational docs + GitHub #1 | Full alignment with Master Plan, delegation enforced, reports generated | Manual creation without Orchestrator for report | Design Lead |
-| 2026-04-17 | Run 2 complete: Phase 1 MVP (heartbeat.js, 3-tab dashboard, Docker infra, SOUL.md, reports) | Smart planning with 3 tasks ahead, hourly Grok high-importance rule, full Orchestrator delegation, 95% doc/60% test coverage | Direct implementation in sub-tasks | Design Lead |
+| D-20260417-001 | 2026-04-17 | Consolidate plans into main-plan.md | Align with Run 1 subtask | Keep separate parts | Architect |
+| D-20260417-002 | 2026-04-17 | Run 1 complete: foundational docs + GitHub #1 | Full alignment with Master Plan, delegation enforced, reports generated | Manual creation without Orchestrator for report | Design Lead |
+| D-20260417-003 | 2026-04-17 | Run 2 complete: Phase 1 MVP (heartbeat.js, 3-tab dashboard, Docker infra, SOUL.md, reports) | Smart planning with 3 tasks ahead, hourly Grok high-importance rule, full Orchestrator delegation, 95% doc/60% test coverage | Direct implementation in sub-tasks | Design Lead |
+| D-20260417-004 | 2026-04-17 | Run 3 complete: Phase 2 (preferences UI, one-task rule, smart agent model mapping) | Implemented user preferences editor, enforced single-task delegation, added model mapping support | Manual UI without auto-generation | Design Lead |
+| D-20260417-005 | 2026-04-17 | Run 4 complete: Remove Docker, fix all Jest/TS tests, implement pure local Node.js beginner setup | All tests pass (13/13, >94% coverage), E2E UI verified, comprehensive README/PORTABLE-SETUP with zero-container steps, production notes added, plans updated | Keep Docker for infra abstraction | Design Lead / Orchestrator |
+| D-20260418-001 | 2026-04-18 | Run 5 complete: Resolved React 19 RC peer dep conflict with @testing-library/react via overrides; clean npm install/tests/dev server/UI verified (>94% coverage, full preferences functionality) | Production hardening per Phase 4; RC compatibility without version changes | Upgrade to stable React 19 or change testing-library | Orchestrator |
+| D-20260418-002 | 2026-04-18 | Run 6 complete: Full 3-tab UI (threaded Coding, Guidance input/toasts, Log metrics/VRAM/logs, persistence) per locked intent | Production-ready per main-plan Phase 2/3; atomic subtasks, 95% coverage, E2E verified, no new deps | WebSocket backend in Run 7 | Orchestrator/Code |
+| D-20260417-006 | 2026-04-17 | Adopt Claude Code as the autonomous programming lead (replaces Roo Code); add `CLAUDE.md` with Polsia 5-rule heartbeat (pick → capture → refill → queue≥3 → repeat) | User reported Roo Code unreliable; asked Claude Code to run 100% autonomously against locked plans in `Docs/Uerer Plans/*`; GH Issues becomes visible to-do list with ≥3 lookahead | Keep Roo Code; use internal TODO list instead of GH Issues | User / Claude Code |
