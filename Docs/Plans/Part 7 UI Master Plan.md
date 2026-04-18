@@ -1,10 +1,13 @@
-**Plans / Part 6 – UI Master Plan**
+**Plans / Part 7 – UI Master Plan**
 **Document Version: 1.0**
 **Date: 2026-04-17**
 **Authors: Claude Code (drafted per user directive), User (review / own)**
 **Purpose: Comprehensive user-interface specification for the DevLead MCP dashboard. Consolidates UI intent scattered across Parts 1, 2, 4 and the existing `dashboard/app/page.tsx`. Intended as the single UI source-of-truth that atomic build-out Issues reference.**
 
-> **How this file is meant to be used.** Every UI-facing GitHub Issue decomposed under Polsia Rule 3 must cite a section of this file (e.g. `per Part 6 §7.2`). If any part of this plan is wrong or stale, fix the plan first — vague plans produce vague Issues.
+> **How this file is meant to be used.** Every UI-facing GitHub Issue decomposed under Polsia Rule 3 must cite a section of this file (e.g. `per Part 7 §7.2`). If any part of this plan is wrong or stale, fix the plan first — vague plans produce vague Issues.
+
+## Related Strategy Reference
+- `Docs/polsia-task-lifecycle-adaptation-report.md` — adaptation blueprint for Polsia-style autonomous software lifecycle (task loop, guidance model, CI/CD governance, and optional weak-area research mode).
 
 ---
 
@@ -496,7 +499,7 @@ The existing `localStorage` preference persistence stays; it moves behind `dashb
 
 ## 20. Build-Out Sequence (atomic Issues that reference this plan)
 
-Each Issue opens with `per Part 6 §<n>` and sets `status:backlog`. Order respects dependencies.
+Each Issue opens with `per Part 7 §<n>` and sets `status:backlog`. Order respects dependencies.
 
 1. **Shell + routing** (`§3`, `§6`) — project router, top bar + left rail, WebSocket store, theme scaffold.
 2. **Design tokens + shadcn install** (`§4`, `§5.1`) — Tailwind config, shadcn init, base components.
