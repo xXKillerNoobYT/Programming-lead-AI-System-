@@ -2,7 +2,7 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { writeFileSync, unlinkSync, mkdtempSync } = require('node:fs');
+const { writeFileSync, unlinkSync, mkdtempSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 
@@ -59,38 +59,46 @@ describe('loadMcpConfig', () => {
     test('expands ${VAR} placeholders in nested config strings', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        process.env.MCP_TEST_PATH = '/tmp/palace';
-        process.env.MCP_TEST_TOKEN = 'abc123';
-        writeFileSync(path, JSON.stringify({
-            mcpServers: {
-                foo: {
-                    command: 'python',
-                    args: ['--path', '${MCP_TEST_PATH}'],
-                    env: { TOKEN: '${MCP_TEST_TOKEN}' },
+        try {
+            process.env.MCP_TEST_PATH = '/tmp/palace';
+            process.env.MCP_TEST_TOKEN = 'abc123';
+            writeFileSync(path, JSON.stringify({
+                mcpServers: {
+                    foo: {
+                        command: 'python',
+                        args: ['--path', '${MCP_TEST_PATH}'],
+                        env: { TOKEN: '${MCP_TEST_TOKEN}' },
+                    },
                 },
-            },
-        }));
-        const config = loadMcpConfig(path);
-        assert.deepEqual(config.mcpServers.foo.args, ['--path', '/tmp/palace']);
-        assert.equal(config.mcpServers.foo.env.TOKEN, 'abc123');
-        unlinkSync(path);
+            }));
+            const config = loadMcpConfig(path);
+            assert.deepEqual(config.mcpServers.foo.args, ['--path', '/tmp/palace']);
+            assert.equal(config.mcpServers.foo.env.TOKEN, 'abc123');
+            unlinkSync(path);
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 
     test('marks server failed-to-configure when env var placeholder is missing', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
-        delete process.env.MCP_TEST_MISSING;
-        writeFileSync(path, JSON.stringify({
-            mcpServers: {
-                foo: {
-                    command: 'npx',
-                    args: ['${MCP_TEST_MISSING}'],
+        try {
+            delete process.env.MCP_TEST_MISSING;
+            writeFileSync(path, JSON.stringify({
+                mcpServers: {
+                    foo: {
+                        command: 'npx',
+                        args: ['${MCP_TEST_MISSING}'],
+                    },
                 },
-            },
-        }));
-        const config = loadMcpConfig(path);
-        assert.match(config.mcpServers.foo.__configError, /MCP_TEST_MISSING/);
-        unlinkSync(path);
+            }));
+            const config = loadMcpConfig(path);
+            assert.match(config.mcpServers.foo.__configError, /MCP_TEST_MISSING/);
+            unlinkSync(path);
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
     });
 });
 
