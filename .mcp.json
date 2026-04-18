@@ -41,7 +41,7 @@
         "-m",
         "mempalace.mcp_server",
         "--palace",
-        "C:/Users/weird/.GitHub/mempalace/palace"
+        "${MEMPALACE_PALACE_PATH}"
       ]
     }
   }
