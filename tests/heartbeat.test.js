@@ -141,6 +141,12 @@ describe('extractRecentDecisions', () => {
         assert.deepEqual(got, ['D-20260417-002', 'D-20260417-001']);
     });
 
+    test('uses last occurrence when an ID repeats later', () => {
+        const md = 'D-20260417-001 foo D-20260417-002 bar D-20260417-001 baz';
+        const got = extractRecentDecisions(md, 5);
+        assert.deepEqual(got, ['D-20260417-001', 'D-20260417-002']);
+    });
+
     test('returns [] when no IDs match', () => {
         assert.deepEqual(extractRecentDecisions('no ids here', 3), []);
     });

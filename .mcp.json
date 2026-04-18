@@ -41,7 +41,7 @@
         "-m",
         "mempalace.mcp_server",
         "--palace",
-        "C:/Users/weird/.GitHub/mempalace/palace"
+        "./.mcp/mempalace/palace"
       ]
     },
     "github": {
