@@ -114,7 +114,7 @@ export default function Dashboard() {
                             Execution Log
                         </button>
                     </div>
-                    <div className="text-sm text-gray-400">Run 2: Phase 1 MVP</div>
+                    <div className="text-sm text-gray-400">Autonomous Programming Lead</div>
                 </div>
             </header>
 
@@ -123,9 +123,9 @@ export default function Dashboard() {
                     <div className="bg-gray-900 rounded-xl p-8 border border-gray-700">
                         <h2 className="text-xl font-semibold mb-4">Coding AI Relay</h2>
                         <div className="h-96 bg-black rounded-lg flex items-center justify-center border border-dashed border-gray-700">
-                            <p className="text-gray-500">Chat interface with Roo Code delegation (MCP connected)</p>
+                            <p className="text-gray-500">Chat relay from the delegating coding agent (MCP streaming)</p>
                         </div>
-                        <div className="mt-4 text-xs text-gray-500">WebSocket connected to MCP delegation server • Model: Qwen3.5-32B via Ollama</div>
+                        <div className="mt-4 text-xs text-gray-500">WebSocket connected to MCP delegation server • Model: configured via Preferences</div>
                     </div>
                 )}
 
@@ -257,7 +257,7 @@ export default function Dashboard() {
             </main>
 
             <footer className="border-t border-gray-800 p-4 text-center text-xs text-gray-500">
-                Infrastructure for Run 2 Phase 1 MVP • Docker + Ollama + MCP + Next.js 15 • See plans/main-plan.md and GitHub #2
+                Local-Node infrastructure • MCP + Next.js 15 • See plans/main-plan.md
             </footer>
         </div>
     );
