@@ -41,7 +41,7 @@
         "-m",
         "mempalace.mcp_server",
         "--palace",
-        "C:/Users/weird/.GitHub/mempalace/palace"
+        "${MEMPALACE_PALACE_PATH}"
       ]
     },
     "github": {
@@ -59,7 +59,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "C:/Users/weird/.GitHub/Programming-lead-AI-System-"
+        "${FILESYSTEM_ROOT_PATH}"
       ]
     }
   }

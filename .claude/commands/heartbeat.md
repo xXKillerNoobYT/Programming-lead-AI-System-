@@ -4,6 +4,15 @@ description: Execute one tick of the autonomous programming-lead heartbeat loop 
 
 # Heartbeat
 
+## Read these BEFORE you execute
+
+- [`.claude/loops/heartbeat/SOUL.md`](../loops/heartbeat/SOUL.md) — my identity, numbered priority rules, Singular-Heartbeat rule, and output contract.
+- [`.claude/loops/heartbeat/memory.md`](../loops/heartbeat/memory.md) — patterns, contradictions, and durable observations from prior ticks.
+
+The SOUL is the load-bearing identity: **singular heartbeat, no parallel peer**. If you see parallel-session signals mid-tick (D-ID collisions, Run-N title thrashing, unattributed commits on your branch), stop and end the tick per the Singular-Heartbeat rule.
+
+---
+
 Execute **one tick** of the Polsia-style heartbeat loop as the autonomous programming lead for this repository, following `CLAUDE.md` §3 exactly.
 
 ## What to do
@@ -27,7 +36,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 
 4. **Consult prior decisions (Step 3)** — search `decision-log.md` for relevant `D-YYYYMMDD-###` entries; reuse them rather than re-asking.
 
-5. **Execute (Step 4)** — follow `.roo/rules/rules.md`, prefer `Edit` over `Write`, write tests alongside code, respect no-Docker.
+5. **Execute (Step 4)** — follow the current `CLAUDE.md` workflow/guardrails, prefer `Edit` over `Write`, write tests alongside code, respect no-Docker.
 
 6. **Capture gaps (Step 4b / Polsia Rule 2)** — any bug/inconsistency/TODO found mid-flight becomes a new GH Issue immediately, not a silent fix.
 
@@ -38,6 +47,35 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 9. **Commit (Step 7)** — conventional message citing the Decision ID and Issue #; never force-push, never skip hooks, never amend pushed commits.
 
 10. **Close Issue(s)** — per CLAUDE.md §6 "Run-complete ↔ Issue-close pairing": every decision-log entry marking a Run complete MUST close the corresponding GH Issue(s) via `gh issue close` with a comment citing the Decision ID + run report path.
+
+11. **Merge + Security Audit (qualifying ticks only)** — per user directive 2026-04-18. A tick **qualifies** for this station if ANY of these are true:
+    - ≥ 2 open PRs against `main` where `mergeable == MERGEABLE` and `mergeStateStatus == CLEAN` (branch drift accumulating)
+    - Any open Dependabot alert with severity `critical` OR `high`
+    - The latest run report's `Open Concerns` section names an unmerged PR
+
+    When it qualifies, in priority order:
+
+    a. **Safe merges first** — for each PR above that's MERGEABLE + CLEAN + `baseRefName == main`:
+       - `gh pr view N` to confirm no secret-touching changes (scan diff for `.env`, tokens, `GITHUB_PERSONAL_ACCESS_TOKEN` values, etc.)
+       - `gh pr merge N --squash --delete-branch` (NEVER `--admin` — that bypasses branch protection and is not authorized)
+       - If merge fails with protection-rule message, stop and file a Dev-Q&A entry per §4b explaining which rule is blocking
+       - After merge, `git fetch` to sync local `origin/main`
+
+    b. **Dependabot alerts** — `gh api repos/{owner}/{repo}/dependabot/alerts --jq '.[] | select(.state == "open")'`:
+       - For each `critical` + `high` alert: if a Dependabot-authored PR exists (`gh pr list --author app/dependabot`), merge it under rule 11a; else file an Issue per Polsia Rule 2
+       - For `medium` + `low`: batch into a single triage Issue rather than one-per-alert
+
+    c. **Supersession sweep — with 3-day grace period** (per user directive 2026-04-18: *"Close them after three days if they're not ending up being used again"*):
+       - **First detection**: when a PR becomes CONFLICTING+DIRTY AND all its commits are already in `main`, post a comment of the form:
+         ```
+         Superseded by <merge-PR#> merge at <SHA> on <YYYY-MM-DD>. Auto-close scheduled for <YYYY-MM-DD + 3 days> if no new activity.
+         ```
+         Do **not** close it this tick. The comment is the durable aging marker — future heartbeats read its timestamp.
+       - **Subsequent ticks**: for each CONFLICTING+DIRTY PR, check whether a "Superseded by … Auto-close scheduled for …" comment exists AND whether the scheduled date has passed AND whether no new commits have landed since the comment. If all three: `gh pr close N --comment "Grace period elapsed; closing per D-20260418-012."` If any condition fails, leave the PR open and move on.
+       - **Never auto-close** a PR that still has unique commits relative to `main`.
+       - **Never auto-close** a PR during the grace period even if it meets the structural criteria.
+
+    d. **Record** — the run report must include a `## Merge + Security Audit` section listing: PRs merged (with SHA), PRs closed-as-superseded, Dependabot alerts resolved, any unresolved-and-file Issue numbers.
 
 ## Hard stops (CLAUDE.md §5 — NEVER without explicit user approval)
 Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip hooks · modify `Docs/Plans/*` (except `Dev-Q&A.md`) · modify `SOUL.md` · publish to external services · close GH Issues you did not resolve · add Docker / containers / Python venvs · chat-platform messaging.
