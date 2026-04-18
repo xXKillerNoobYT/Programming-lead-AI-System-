@@ -1,9 +1,10 @@
 # DevLead MCP – Autonomous AI Programming Lead
 
 ## Overview
-Pure orchestrator for software projects. Delegates to 3rd-party agents (Roo Code primary). Local-first (Ollama 25GB + hourly Grok), MCP-native, OpenClaw-style heartbeat, three chat pages.
+Autonomous programming-lead workflow + heartbeat runtime for this repository (Claude Code lead, MCP-native, local-first with optional hourly Grok escalation).
 
-## Quick Start
+## Legacy Quick Start (Roo + Docker, deprecated)
+This path is historical context only; use **First-Time Setup** below for the current authoritative flow.
 1. `docker compose up` (Ollama + MCP servers + dashboard).
 2. Upload plan to User Guidance Chat.
 3. Watch Execution Log.
@@ -20,7 +21,7 @@ Pure orchestrator for software projects. Delegates to 3rd-party agents (Roo Code
 
 ## Setup — Required Environment Variables
 
-The MCP server definitions in `.mcp.json` reference environment variables so the repo is portable across machines. `heartbeat.js` auto-loads `.env` via Node 20+'s built-in `process.loadEnvFile()` — no `dotenv` package needed. Copy `.env.example` to `.env` and fill in real values before starting Claude Code:
+The MCP server definitions in `.mcp.json` reference environment variables so the repo is portable across machines. `heartbeat.js` auto-loads `.env` via Node 20+'s built-in `process.loadEnvFile()` — no `dotenv` package needed. On Node 18/19, `loadEnvFile()` is unavailable, so export variables in your shell manually (or upgrade to Node 20+). Copy `.env.example` to `.env` and fill in real values before starting Claude Code:
 
 | Variable | Required for | Example (Windows) | Example (Linux/Mac) |
 |---|---|---|---|

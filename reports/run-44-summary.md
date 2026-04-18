@@ -6,6 +6,7 @@
 **Status**: COMPLETE — config file + scripts + docs shipped; tests stay 41/41.
 **Trigger**: Heartbeat tick 14, self-scheduled from Run 43 via `/loop`. Oldest non-epic pick after #27 closed.
 **Branch**: `run-44/phase-4-pm2-ecosystem`.
+**Stacking note**: This report covers Run 44 changes only; PR #51 is stacked atop earlier Run 41-43 commits that also appear in the PR file list until lower stack PRs merge.
 
 ## Changes
 | File | Change |

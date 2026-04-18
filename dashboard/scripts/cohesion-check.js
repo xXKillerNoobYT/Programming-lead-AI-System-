@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Phase 3 §A.2 cohesion-check runner (D-20260418-014).
+// Phase 3 §A.2 cohesion-check runner (D-20260418-015).
 // Spawns each check:* npm script in sequence, captures per-check output +
 // duration + exit code, stops at first failure by default, writes
 // reports/cohesion/<ISO-ts>.json.
