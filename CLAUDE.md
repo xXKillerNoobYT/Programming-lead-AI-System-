@@ -89,7 +89,7 @@ Run in parallel where possible:
 ### Step 2 — Pick ONE atomic task (single-task rule)
 Priority order:
 1. An open GitHub Issue labeled `status:in-progress` (continue it)
-2. Highest-priority open Issue labeled `status:backlog`
+2. Highest-priority open Issue labeled `status:backlog`. Within `status:backlog`, the default pick is **oldest first** (see §6 for the full rule and its deviation conditions). Recommended, not required — if the backlog is entirely housekeeping and a newer Issue directly advances the **core backbone** (DevLead MCP runtime: `heartbeat.js`, MCP orchestrator, branch/agent management), pick the backbone Issue and record the reason in the run report.
 3. If none exist → decompose the next unstarted item from `plans/main-plan.md` into a new Issue, then start it
 4. If plans are exhausted → summarize progress, open an Issue requesting user direction, and stop
 
@@ -191,7 +191,7 @@ These are blocking. If one is needed, stop and ask.
 - **Run reports are mandatory** — every heartbeat that produces real work appends to `reports/run-N-summary.md`. The user has explicitly confirmed run reports are valuable. Do not skip them.
 - **Run-complete ↔ Issue-close pairing** — every `decision-log.md` entry that marks a Run as complete MUST close the corresponding GH Issue(s) in the same heartbeat (via `gh issue close` with a comment citing the Decision ID + Run report). No decision logged as "Run N complete" may coexist with an open Issue for that Run. Captured from Issue #5 (D-20260417-011).
 - **GitHub is source of truth for Issues** — update Issues only via `gh` CLI or MCP; never edit `.vscode/github-issues/*.md` directly. That folder is a one-way pull cache and local edits are discarded on next sync.
-- **Heartbeat pick order: oldest-first** — in Step 2, sort open `status:backlog` Issues by creation time ascending and pick the head, unless a newer Issue is an active blocker. Per user directive 2026-04-17. Exceptions: continue `status:in-progress` first; blockers override age. Finish before switching — spawn child Issues if scope grows, but do not context-switch.
+- **Heartbeat pick order: oldest-first is the default, not a hard rule** — in Step 2, the default heuristic is to sort open `status:backlog` Issues by creation time ascending and pick the head. Per user directive 2026-04-17 (reaffirmed and softened 2026-04-17): oldest-first is a *recommendation*, not a requirement. Deviate when any of these apply: (a) the user explicitly redirects, (b) a newer Issue is an active blocker for older work, (c) a newer Issue directly advances the **core backbone** (DevLead MCP runtime: `heartbeat.js`, MCP orchestrator, branch/agent management) while the older queue is entirely housekeeping/meta-work — the end-goal overrides age. Always continue `status:in-progress` first. Finish before switching — spawn child Issues if scope grows, do not context-switch mid-heartbeat. Record the reason in the run report whenever you deviate from oldest-first.
 - **Documentation** — when workflow behavior changes, update `README.md` / `architecture.md` / `memory.md` in the same commit
 - **Testing pyramid** — 70% unit, 20% integration, 10% E2E (per `plans/main-plan.md`)
 - **Three-chat dashboard** — Coding AI Relay, User Guidance, Execution Log (do not add or remove tabs without an Issue + decision)
