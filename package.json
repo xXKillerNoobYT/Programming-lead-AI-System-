@@ -1,0 +1,17 @@
+{
+    "name": "devlead-mcp",
+    "version": "0.1.0",
+    "private": true,
+    "description": "DevLead MCP — autonomous AI programming lead (core backbone).",
+    "scripts": {
+        "heartbeat": "node heartbeat.js",
+        "heartbeat:watch": "node heartbeat.js --watch",
+        "test": "node --test tests/heartbeat.test.js"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.29.0"
+    }
+}
