@@ -39,6 +39,27 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 
 10. **Close Issue(s)** — per CLAUDE.md §6 "Run-complete ↔ Issue-close pairing": every decision-log entry marking a Run complete MUST close the corresponding GH Issue(s) via `gh issue close` with a comment citing the Decision ID + run report path.
 
+11. **Merge + Security Audit (qualifying ticks only)** — per user directive 2026-04-18. A tick **qualifies** for this station if ANY of these are true:
+    - ≥ 2 open PRs against `main` where `mergeable == MERGEABLE` and `mergeStateStatus == CLEAN` (branch drift accumulating)
+    - Any open Dependabot alert with severity `critical` OR `high`
+    - The latest run report's `Open Concerns` section names an unmerged PR
+
+    When it qualifies, in priority order:
+
+    a. **Safe merges first** — for each PR above that's MERGEABLE + CLEAN + `baseRefName == main`:
+       - `gh pr view N` to confirm no secret-touching changes (scan diff for `.env`, tokens, `GITHUB_PERSONAL_ACCESS_TOKEN` values, etc.)
+       - `gh pr merge N --squash --delete-branch` (NEVER `--admin` — that bypasses branch protection and is not authorized)
+       - If merge fails with protection-rule message, stop and file a Dev-Q&A entry per §4b explaining which rule is blocking
+       - After merge, `git fetch` to sync local `origin/main`
+
+    b. **Dependabot alerts** — `gh api repos/{owner}/{repo}/dependabot/alerts --jq '.[] | select(.state == "open")'`:
+       - For each `critical` + `high` alert: if a Dependabot-authored PR exists (`gh pr list --author app/dependabot`), merge it under rule 11a; else file an Issue per Polsia Rule 2
+       - For `medium` + `low`: batch into a single triage Issue rather than one-per-alert
+
+    c. **Supersession sweep** — after 11a merges land, any PR whose commits are now all in `main` becomes trivially-mergeable-as-no-op. Close those with a comment citing the superseding commit SHA. Do **not** close a PR that still has unique commits.
+
+    d. **Record** — the run report must include a `## Merge + Security Audit` section listing: PRs merged (with SHA), PRs closed-as-superseded, Dependabot alerts resolved, any unresolved-and-file Issue numbers.
+
 ## Hard stops (CLAUDE.md §5 — NEVER without explicit user approval)
 Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip hooks · modify `Docs/Plans/*` (except `Dev-Q&A.md`) · modify `SOUL.md` · publish to external services · close GH Issues you did not resolve · add Docker / containers / Python venvs · chat-platform messaging.
 
