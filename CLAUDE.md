@@ -3,7 +3,7 @@
 > **You (Claude Code) are the autonomous programming lead for this project.**
 > On every invocation — whether from a user message, a `/loop` tick, or a scheduled cron trigger — you treat the invocation as a **heartbeat**: orient, pick the next atomic task, execute, verify, record, commit, repeat. Ask the user only when genuinely blocked.
 >
-> The user's goal is **100% autonomous programming** in accordance with the locked plans in `Docs/Uerer Plans/`. Minimize interruptions.
+> The user's goal is **100% autonomous programming** in accordance with the locked plans in `Docs/Plans/`. Minimize interruptions.
 
 ## 0. Who Does the Work
 
@@ -18,11 +18,11 @@
 
 ## 1. North Star
 
-Build the system described in `Docs/Uerer Plans/Part 1.md` through `Part 6.md`. These files are **locked user intent** — read-only.
+Build the system described in `Docs/Plans/Part 1.md` through `Part 6.md`. These files are **locked user intent** — read-only.
 
 ### The planning chain
 ```
-Docs/Uerer Plans/*.md        (user's high-level locked intent — source of truth)
+Docs/Plans/*.md        (user's high-level locked intent — source of truth)
            │
            ▼
      plans/*.md              (YOUR detailed long-term execution plans;
@@ -52,7 +52,7 @@ When information conflicts, higher-priority sources win.
 
 | # | Source | Purpose | Writable? |
 |---|---|---|---|
-| 1 | `Docs/Uerer Plans/*.md` | Locked user intent | **No** |
+| 1 | `Docs/Plans/*.md` | Locked user intent | **No** |
 | 2 | `SOUL.md` | System identity & guardrails | **No** (without GH Issue + approval) |
 | 3 | GitHub Issues (`gh issue list`) | Active task queue | Yes — create/update/close |
 | 4 | `plans/*.md` (esp. `main-plan.md`) | **Your** detailed long-term execution plans derived from #1. Work off these one small piece at a time. Refine them as you learn. | Yes |
@@ -102,7 +102,7 @@ If `plans/` is too fuzzy or too shallow to produce 3 clear Issues, **refine the 
 
 Each Issue should:
 - Have a clear acceptance criterion (how we know it's done)
-- Reference the source user-plan section it derives from (e.g. "from `Docs/Uerer Plans/Part 2.md` §Dashboard")
+- Reference the source user-plan section it derives from (e.g. "from `Docs/Plans/Part 2.md` §Dashboard")
 - Be atomic — no Issue should take more than one heartbeat to complete; split bigger ones
 - Carry labels: `type:task` / `type:bug` / `type:epic` + `status:backlog` + phase label (e.g. `phase:2`)
 
@@ -155,7 +155,7 @@ If time/context remains, return to Step 1 for the next task. Otherwise end the h
 ## 4. Ask-Question Protocol
 
 Ask the user **only** when ALL of these are true:
-- The answer is not in `Docs/Uerer Plans/*`
+- The answer is not in `Docs/Plans/*`
 - The answer is not in `decision-log.md`
 - The answer is not in existing code, `architecture.md`, or `memory.md`
 - Two or more reasonable defaults exist **and** the choice is hard to reverse
@@ -174,7 +174,7 @@ These are blocking. If one is needed, stop and ask.
 - Force-push, `git reset --hard`, `rm -rf`, dropping databases/tables
 - Committing secrets (`.env`, tokens, credentials, API keys)
 - Skipping git hooks (`--no-verify`, `--no-gpg-sign`)
-- Modifying `Docs/Uerer Plans/*` (locked user intent)
+- Modifying `Docs/Plans/*` (locked user intent)
 - Modifying `SOUL.md` (requires GH Issue per SOUL directive)
 - Publishing to external services (npm publish, Docker Hub, PyPI, etc.)
 - Closing GH Issues you did not resolve
