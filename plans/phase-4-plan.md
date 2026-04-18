@@ -14,8 +14,8 @@ Phase 4 takes DevLead MCP from **"works on the designer's machine if they're pay
 
 1. **Process supervision without Docker** — PM2 + OS-native schedulers keep `heartbeat.js` alive, restart on crash, rotate logs, honor system reboots. The `no Docker` preference (D-20260417-005) stands; we cover Windows, macOS, and Linux via native mechanisms.
 2. **CI/CD gating** — GitHub Actions runs lint / type-check / tests / security scans on every PR. Merges are blocked until green. No more "false green" regressions (D-20260417-007).
-3. **One-command install** — `git clone` + `npm install` + `npm run setup` brings a fresh machine to a working state, including `.mcp.json` templating, required binaries sanity-check, first-run onboarding (Part 7 §17).
-4. **Production observability** — `heartbeat.js` emits structured logs, exposes a health endpoint, and surfaces cost/budget telemetry in the Log tab (Part 7 §10).
+3. **One-command install** — `git clone` + `npm install` + `npm run setup` brings a fresh machine to a working state, including `.mcp.json` templating, required binaries sanity-check, first-run onboarding (Part 6 §17).
+4. **Production observability** — `heartbeat.js` emits structured logs, exposes a health endpoint, and surfaces cost/budget telemetry in the Log tab (Part 6 §10).
 5. **Release & documentation** — LICENSE, CHANGELOG, installation guide, troubleshooting playbook, and one-command release flow (`npm run release` → tag + changelog + GitHub Release).
 
 ### 1.2 In scope
@@ -24,7 +24,7 @@ Phase 4 takes DevLead MCP from **"works on the designer's machine if they're pay
 - `.env.example`, dotenv loader, `scripts/setup.js` installer, `.mcp.json` templating to parameterize per-machine paths (consumes #17).
 - Coverage-trend gating (post-Phase 3 §A.4 in production use).
 - Structured JSON logging out of `heartbeat.js` + log rotation.
-- Health/status endpoint at `GET /status` (Part 7 §3.1) and CLI `heartbeat --status`.
+- Health/status endpoint at `GET /status` (Part 6 §3.1) and CLI `heartbeat --status`.
 - Cost budget enforcement for hourly Grok: per-day / per-month caps + dashboard-surfaced alert.
 - Backup/restore: per-project state export (JSON tarball) + rollback from backup.
 - User-testing telemetry (opt-in, local-only by default).
@@ -63,7 +63,7 @@ Phase 4 takes DevLead MCP from **"works on the designer's machine if they're pay
 | Phase 3 cohesion-check (§A) | — (future) | Becomes the CI gate (§B.1) |
 | Phase 3 multi-project isolation (§B) | — (future) | `scripts/setup.js` scaffolds per-project dirs (§C.1) |
 | Phase 3 heartbeat hardening (§C) | — (future) | Production-safe daemon under PM2 (§A) |
-| Part 7 UI Master Plan | D-20260417-009 | §D.1 surfaces in Log tab; §H.1 surfaces release notes |
+| Part 6 UI Master Plan | D-20260417-009 | §D.1 surfaces in Log tab; §H.1 surfaces release notes |
 | `Docs/Plans/Dev-Q&A.md` async channel | D-20260417-019 | §D.4 cron heartbeat consults the file on every tick |
 | Multi-layer sub-issue decomposition | D-20260417-018 | Every §X parent epic gets child Issues via `addSubIssue` |
 
@@ -116,7 +116,7 @@ Parent epics carry `type:epic`.
 - **D.1** Structured JSON logging: all `heartbeat.js` log lines emitted as single-line JSON with `{ts, level, tick, component, event, data}`. Replaces raw `console.log`.
 - **D.2** Health/status endpoint `GET /status` on the dashboard dev server (or a separate `heartbeat-status-server.js` port 3010): returns last tick timestamp, queue depth, open Issue counts, MCP server states, process uptime.
 - **D.3** `heartbeat --status` CLI: queries the endpoint (or reads `.heartbeat-state.json` fallback) and prints a human-readable status.
-- **D.4** Dev-Q&A surfacing in Log tab (Part 7 §7.3 column B): open questions visible without opening the file; click → open `Docs/Plans/Dev-Q&A.md` at the entry anchor.
+- **D.4** Dev-Q&A surfacing in Log tab (Part 6 §7.3 column B): open questions visible without opening the file; click → open `Docs/Plans/Dev-Q&A.md` at the entry anchor.
 - **D.5** Error aggregation: `reports/errors/<YYYY-MM-DD>.jsonl` with deduplication (count + first-seen / last-seen + stacktrace hash).
 - **D.6** Coverage trend viz (continues Phase 3 §E.3 with production historical data).
 
@@ -124,7 +124,7 @@ Parent epics carry `type:epic`.
 **Parent epic:** "Phase 4 §E — Nothing is hardcoded. Everything is env-driven. Nothing is committed."
 - **E.1** `.mcp.json` templating: ship `.mcp.json.template` with `${HOME}`-style placeholders; `scripts/setup.js` renders `.mcp.json` from it. Consumes Issue #17 directly.
 - **E.2** Secrets audit: grep for keys matching obvious patterns (`sk-`, `gho_`, `Bearer `) across committed files; any hit opens a `type:bug` Issue.
-- **E.3** Preference import/export (Part 7 §8.3) redacts secrets on export — never ships an API key out of the machine.
+- **E.3** Preference import/export (Part 6 §8.3) redacts secrets on export — never ships an API key out of the machine.
 - **E.4** Rotation playbook `Docs/ops/secrets-rotation.md` — when a key leaks, exact steps to revoke + rotate.
 
 ### F. Backup & Recovery  *(area:backup)*
@@ -153,7 +153,7 @@ Parent epics carry `type:epic`.
 - **I.1** `Docs/INSTALLATION.md` — rewrite with OS-tabbed walkthrough, screenshots, error handling.
 - **I.2** `Docs/TROUBLESHOOTING.md` — top 10 failure modes with fixes; grows with each production bug.
 - **I.3** `Docs/ARCHITECTURE.md` (promote from root `architecture.md`): deeper diagrams, sequence flows, MCP tool inventory.
-- **I.4** In-dashboard `?` help sheet (Part 7 §16) populated with all keyboard shortcuts.
+- **I.4** In-dashboard `?` help sheet (Part 6 §16) populated with all keyboard shortcuts.
 - **I.5** Video walkthrough (external link acceptable; don't host in-repo).
 - **I.6** README.md audit for outdated claims (continues D-20260417-007 spirit).
 

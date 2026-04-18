@@ -118,65 +118,22 @@ Before acting on anything non-trivial:
 - If no decision exists and the choice is reversible, pick the lowest-risk default and log a new decision
 - If no decision exists and the choice is **irreversible**, use `AskUserQuestion` (batch related Qs)
 
-### Step 4 — Execute (the intelligent pipeline)
-
-Per **D-20260418-009**, the execute phase is a pipeline of skill-driven stations, not a loose bullet list. Run the applicable stations in order. Skip a station only when it does not apply (and note why in the run report). This mirrors onto the `heartbeat.js` runtime — see §6 "Heartbeat pipeline" bullet.
-
-**4a. Brainstorm & plan** — if the Issue is creative or multi-step:
-- Invoke `superpowers:brainstorming` to resolve intent + design.
-- Invoke `superpowers:writing-plans` to write a `plans/*.md` entry if the work spans >1 heartbeat.
-- Skip for atomic mechanical Issues (one-file fixes, doc edits).
-
-**4b. Branch** — for any Issue that changes tracked files:
-- `git checkout main && git pull --ff-only` → `git checkout -b issue-<N>/<slug>` (option A per user 2026-04-18).
-- Branch-per-Issue keeps merges atomic and rollbacks local. No worktrees unless parallel ticks require isolation.
-
-**4c. Build with TDD** — for code-producing Issues (see §6 TDD-scope bullet):
-- Invoke `superpowers:test-driven-development`.
-- **No production code without a failing test first.** Watch the test fail. Write minimal code to pass. Refactor.
-- Capture the red-run output and the green-run output verbatim in the run report. That is the evidence TDD happened.
-- On 3+ failed fix attempts, invoke `superpowers:systematic-debugging` and follow its four phases before any further fixes.
-
-**4d. Capture** (Polsia Rule 2): any gap/bug/TODO/doc drift discovered mid-flight → open a GH Issue immediately. Do not let captures die in context. If it's trivial to fix in the same tick, fix it *after* the Issue exists.
-
-**4e. Verify** — before any claim of completion:
-- Invoke `superpowers:verification-before-completion`.
-- Run the full relevant suite (`npm test` in `dashboard/`, `node --test` at repo root for `heartbeat.js`). Paste command + result into the run report.
-- For UI work: start dev server, verify in browser via `mcp__plugin_playwright_playwright__*` tools.
-- Type-check / lint / build if available. Coverage must not regress.
-
-**4f. Commit** — invoke `commit-commands:commit`. Conventional message with Decision ID + Issue #.
-
-**4g. Push + PR** — invoke `commit-commands:commit-push-pr` to push the branch and open a PR against `main`. Skip only for docs-only fixes explicitly authorized to go direct-to-main.
-
-**4h. Review** — invoke `pr-review-toolkit:review-pr` (code-reviewer + silent-failure-hunter + pr-test-analyzer + type-design-analyzer + comment-analyzer panel). Capture verdicts in the run report.
-
-**4i. Merge** — gated auto-merge (per §6 auto-merge policy). All five gates must pass:
-1. Full relevant suite green on the PR branch.
-2. No review finding rated ≥ blocker.
-3. No open `silent-failure-hunter` findings on the PR.
-4. No merge conflicts vs. `main`.
-5. Issue (referenced in PR body) carries the `auto-merge:ok` label.
-
-If all five pass: `gh pr merge --squash --delete-branch`. Otherwise: leave PR open, comment with the blocker summary on the PR, move on. The next heartbeat (or the user) picks up the PR.
-
-**4j. Design-question escape** — if a blocking design decision emerges mid-tick and cannot be safely auto-resolved, invoke the `post-dev-qa` skill to file a `Q-YYYYMMDD-###` block in `Docs/Plans/Dev-Q&A.md` and pick a different queued Issue. Do not stall.
-
-**Conventions still apply** across all stations:
-- Prefer `Edit` over `Write` for existing files.
-- Use the `Agent` tool for independent parallel work; `Explore` subagent for codebase search.
-- Respect the user's **no-Docker** preference — local Node.js only.
+### Step 4 — Execute
+- Follow `.roo/rules/rules.md` conventions
+- Use the `Agent` tool for independent parallel work; use `Explore` subagent for codebase search
+- Prefer `Edit` over `Write` for existing files
+- Write tests alongside code (Jest, target >90% coverage per `plans/main-plan.md`)
+- Respect user's **no-Docker** preference — local Node.js only
 
 ### Step 4b — Capture gaps/bugs found mid-flight (Polsia Rule 2)
 If during execution you notice **anything** that is broken, inconsistent, missing, or questionable — a failing test, an outdated doc, a numbered-run gap, a TODO left behind, a security smell, a type error, a skipped test — open a new GitHub Issue for it **immediately**. Label it (`type:bug` / `type:task` / `status:backlog`), reference where you found it, and move on. Do not let it die in your context window. If it's trivial to fix in the current heartbeat, fix it after the Issue exists.
 
 ### Step 5 — Verify (evidence before assertions)
-Folded into Step 4e (Verify station) when the pipeline runs cleanly. This sub-step remains authoritative for **non-pipeline ticks** (meta work, planning-only, triage, stash-hygiene) where Step 4 is skipped. Rules of thumb:
-- Code change → `npm test` (in `dashboard/` or wherever the test suite lives) + `node --test` at repo root for `heartbeat.js`
+Running tests is not optional. Rules of thumb:
+- Code change → `npm test` (in `dashboard/` or wherever the test suite lives)
 - UI change → start dev server AND verify in browser via `mcp__plugin_playwright_playwright__*` tools
 - Type-check / lint / build if the project has them
 - **Never claim "done" without the command output to prove it** (see `superpowers:verification-before-completion`)
-- **Coverage must not regress.** Both TDD (Step 4c) and this step guard that invariant.
 
 ### Step 6 — Record
 For the work just completed:
@@ -270,12 +227,6 @@ These are blocking. If one is needed, stop and ask.
   4. **Be smart about it.** Do not decompose trivially; aim for the smallest decomposition that makes each leaf finishable in one heartbeat. If a decomposition produces >6 siblings, it is likely too flat — group related children under an intermediate sub-epic instead.
   5. **Parent Issue body should list its children** (or link to the GitHub-rendered sub-issue list). When all children close, the parent's AC "all sub-issues closed" auto-trips and the parent can be closed with a final Decision ID.
   6. **This rule applies to BOTH** (a) Claude Code as orchestrator creating Issues for the coding agent, and (b) the product runtime (`heartbeat.js`) once it gains the ability to decompose plans itself. Per user directive: *"this is for you claude code & the program that i want this applyed to."*
-- **TDD is mandatory for code-producing Issues** (agent side AND runtime side; per **D-20260418-009**). Scope = *pragmatic default*: required for `heartbeat.js`, `dashboard/`, `lib/`, `scripts/` that ship to production, and MCP-server code. Exempt: one-off diagnostic scripts, fixtures, generated files, and docs/config-only edits. Exempt Issues must say so explicitly in the run report (one line: "TDD exempt — docs-only"). Scope revisits on tick 30 per Issue #40.
-- **Heartbeat pipeline (intelligent, skill-chained)** — per **D-20260418-009**, §3 Step 4 is a pipeline of stations (brainstorm → plan → branch → TDD → capture → verify → commit → PR → review → merge → record → plan-ahead). Skip a station only with reason in the run report. This applies to BOTH Claude Code `/loop` AND the `heartbeat.js` runtime (when it can delegate to coding agents via MCP, the delegated-task contract must require red+green test logs + diff).
-- **Auto-merge policy — gated** (per **D-20260418-009**; user decision "policy B" 2026-04-18). The heartbeat may auto-merge a PR it opens only when ALL five gates pass: (1) full suite green; (2) no review finding ≥ blocker; (3) no `silent-failure-hunter` findings; (4) no merge conflicts; (5) Issue labeled `auto-merge:ok`. Any failure → PR stays open with blocker comment. Never auto-merge from a branch not prefixed `issue-<N>/`, and never bypass review. Absent label ⇒ no auto-merge, even if all other gates pass.
-- **Self-pacing cadence** — per **D-20260418-009**, **retuned faster by D-20260418-014** per user directive 2026-04-18 *"we can make the heartbeat faster."* Each tick ends with `ScheduleWakeup(delaySeconds = clamp(ideal, 60, 270), prompt = "<<autonomous-loop-dynamic>>")`. Minimum 60s (ScheduleWakeup's hard floor), maximum 270s (≈4.5 min, stays under the 5 min prompt-cache TTL so re-entry is cache-warm and cheap). Every tick is fully cache-warm now; cadence is 1–4.5 min per tick. Singular-heartbeat rule (below) still applies — one tick must finish before the next starts.
-- **Singular heartbeat — no concurrent peer** (per **D-20260418-013**; user directive 2026-04-18 "Option D"). Only ONE `/heartbeat` tick runs at a time. Spawning a second while one is running is not allowed. If a tick sees parallel-session signals mid-flight — D-ID collisions, Run-N title thrashing, unattributed commits on its branch, `decision-log.md` gaining entries it didn't write — **commit what it has, note the collision in the run report, and end the tick**. Do not race. This closes Issue #42. Applies equally to `/heartbeat` (Claude Code side) and `heartbeat.js` (runtime side; the runtime must take a session-lock before any tick).
-- **Loop SOULs + memory** — per **D-20260418-013** extending D-005's subagent pattern: each command-invoked loop has a SOUL + memory file at `.claude/loops/<command>/SOUL.md` + `memory.md`. Current loops: `/heartbeat` and `/weekly-agent-update`. The command `.md` file references them in a "Read these BEFORE you execute" block. The weekly maintenance loop enumerates BOTH `.claude/agents/*.md` AND `.claude/loops/*/SOUL.md` under its promote/retire/prune protocol.
 - **Documentation** — when workflow behavior changes, update `README.md` / `architecture.md` / `memory.md` in the same commit
 - **Testing pyramid** — 70% unit, 20% integration, 10% E2E (per `plans/main-plan.md`)
 - **Three-chat dashboard** — Coding AI Relay, User Guidance, Execution Log (do not add or remove tabs without an Issue + decision)
@@ -289,7 +240,7 @@ This file + the plans under `Docs/Plans/` are the authoritative workflow guidanc
 - **Native**: `Read`, `Edit`, `Write`, `Grep`, `Glob`, `Bash` (node, npm, git, `gh`)
 - **Subagents**: `Agent` tool — use `Explore` for codebase search, `general-purpose` for multi-step tasks, specialized agents (code-reviewer, plugin-validator, etc.) when they fit
 - **Project MCP servers** (configured in [`.mcp.json`](.mcp.json); activate after Claude Code restarts):
-  - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) backed by `$MEMPALACE_PALACE_PATH` (required env var — see [`README.md`](README.md) "Setup" section; historically a hardcoded absolute Windows path, parameterised for portability per D-20260418-009 / Issue #17). Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.
+  - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) backed by `C:/Users/weird/.GitHub/mempalace/palace`. Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.
   - `sequentialthinking` — step-by-step reasoning for hard decomposition problems.
   - `context7` — up-to-date library/API docs (prefer over web search for SDKs and frameworks).
   - `puppeteer` — browser automation (headed verification of the Next.js dashboard).
@@ -333,8 +284,6 @@ A phase in `plans/main-plan.md` is complete when **all** are true:
 - `decision-log.md` is up to date
 - Living docs (`architecture.md`, `memory.md`) reflect the new state
 - Commits pushed to the canonical branch per git convention
-- **Every code change in the phase has a test that was observed to fail before the fix existed** (red → green evidence in the relevant run report) — per **D-20260418-009**
-- **TDD-exempt Issues** (docs/config-only per §6 TDD-scope bullet) explicitly declared so in their run report
 
 When a phase completes: open the next phase's first Issue and start the next heartbeat.
 
