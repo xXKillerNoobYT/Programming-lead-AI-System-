@@ -43,18 +43,7 @@ Q-IDs mirror the D-ID format but with `Q-` prefix. Reserve the same number for t
 
 ## Open Questions
 
-### Q-20260418-001 — Two "Part 6" files — naming decision?
-**Posted**: 2026-04-18 by Claude Code Run 27
-**Blocks**: None (both files coexist functionally), but cosmetic/semantic choice affects future plan citations.
-**Context**: During Issue #16 stash triage, Claude Code rescued a user-authored 290-line locked-intent document titled "Plans / LLM_Usage_Local_First_Strategy.md" (Document Version 1.1, April 17, 2026) that had been untracked in `Docs/Uerer Plans/Part 6.md` and stashed since the early-session WIP. It was committed as `Docs/Plans/Part 6 LLM Usage Strategy.md`. The existing committed `Docs/Plans/Part 6 UI Master Plan.md` (D-20260417-009, from Run 11) is a distinct document authored by Claude Code per your directive. Both files legitimately carry the "Part 6" prefix.
-**Options considered**:
-- A. Keep both as "Part 6 <suffix>.md" — works, but two files share the numbering slot. Filesystem + references already distinguish them.
-- B. Rename Claude Code's UI Master Plan to "Part 7 UI Master Plan.md" — restores a clean single-Part-6 slot for your original LLM strategy. Updates needed in decision-log (D-009 references) and any README/CLAUDE links.
-- C. Rename the rescued file to something that removes the "Part 6" conflict (e.g., "LLM Usage Strategy.md" without a Part number) — disrespects original user-authored numbering.
-**Recommendation (non-binding)**: **B** — rename Claude's UI plan to Part 7. Your original numbering predates mine, and Part 6 as "LLM Usage Strategy" reflects your design evolution across Parts 1–6. The UI plan came later and fits Part 7 naturally.
-**Hard-to-reverse?**: no (simple git mv + reference updates)
-
-**User answer**: _(empty — awaiting)_
+_(none at this time)_
 
 ---
 
