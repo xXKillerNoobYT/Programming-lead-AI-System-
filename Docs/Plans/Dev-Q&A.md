@@ -48,6 +48,22 @@ Q-IDs mirror the D-ID format but with `Q-` prefix. Reserve the same number for t
 
 ## Open Questions
 
+### Q-20260418-005 — Cadence during Copilot-wait-mode: slow down or stay fast?
+**Posted**: 2026-04-18 by Claude Code Run 75
+**Blocks**: Tracking Issue #85 (`type:question` + `status:needs-user`). Not strictly blocking, but rate-limiting — each no-op tick adds 1 row to `decision-log.md` on the meta PR.
+**Context**: 4 consecutive no-op sweep ticks (Runs 72–75) while waiting on your click-merges + Copilot resolution. Main tip unchanged at `43c18a9` for ~4 minutes. Current D-043 default is 60s cadence. Copilot is "designed for quality not speed" (per D-047) → most ticks in this window will be no-ops.
+**Options considered**:
+- **A. Keep 60s** — cost ~30 commits/hour idle, response ≤60s.
+- **B. Slow to 270s during Copilot-wait-mode** — cost ~13 commits/hour, response ≤270s.
+- **C. Pause after 3 no-ops until manual resume** — 0 cost, manual re-trigger.
+- **D. Adaptive: 60s normally, 270s after ≥3 consecutive no-ops** — ~15 commits/hour idle, fast on state change.
+**Recommendation (non-binding)**: **D**.
+**Hard-to-reverse?**: no
+
+**User answer**: _(empty — awaiting)_
+
+---
+
 ### Q-20260418-004 — Which open branches do you consider to have "uncompleted tasks"?
 **Posted**: 2026-04-18 by Claude Code Run 63
 **Blocks**: Tracking Issue #84 (`type:question` + `status:needs-user`). Your directive was *"there are quite a few branches without completed tasks feel free to complete those tasks first but please try and focus on a branch and get all the tasks completed on that branch so you can close it properly."* I want to act on it, but my survey disagrees with your premise so I don't want to guess wrong.
