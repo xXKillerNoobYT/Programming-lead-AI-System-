@@ -1,4 +1,4 @@
-**Plans / LLM_Usage_Local_First_Strategy.md**  
+**Plans / Part 6 LLM Usage Strategy.md**  
 **Document Version: 1.1**  
 **Date: April 17, 2026**  
 **Author: DevLead MCP Master Plan Team**  
@@ -287,4 +287,4 @@ This program is for:
 
 This program is **not** for direct coding implementation by the lead/orchestrator.
 
-**This page is now locked as Part 6 for the Userer Plans folder.**
+**This page is now locked as Part 6 for the User's Plans folder.**

@@ -8,7 +8,7 @@
 **Branch**: `run-27/stash-triage-part6-rescue`.
 
 ## The find
-`stash@{0}` contained an untracked **`Docs/Uerer Plans/Part 6.md`** — **290 lines of user-authored locked intent** titled:
+`stash@{0}` contained an untracked **`Docs/User Plans/Part 6.md`** — **290 lines of user-authored locked intent** titled:
 
 > **Plans / LLM_Usage_Local_First_Strategy.md**
 > **Document Version: 1.1**
