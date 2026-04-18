@@ -84,7 +84,8 @@ graph TD
   (partially present today via stdio connect/list/call wrappers).
   Today `.mcp.json` declares stdio servers for `mempalace`,
   `sequentialthinking`, `context7`, `puppeteer`, `memory`,
-  `microsoft-learn`. `heartbeat.js` does not yet use any of them.
+  `microsoft-learn`. `heartbeat.js` currently uses stdio MCP connectivity and
+  safe tool calls, with broader transport support and orchestration still pending.
 - **Memory**: MemPalace for cross-run observations; generic `memory` MCP as
   fallback.
 - **Agents**: External coding-only — GitHub Copilot via hosted MCP and
