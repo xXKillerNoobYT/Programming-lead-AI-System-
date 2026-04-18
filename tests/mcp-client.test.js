@@ -65,12 +65,21 @@ describe('loadMcpConfig', () => {
         }
     });
 
-    test('returns empty mcpServers when mcpServers is not a plain object', () => {
+    test('returns empty mcpServers when mcpServers is an array', () => {
         const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
         const path = join(dir, 'mcp.json');
         try {
             writeFileSync(path, JSON.stringify({ mcpServers: ['not', 'an', 'object'] }));
             assert.deepEqual(loadMcpConfig(path), { mcpServers: {} });
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
+    test('returns empty mcpServers when mcpServers is a string', () => {
+        const dir = mkdtempSync(join(tmpdir(), 'mcp-test-'));
+        const path = join(dir, 'mcp.json');
+        try {
             writeFileSync(path, JSON.stringify({ mcpServers: 'not-an-object' }));
             assert.deepEqual(loadMcpConfig(path), { mcpServers: {} });
         } finally {
