@@ -96,8 +96,8 @@ function extractRecentDecisions(contents, n = 3) {
     const hits = contents.match(idRe) || [];
     const seen = new Set();
     const recent = [];
-    for (let i = hits.length - 1; i >= 0; i -= 1) {
-        const id = hits[i];
+    for (let idx = hits.length - 1; idx >= 0; idx -= 1) {
+        const id = hits[idx];
         if (seen.has(id)) continue;
         seen.add(id);
         recent.push(id);

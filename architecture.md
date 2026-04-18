@@ -80,7 +80,9 @@ graph TD
 - **MCP layer**: gateway for all I/O — filesystem, GitHub, state, delegation.
   Today `.mcp.json` declares stdio servers for `mempalace`,
   `sequentialthinking`, `context7`, `puppeteer`, `memory`,
-  `microsoft-learn`. `heartbeat.js` does not yet use any of them.
+  `microsoft-learn`. The default MemPalace palace path is repo-relative
+  (`./.mcp/mempalace/palace`) for cross-platform portability. `heartbeat.js`
+  does not yet use any of them.
 - **Memory**: MemPalace for cross-run observations; generic `memory` MCP as
   fallback.
 - **Agents**: External coding-only and user-configurable (for example:
