@@ -60,7 +60,7 @@ Q-IDs mirror the D-ID format but with `Q-` prefix. Reserve the same number for t
 **Recommendation (non-binding)**: **C (SQLite)**. Gets the structured-state benefit without Postgres ops; WAL mode handles concurrent heartbeat/dashboard reads; migration to Postgres in Phase 4 is well-trodden. If you prefer A (simplicity wins) that's also fine — I can revisit in Phase 4.
 **Hard-to-reverse?**: somewhat — schema/data lives there. A → C → B is forward-compatible. B → local is more work. D breaks main-plan's shared-state intent.
 
-**User answer**: _(empty — awaiting)_
+**User answer**: C
 
 ---
 
@@ -76,7 +76,7 @@ Q-IDs mirror the D-ID format but with `Q-` prefix. Reserve the same number for t
 **Recommendation (non-binding)**: **D**.
 **Hard-to-reverse?**: no
 
-**User answer**: _(empty — awaiting)_
+**User answer**: D
 
 ---
 
@@ -112,7 +112,7 @@ From my side, all 13 scope-closing PRs have complete work — they're waiting to
 **Recommendation (non-binding)**: tell me which **specific branch** you had in mind, or which **axis** you were looking at (CI red, task-list unchecked, PR description says "TODO", etc.). I'll pick that branch and complete it.
 **Hard-to-reverse?**: no
 
-**User answer**:it A + B + C for sure all of that applys I want your workflow to be more focased on completing one branch at a time before moving to the next. making sure each feature or fix is fully completed, tested, and merged before starting on another branch. as long as your not held back by Questions or not having the necessary information, focus on finishing one branch completely before moving on to the next. then move on to the next branch in the queue. but make sure to have the the Q&A issue made and linked to the branch so that any questions or clarifications are tracked properly. and when I anser them you should address them promptly making that brach the next one in line to complete. as for now look at all the open branches and prioritize them based on which one can be fully completed, tested, and merged first. and see if there are any Q&A issues linked to those branches that need attention that did not make it into the GitHube issue tracker. as well as other blockers that might prevent a branch from being completed. those should be addressed before moving on to the next branch. or have a Q&A issue created for them if necessary. you can fail you dont have all the info fell free to ask clarifying questions. I am a desiner not a coder i know what i want this to do not how to get there thats your job to figure out. but the Q&A will help us both and will tie in nicly with this program. I got the core of how I want this to work, now I need you to execute it. and there are a lot of details to manage, so having a structured approach with Q&A issues will help ensure nothing is missed. and that the gaps get fild
+**User answer**:it A + B + C for sure all of that applys I want your workflow to be more focased on completing one branch at a time before moving to the next. making sure each feature or fix is fully completed, tested, and merged before starting on another branch. as long as your not held back by Questions or not having the necessary information, focus on finishing one branch completely before moving on to the next. then move on to the next branch in the queue. but make sure to have the the Q&A issue made and linked to the branch so that any questions or clarifications are tracked properly. and when I anser them you should address them promptly making that brach the next one in line to complete. as for now look at all the open branches and prioritize them based on which one can be fully completed, tested, and merged first. and see if there are any Q&A issues linked to those branches that need attention that did not make it into the GitHube issue tracker. as well as other blockers that might prevent a branch from being completed. those should be addressed before moving on to the next branch. or have a Q&A issue created for them if necessary. you can fail you dont have all the info fell free to ask clarifying questions. I am a desiner not a coder i know what i want this to do not how to get there thats your job to figure out. but the Q&A will help us both and will tie in nicly with this program. I got the core of how I want this to work, now I need you to execute it. and there are a lot of details to manage, so having a structured approach with Q&A issues will help ensure nothing is missed. and that the gaps get fillied
 
 ---
 

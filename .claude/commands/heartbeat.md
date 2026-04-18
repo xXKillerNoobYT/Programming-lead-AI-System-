@@ -185,12 +185,13 @@ ScheduleWakeup({
 })
 ```
 
-**Ideal-delay heuristic** (per **D-20260418-043** — default biased to 60s; 270s reserved for specific slow-down signals):
-- **Default: 60s** — the loop fires ~1 minute after each tick ends, matching user directive 2026-04-18: *"start like a minute after the last one that would be cool."*
-- **270s ONLY if**:
+**Ideal-delay heuristic** (per **D-20260418-043** + **D-20260418-151** adaptive: 60s normal, 270s after 3 consecutive no-ops):
+- **Default: 60s** — the loop fires ~1 minute after each tick ends.
+- **270s triggers on ANY of**:
   - Tick ended on an UNRESOLVED Singular-Heartbeat collision (let the other session finish; don't race)
-  - User explicitly asks to slow down (record as a new Decision ID when it happens)
-- All other cases (queued work, idle backlog, live user awaiting action, no-op sweeps) → **60s**.
+  - User explicitly asks to slow down (record as a new Decision ID)
+  - **≥3 consecutive no-op ticks** (D-151 adaptive rule). Reset back to 60s the tick real work lands. Track the no-op streak by scanning `decision-log.md` backwards for the last non-no-op D-ID — if the last 3+ entries are all `Run N no-op`, fire at 270s this tick.
+- All other cases (queued work, idle backlog ≤2 no-ops, live user awaiting action, post-user-activity) → **60s**.
 
 **Clamp is mandatory**: 60s is ScheduleWakeup's hard floor; 270s stays under the 5-min prompt-cache TTL so re-entry is cache-warm.
 
