@@ -56,7 +56,15 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
        - For each `critical` + `high` alert: if a Dependabot-authored PR exists (`gh pr list --author app/dependabot`), merge it under rule 11a; else file an Issue per Polsia Rule 2
        - For `medium` + `low`: batch into a single triage Issue rather than one-per-alert
 
-    c. **Supersession sweep** — after 11a merges land, any PR whose commits are now all in `main` becomes trivially-mergeable-as-no-op. Close those with a comment citing the superseding commit SHA. Do **not** close a PR that still has unique commits.
+    c. **Supersession sweep — with 3-day grace period** (per user directive 2026-04-18: *"Close them after three days if they're not ending up being used again"*):
+       - **First detection**: when a PR becomes CONFLICTING+DIRTY AND all its commits are already in `main`, post a comment of the form:
+         ```
+         Superseded by <merge-PR#> merge at <SHA> on <YYYY-MM-DD>. Auto-close scheduled for <YYYY-MM-DD + 3 days> if no new activity.
+         ```
+         Do **not** close it this tick. The comment is the durable aging marker — future heartbeats read its timestamp.
+       - **Subsequent ticks**: for each CONFLICTING+DIRTY PR, check whether a "Superseded by … Auto-close scheduled for …" comment exists AND whether the scheduled date has passed AND whether no new commits have landed since the comment. If all three: `gh pr close N --comment "Grace period elapsed; closing per D-20260418-012."` If any condition fails, leave the PR open and move on.
+       - **Never auto-close** a PR that still has unique commits relative to `main`.
+       - **Never auto-close** a PR during the grace period even if it meets the structural criteria.
 
     d. **Record** — the run report must include a `## Merge + Security Audit` section listing: PRs merged (with SHA), PRs closed-as-superseded, Dependabot alerts resolved, any unresolved-and-file Issue numbers.
 
