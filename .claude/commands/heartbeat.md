@@ -52,6 +52,12 @@ Read state in parallel:
 - `Docs/Plans/Dev-Q&A.md` for new user answers (CLAUDE.md §4b — transcribe answers to `decision-log.md` as new `D-` entries and remove the question block)
 
 ### 2. Pick ONE atomic task
+
+**Concurrency pre-check (per D-20260418-030)**: before invoking the picker, run `gh pr list --state open --head-prefix 'feature/' --head-prefix 'bugfix/' --json number,headRefName` (or the equivalent grep of `git branch -a | grep -E '^\s*(feature|bugfix)/'`). If an open non-meta in-dev branch exists:
+- The heartbeat MUST continue that branch's Issue rather than pick a new one.
+- Exception: if the branch has been stale ≥ 3 days, file a Dev-Q&A entry + continue the stale branch's Issue (or close it with user approval).
+- `hotfix/*` branches are user-authorized per incident and don't block new `feature/bugfix/*` picks.
+
 Invoke the **`issue-triage-picker`** subagent (via `Agent` tool). It returns a ranked candidate + reason per the 4-layer tree:
 1. `status:in-progress` Issue → continue it
 2. Open leaf sub-issue of open parent → pick leaf (D-20260417-018)
@@ -74,11 +80,21 @@ If a written plan in `plans/*.md` needs checkpointed execution across future tic
 Skip Station 3 entirely for atomic mechanical Issues (single-file edits, doc-only fixes, settings tweaks).
 
 ### 4. Branch (code-producing Issues)
+
+**Continue-vs-create check (per D-20260418-030)**: if Station 2's concurrency pre-check surfaced an existing in-dev branch, **switch to that branch** instead of creating a new one:
+```
+git fetch origin
+git checkout <existing-feature-branch>
+git pull --ff-only
+```
+Only create a new branch when no `feature/*` or `bugfix/*` is currently in-flight.
+
+When creating:
 - `git fetch origin`
 - `git checkout beta && git pull --ff-only`  (fall back to `main` ONLY if `beta` doesn't exist yet — pre-stack-drain state)
 - `git checkout -b <type>/issue-<N>-<slug>` where `<type>` is `feature`, `bugfix`, or `hotfix`
 
-Per **D-20260418-026** (branching strategy): feature/bugfix branches off `beta`; hotfixes off `main` (rare, user-authorized only). Per D-20260418-009: branches per Issue (not worktrees) unless parallel ticks genuinely require isolation. Docs-only Issues MAY skip this station if they commit to a `meta/<slug>` branch-tag (per D-20260418-025) — note in run report.
+Per **D-20260418-026** + **D-20260418-030** (branching strategy): feature/bugfix branches off `beta`; at most one in-flight at a time; hotfixes off `main` (rare, user-authorized only, don't count toward the cap). Per D-20260418-009: branches per Issue (not worktrees). Docs-only Issues MAY skip this station by committing to a `meta/<slug>` branch-tag (per D-20260418-025) — note in run report. `meta/*` doesn't count toward the concurrency cap.
 
 ### 5. Build with TDD (all new program parts and updates — per §6)
 Invoke **`superpowers:test-driven-development`** skill. Follow red → green → refactor.
