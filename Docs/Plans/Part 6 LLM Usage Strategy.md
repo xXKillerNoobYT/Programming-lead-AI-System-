@@ -1,4 +1,4 @@
-**Plans / Part 6 LLM Usage Strategy.md**  
+**Plans / Part 6 LLM Usage Strategy.md**
 **Document Version: 1.1**  
 **Date: April 17, 2026**  
 **Author: DevLead MCP Master Plan Team**  

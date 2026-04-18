@@ -33,12 +33,12 @@ Spot-checked three representative files via diff against current HEAD:
 
 | Stashed file | Diff result | Action |
 |---|---|---|
-| `Docs/Uerer Plans/Part 1.md` | 1-165c1,165 — line-ending difference only; content identical | no rescue |
-| `Docs/Uerer Plans/Part 2.md` | 1-102c1,102 — line-ending difference only | no rescue |
-| `Docs/Uerer Plans/Part 4.md` | 1-78c1,78 — line-ending difference only | no rescue |
-| `Docs/Uerer Plans/Part 3.md` (empty) | 0 lines both sides | no rescue |
-| `Docs/Uerer Plans/Part 5 old verion Linking notes.md` | line-ending only | no rescue |
-| `Docs/Uerer Plans/Part 6.md` | **Only in stash** | **RESCUED → `Docs/Plans/Part 6 LLM Usage Strategy.md`** |
+| `Docs/User Plans/Part 1.md` | 1-165c1,165 — line-ending difference only; content identical | no rescue |
+| `Docs/User Plans/Part 2.md` | 1-102c1,102 — line-ending difference only | no rescue |
+| `Docs/User Plans/Part 4.md` | 1-78c1,78 — line-ending difference only | no rescue |
+| `Docs/User Plans/Part 3.md` (empty) | 0 lines both sides | no rescue |
+| `Docs/User Plans/Part 5 old version Linking notes.md` | line-ending only | no rescue |
+| `Docs/User Plans/Part 6.md` | **Only in stash** | **RESCUED → `Docs/Plans/Part 6 LLM Usage Strategy.md`** |
 | `reports/run-1-summary.md` – `run-7-summary.md` | Committed equivalents exist (retroactive stubs per D-20260417-012) | no rescue |
 | `plans/run-6-ui-plan.md` | Superseded by `Docs/Plans/Part 6 UI Master Plan.md` (D-009) | no rescue |
 | `mcp_settings.json` (+111) | Current HEAD has equivalent as `mcp_settings.json` + `.mcp.json` (D-006) | no rescue |
