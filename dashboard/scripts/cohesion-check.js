@@ -33,6 +33,7 @@ const CHECKS = [
 
 const DASHBOARD_ROOT = path.join(__dirname, '..');
 const REPORTS_DIR = path.join(__dirname, '..', '..', 'reports', 'cohesion');
+const SIGNAL_TERMINATION_EXIT_CODE = 128;
 
 function runSingle(check) {
   const start = Date.now();
@@ -50,7 +51,12 @@ function runSingle(check) {
   const spawnError = res.error ? `\n[spawn-error] ${res.error.message}` : '';
   const signalInfo = res.signal ? `\n[signal] ${res.signal}` : '';
   const output = (res.stdout ?? '') + (res.stderr ?? '') + spawnError + signalInfo;
-  const exitCode = Number.isInteger(res.status) ? res.status : 1;
+  // res.status is null when spawn fails or when child exits by signal.
+  // - signal termination → 128 (stable "signal-terminated" bucket)
+  // - spawn/setup failure with no signal → 1
+  const exitCode = Number.isInteger(res.status)
+    ? res.status
+    : (res.signal ? SIGNAL_TERMINATION_EXIT_CODE : 1);
   return {
     name: check,
     passed: exitCode === 0,
@@ -101,6 +107,8 @@ function writeReport(results, decisionId) {
 
 function main() {
   const failFast = !process.argv.includes('--all');
+  // Issue #23 AC expects decisionId to always be a string in the JSON report;
+  // line below enforces that via 'UNSPECIFIED' fallback.
   const decisionId = process.env.COHESION_DECISION_ID || 'UNSPECIFIED';
 
   console.log(
