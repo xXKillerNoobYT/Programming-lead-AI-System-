@@ -181,15 +181,31 @@ describe('checkGates (async wrapper)', () => {
         assert.deepEqual(gates, ['issue-opted-in', 'tests-green']);
     });
 
-    test('requires prNumber and issueNumber', async () => {
-        await assert.rejects(
-            () => checkGates({}, { fetchPRStatus: async () => ({}) }),
-            /prNumber/,
-        );
-        await assert.rejects(
-            () => checkGates({ prNumber: 1 }, {}),
-            /issueNumber/,
-        );
+    test('missing prNumber → structured input-error failure, never rejects', async () => {
+        const r = await checkGates({}, { fetchPRStatus: async () => ({}) });
+        assert.equal(r.pass, false);
+        const f = r.failures.find((x) => x.gate === 'input-error');
+        assert.ok(f);
+        assert.match(f.detail, /prNumber/);
+    });
+
+    test('missing issueNumber → structured input-error failure, never rejects', async () => {
+        const r = await checkGates({ prNumber: 1 }, {});
+        assert.equal(r.pass, false);
+        const f = r.failures.find((x) => x.gate === 'input-error');
+        assert.ok(f);
+        assert.match(f.detail, /issueNumber/);
+    });
+
+    test('missing both inputs → two input-error failures, no fetch attempted', async () => {
+        let fetchCalled = false;
+        const deps = {
+            fetchPRStatus: async () => { fetchCalled = true; return {}; },
+        };
+        const r = await checkGates({}, deps);
+        assert.equal(r.pass, false);
+        assert.equal(r.failures.filter((f) => f.gate === 'input-error').length, 2);
+        assert.equal(fetchCalled, false);
     });
 
     test('dep failures surface as a synthetic gate failure, not a throw', async () => {
@@ -204,5 +220,19 @@ describe('checkGates (async wrapper)', () => {
         const f = r.failures.find((x) => x.gate === 'fetch-error');
         assert.ok(f);
         assert.match(f.detail, /network down/);
+    });
+
+    test('non-Error dep rejection is stringified safely', async () => {
+        const deps = {
+            fetchPRStatus: async () => { throw 'raw string reject'; },
+            fetchIssueLabels: async () => [],
+            fetchReviewFindings: async () => [],
+            fetchSilentFailureFindings: async () => [],
+        };
+        const r = await checkGates({ prNumber: 1, issueNumber: 2 }, deps);
+        assert.equal(r.pass, false);
+        const f = r.failures.find((x) => x.gate === 'fetch-error');
+        assert.ok(f);
+        assert.match(f.detail, /raw string reject/);
     });
 });

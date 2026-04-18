@@ -62,11 +62,15 @@ function evaluateGates(input) {
 }
 
 async function checkGates({ prNumber, issueNumber } = {}, deps = {}) {
+    const inputFailures = [];
     if (prNumber === undefined || prNumber === null) {
-        throw new Error('checkGates: prNumber is required');
+        inputFailures.push({ gate: 'input-error', detail: 'prNumber is required' });
     }
     if (issueNumber === undefined || issueNumber === null) {
-        throw new Error('checkGates: issueNumber is required');
+        inputFailures.push({ gate: 'input-error', detail: 'issueNumber is required' });
+    }
+    if (inputFailures.length > 0) {
+        return { pass: false, failures: inputFailures };
     }
 
     const {
@@ -93,11 +97,12 @@ async function checkGates({ prNumber, issueNumber } = {}, deps = {}) {
             silentFailureFindings,
         });
     } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
         return {
             pass: false,
             failures: [{
                 gate: 'fetch-error',
-                detail: `failed to fetch gate inputs: ${err.message}`,
+                detail: `failed to fetch gate inputs: ${errorMessage}`,
             }],
         };
     }
