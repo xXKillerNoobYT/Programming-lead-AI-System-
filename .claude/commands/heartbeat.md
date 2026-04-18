@@ -50,12 +50,12 @@ Skip for atomic mechanical Issues (single-file edits, doc-only fixes, settings t
 
 Per **D-20260418-026** (branching strategy): feature/bugfix branches off `beta`; hotfixes off `main` (rare, user-authorized only). Per D-20260418-009: branches per Issue (not worktrees) unless parallel ticks genuinely require isolation. Docs-only Issues MAY skip this station if they commit to a `meta/<slug>` branch-tag (per D-20260418-025) — note in run report.
 
-### 5. Build with TDD (code-producing Issues — per §6 TDD scope)
+### 5. Build with TDD (all new program parts and updates — per §6)
 Invoke **`superpowers:test-driven-development`** skill. Follow red → green → refactor.
 
-**No production code without a failing test first.** Capture verbatim red-run output and green-run output in the run report. That evidence is what proves TDD happened.
+**No production code without a failing test first.** Per user directive 2026-04-18 (D-20260418-028), TDD is THE development method for new parts of the program and updates — not just "backbone." Capture verbatim red-run output and green-run output in the run report. That evidence is what proves TDD happened.
 
-Scope (per CLAUDE.md §6): required for `heartbeat.js`, `dashboard/`, `lib/`, `scripts/` that ship to production, and MCP server code. Exempt: docs, config files, one-off scripts, fixtures. Exempt Issues must declare "TDD exempt — <reason>" in the run report.
+Scope (per CLAUDE.md §6): **all** production code. Exempt ONLY: docs (`*.md`, `*.txt`), config files (`.json`, `.yml`, `.toml`, `.npmrc`, `.env*`), generated files, throwaway diagnostics. Exempt changes must declare "TDD exempt — <category>" in the run report.
 
 ### 5b. Debug (conditional — on ≥3 failed fix attempts)
 If TDD's green phase stalls: invoke **`superpowers:systematic-debugging`** skill. Follow its four phases (root-cause → pattern analysis → hypothesis → implementation) before any more fix attempts.
