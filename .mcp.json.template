@@ -37,12 +37,12 @@
     },
     "mempalace": {
       "command": "python",
-        "args": [
-          "-m",
-          "mempalace.mcp_server",
-          "--palace",
-          "${MEMPALACE_PALACE_PATH}"
-        ]
+      "args": [
+        "-m",
+        "mempalace.mcp_server",
+        "--palace",
+        "${MEMPALACE_PALACE_PATH}"
+      ]
     },
     "github": {
       "command": "npx",
@@ -56,11 +56,11 @@
     },
     "filesystem": {
       "command": "npx",
-        "args": [
-          "-y",
-          "@modelcontextprotocol/server-filesystem",
-          "${WORKSPACE_DIR}"
-        ]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${WORKSPACE_DIR}"
+      ]
     }
   }
 }
