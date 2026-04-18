@@ -47,7 +47,7 @@ Phase 3 takes the system from **"works on the happy path"** (Phases 1 & 2) to **
 ### 2.1 What Phase 1 & 2 delivered (that Phase 3 builds on)
 | Deliverable | Decision | Phase 3 usage |
 |---|---|---|
-| `heartbeat.js` Node scheduler | D-20260417-015 | Wrap with guardrails + audit trail (§C) |
+| `heartbeat.js` Node scheduler | D-20260417-021 | Wrap with guardrails + audit trail (§C) |
 | 3-tab dashboard shell | D-20260418-002 | Upgrade per Part 6 §20 (§D) |
 | Preferences editor + localStorage | D-20260417-004 | Add conflict resolution + live-effect (§F.1) |
 | Smart agent/model mapping | D-20260417-004 | Extend with dep-graph-aware parallelism (§B.5) |
