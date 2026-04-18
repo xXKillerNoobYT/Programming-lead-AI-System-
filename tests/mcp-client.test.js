@@ -2,7 +2,7 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { writeFileSync, unlinkSync, mkdtempSync, rmSync } = require('node:fs');
+const { writeFileSync, unlinkSync, mkdtempSync, rmSync, existsSync } = require('node:fs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 
@@ -38,7 +38,7 @@ describe('loadMcpConfig', () => {
             assert.equal(config.mcpServers.foo.command, 'echo');
             assert.equal(config.mcpServers.bar.type, 'streamable-http');
         } finally {
-            try { unlinkSync(path); } catch { /* ignore */ }
+            if (existsSync(path)) unlinkSync(path);
             rmSync(dir, { recursive: true, force: true });
         }
     });
@@ -51,7 +51,7 @@ describe('loadMcpConfig', () => {
             const config = loadMcpConfig(path);
             assert.deepEqual(config, { mcpServers: {} });
         } finally {
-            try { unlinkSync(path); } catch { /* ignore */ }
+            if (existsSync(path)) unlinkSync(path);
             rmSync(dir, { recursive: true, force: true });
         }
     });
@@ -64,7 +64,7 @@ describe('loadMcpConfig', () => {
             const config = loadMcpConfig(path);
             assert.deepEqual(config, { mcpServers: {} });
         } finally {
-            try { unlinkSync(path); } catch { /* ignore */ }
+            if (existsSync(path)) unlinkSync(path);
             rmSync(dir, { recursive: true, force: true });
         }
     });
@@ -77,7 +77,7 @@ describe('loadMcpConfig', () => {
             const config = loadMcpConfig(path);
             assert.deepEqual(config, { mcpServers: {} });
         } finally {
-            try { unlinkSync(path); } catch { /* ignore */ }
+            if (existsSync(path)) unlinkSync(path);
             rmSync(dir, { recursive: true, force: true });
         }
     });

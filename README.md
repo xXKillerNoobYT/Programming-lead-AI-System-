@@ -10,7 +10,7 @@ Pure orchestrator for software projects. Delegates to 3rd-party agents (Roo Code
 
 ## Setup — Required Environment Variables
 
-The MCP server definitions in `.mcp.json` reference environment variables so the repo is portable across machines. Before restarting Claude Code, set these in your shell or `.env`:
+The MCP server definitions in `.mcp.json` reference environment variables so the repo is portable across machines. Before restarting Claude Code, set these in your shell or `.env` (`${VAR_NAME}` placeholders in `.mcp.json` are resolved at MCP startup):
 
 | Variable | Required for | Example (Windows) | Example (Linux/Mac) |
 |---|---|---|---|
