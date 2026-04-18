@@ -17,12 +17,14 @@ This file is the *only* writable file under `Docs/Plans/`. All other files in th
    - A `/loop` or cron heartbeat can't afford to block (no interactive user right now) but the question must be raised before work continues
 2. **The system keeps working** on unblocked Issues while the question is open. Do not stall the heartbeat on an open Q&A.
 3. **The user answers** when convenient. Just append your answer to the entry (or reply in-line).
-4. **The next heartbeat that sees the answer**:
+4. **The next heartbeat that sees the answer** (per D-20260418-154 user directive *"once a Q is answered … clean up the page and log the answer in the proper locations updating the plan or whatever is best"*):
    - Records the decision as a new `D-YYYYMMDD-###` entry in `decision-log.md` (long-term home)
-   - Removes the question from this file
-   - Acts on the answer in the same heartbeat if feasible; otherwise files a new Issue
+   - **Removes** the question block from this file (no archive comment; full delete)
+   - **Updates the relevant plan file** in `plans/*.md` if the answer affects plan scope (e.g., Q-006 answer "SQLite" updates `plans/phase-3-plan.md` §1.3)
+   - Strips `status:needs-user` + closes the cross-linked GH Issue per D-20260418-033/039 protocol
+   - Acts on the answer this heartbeat if it unblocks the current pick; else files/updates the relevant Issue
 5. **Cleanup triggers** — remove an entry from this file when any of these happen:
-   - a. User has answered it (record in `decision-log.md` first)
+   - a. User has answered it (record in `decision-log.md` + update plan if applicable, first)
    - b. The task the question was blocking has already been completed a different way (note the removal in the next run report)
    - c. The question is no longer relevant (project scope changed, rule changed, etc. — again note in run report)
 
@@ -48,71 +50,7 @@ Q-IDs mirror the D-ID format but with `Q-` prefix. Reserve the same number for t
 
 ## Open Questions
 
-### Q-20260418-006 — Per-project state storage: Postgres (per main-plan) or local JSON (per phase-3-plan §1.3)?
-**Posted**: 2026-04-18 by Claude Code Run 88
-**Blocks**: Phase 3 §B (multi-project isolation) subtasks. Tracking Issue #91 (`type:question` + `status:needs-user`). Not immediately blocking — current wave-1 work doesn't touch storage — but the answer determines how §B.1–§B.4 are implemented.
-**Context**: `plans/main-plan.md` §Architecture locks *"State: Shared Postgres + cloud storage"* but `plans/phase-3-plan.md` §1.3 deliberately defers Postgres to Phase 4 and uses local JSON for Phase 3. The phase-3-plan's §5 Open Questions #1 explicitly asks you to confirm the slippage. Without an answer the `§B.1` (per-project `plans/`, `reports/`, MemPalace wing) will default to local-JSON and may need rework in Phase 4.
-**Options considered**:
-- **A. Local JSON through Phase 3, Postgres in Phase 4** — matches phase-3-plan §1.3 default. Simplest near-term; Phase 4 gets a one-time migration task.
-- **B. Postgres now, per main-plan** — aligns with locked architecture. Requires installing Postgres locally (conflicts with no-Docker/no-venv constraints — would need native Windows install or WSL per `feedback_no_docker_wsl_or_linux_ok.md`).
-- **C. SQLite (file-based, zero-install)** — compromise: structured DB without Postgres ops; easy to migrate to Postgres in Phase 4. Adds a library dep but no new infra.
-- **D. Local JSON permanently (amend main-plan)** — simplest long-term for a solo designer's single-machine setup. Loses shared-state property that main-plan was aiming at.
-**Recommendation (non-binding)**: **C (SQLite)**. Gets the structured-state benefit without Postgres ops; WAL mode handles concurrent heartbeat/dashboard reads; migration to Postgres in Phase 4 is well-trodden. If you prefer A (simplicity wins) that's also fine — I can revisit in Phase 4.
-**Hard-to-reverse?**: somewhat — schema/data lives there. A → C → B is forward-compatible. B → local is more work. D breaks main-plan's shared-state intent.
-
-**User answer**: C
-
----
-
-### Q-20260418-005 — Cadence during Copilot-wait-mode: slow down or stay fast?
-**Posted**: 2026-04-18 by Claude Code Run 75
-**Blocks**: Tracking Issue #85 (`type:question` + `status:needs-user`). Not strictly blocking, but rate-limiting — each no-op tick adds 1 row to `decision-log.md` on the meta PR.
-**Context**: 4 consecutive no-op sweep ticks (Runs 72–75) while waiting on your click-merges + Copilot resolution. Main tip unchanged at `43c18a9` for ~4 minutes. Current D-043 default is 60s cadence. Copilot is "designed for quality not speed" (per D-047) → most ticks in this window will be no-ops.
-**Options considered**:
-- **A. Keep 60s** — cost ~30 commits/hour idle, response ≤60s.
-- **B. Slow to 270s during Copilot-wait-mode** — cost ~13 commits/hour, response ≤270s.
-- **C. Pause after 3 no-ops until manual resume** — 0 cost, manual re-trigger.
-- **D. Adaptive: 60s normally, 270s after ≥3 consecutive no-ops** — ~15 commits/hour idle, fast on state change.
-**Recommendation (non-binding)**: **D**.
-**Hard-to-reverse?**: no
-
-**User answer**: D
-
----
-
-### Q-20260418-004 — Which open branches do you consider to have "uncompleted tasks"?
-**Posted**: 2026-04-18 by Claude Code Run 63
-**Blocks**: Tracking Issue #84 (`type:question` + `status:needs-user`). Your directive was *"there are quite a few branches without completed tasks feel free to complete those tasks first but please try and focus on a branch and get all the tasks completed on that branch so you can close it properly."* I want to act on it, but my survey disagrees with your premise so I don't want to guess wrong.
-**Context**: I surveyed all 15 open PRs. Every one of them has its direct-scope closing Issue **already CLOSED**:
-| PR | Branch | Closes | Issue state |
-|---|---|---|---|
-| #14 | run-11/ui-master-plan | (none) | — |
-| #25 | run-17/phase-3-plan | #7 | CLOSED |
-| #29 | run-22/phase-4-plan | #8 | CLOSED |
-| #32 | run-25/dependabot-triage | #12 | CLOSED |
-| #43 | run-30/phase-3-check-scripts | #17, #35 | BOTH CLOSED |
-| #46 | run-36/phase-3-cohesion-runner | #23 | CLOSED |
-| #47 | run-40/phase-4-ci-workflow | #26 | CLOSED |
-| #48 | run-41/dependabot-transitive-fix | #30 | CLOSED |
-| #49 | run-42/filesystem-mcp-portability | #41 | CLOSED |
-| #50 | run-43/phase-4-env-dotenv | #27 | CLOSED |
-| #51 | run-44/phase-4-pm2-ecosystem | #28 | CLOSED |
-| #53 | run-45/phase-3-coverage-floor | #52 | CLOSED |
-| #55 | run-46/phase-3-arch-lint | #54 | CLOSED |
-| #60 | issue-37/auto-merge-gate | (none) | — |
-| #63 | meta/q-002-stack-recovery | (none) | — |
-
-From my side, all 13 scope-closing PRs have complete work — they're waiting to merge, not needing more work. I may be missing a different axis of "completeness":
-**Options considered**:
-- **A. CI/tests failing on some branches** — a PR can close its Issue scope but still have broken tests. I haven't run each branch's CI.
-- **B. Unchecked task-list items in PR bodies** — some PR descriptions may have `- [ ]` items still unchecked even though the "closes #N" Issue is closed. I haven't grep'd bodies.
-- **C. PRs #14, #60, #63 have no `closes` reference** — maybe one of those is the incomplete-looking one. #14 is the old "Part 6 UI Master Plan" (since renamed Part 7 per D-007), #60 is the auto-merge-gate script, #63 is my meta branch.
-- **D. Your memory of the state is from an earlier point** — e.g., before I swept #65/#79 closed today; the user-facing queue used to show 17, now 15. Might just be "I thought there were more outstanding."
-- **E. Something else I'm not detecting** — draft state, CODEOWNERS reviews needed, Dependabot relationships, branch-protection gates.
-**Recommendation (non-binding)**: tell me which **specific branch** you had in mind, or which **axis** you were looking at (CI red, task-list unchecked, PR description says "TODO", etc.). I'll pick that branch and complete it.
-**Hard-to-reverse?**: no
-
-**User answer**:it A + B + C for sure all of that applys I want your workflow to be more focased on completing one branch at a time before moving to the next. making sure each feature or fix is fully completed, tested, and merged before starting on another branch. as long as your not held back by Questions or not having the necessary information, focus on finishing one branch completely before moving on to the next. then move on to the next branch in the queue. but make sure to have the the Q&A issue made and linked to the branch so that any questions or clarifications are tracked properly. and when I anser them you should address them promptly making that brach the next one in line to complete. as for now look at all the open branches and prioritize them based on which one can be fully completed, tested, and merged first. and see if there are any Q&A issues linked to those branches that need attention that did not make it into the GitHube issue tracker. as well as other blockers that might prevent a branch from being completed. those should be addressed before moving on to the next branch. or have a Q&A issue created for them if necessary. you can fail you dont have all the info fell free to ask clarifying questions. I am a desiner not a coder i know what i want this to do not how to get there thats your job to figure out. but the Q&A will help us both and will tie in nicly with this program. I got the core of how I want this to work, now I need you to execute it. and there are a lot of details to manage, so having a structured approach with Q&A issues will help ensure nothing is missed. and that the gaps get fillied
+*No open questions.*
 
 ---
 

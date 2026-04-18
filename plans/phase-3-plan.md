@@ -26,7 +26,7 @@ Phase 3 takes the system from **"works on the happy path"** (Phases 1 & 2) to **
 - Preferences hardening (conflict resolution, approval auto-expiry, live-effect toasts).
 
 ### 1.3 Out of scope (deferred to Phase 4)
-- Cloud Postgres / S3 storage (local JSON continues for Phase 3).
+- **Cloud Postgres / S3 storage** — **SQLite for Phase 3** per user Q-006 answer (D-20260418-152); main-plan's Postgres becomes the Phase-4 migration target. §B.1–§B.4 multi-project isolation uses file-per-project SQLite (`projects/<name>/state.sqlite`) with WAL mode for concurrent heartbeat+dashboard reads.
 - CI/CD pipelines (GitHub Actions) — manual verification is enough until Phase 4.
 - PM2 / Windows Task Scheduler / systemd packaging.
 - Installer / one-click project setup.
@@ -107,6 +107,16 @@ Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will 
 - **D.9** Theming polish (Part 7 §14): light/dark/system, blocking theme script, syntax-highlight swap.
 - **D.10** Responsive pass (Part 7 §15): mobile bottom bar, bottom-sheet modals, 44 px targets.
 - **D.11** Visual Quality Bar enforcement: add a Storybook page per new component (Part 7 §4.5 checklist).
+- **D.12** In-app Q&A board surface (Part 7 §5): dedicated view/panel showing open/answered/blocked questions, dependency links, and blocked-task links.
+- **D.13** In-app visible task queue surface (Part 7 §5A): dedicated view with status filters, owner/agent, blockers, timestamps, and evidence links.
+- **D.14** In-app User Plans management surface (Part 7 §5B, UI Part 7 §7.4): full CRUD/version/map/archive/restore flow with done/not-done rollups and evidence linkage.
+- **D.15** Concept-to-Spec elicitation surface (Part 7 §5C): intake vague/detailed idea, run requirement gap detection, generate targeted clarifying questions, and output implementation-ready spec with completeness score.
+- **D.16** Post-run anti-hallucination verification surface + protocol (Part 7 §4A): analyze AI-generated run output, flag hallucination-risk claims, block confirmation, and track correction-to-verified workflow.
+- **D.17** Pre-delegation knowledge-resolution gate (Part 7 §5 Pre-Delegation Q&A Rule): resolve task context from answered Q&A/plans/project artifacts first, then ask only uncovered questions before coding delegation.
+- **D.18** Planning-buffer manager (Part 7 Planning Buffer Policy): maintain 3+ ready backlog and up to 10 preplanned non-bug coding issues, with separate reactive bug/fix lane.
+- **D.19** Context Intelligence packet engine (Part 7 §4B): assemble source-cited next-step context from plans/Q&A/decisions/code-tests/issues-reports with confidence scoring.
+- **D.20** Self-analysis assumption/hallucination detector (Part 7 §4B): run pre-delegation + pre-confirmation self-check and enforce correction loop for flagged claims.
+- **D.21** Uncertainty protocol engine (Part 7 §4C): enforce explicit "I don't know" disclosure, unknown-field tracking, no-guess blocking, and targeted question generation.
 
 ### E. Observability  *(area:observability)*
 - **E.1** `VramGraph` component + `monitor_vram` MCP wiring (Part 7 §10).
@@ -120,6 +130,13 @@ Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will 
 - **F.2** Approval auto-expiry — preference-configurable timeout; applies safe default + records decision ID.
 - **F.3** Skippable clarifying-Q flow end-to-end (Lead posts Q → user answers/skips/applies-default → decision logged → next tick acts).
 - **F.4** Dependabot alerts surfaced in Log tab column C (Part 7 §7.3) via GitHub MCP.
+
+### G. Plan-to-Code Readiness Engine  *(area:planning)*
+- **G.1** Coding-ready context packet generator: compile objective, dependencies, resolved Q&A, touched files/tests, AC, and verification commands per Issue.
+- **G.2** Dependency-chain validator: ensure ordered tasks only run when upstream deliverables are implemented and linked.
+- **G.3** Role-specific prompt template library: user/developer/coder/debugger/reviewer templates with strict required fields.
+- **G.4** Coding-ready queue compiler: maintain up to 10 preplanned non-bug Issues with complete packets; reject incomplete entries.
+- **G.5** Missing-info guard: if packet fields are unresolved, auto-generate targeted questions and block coding handoff until resolved/defaulted.
 
 ---
 
@@ -137,6 +154,100 @@ Phase 3 is complete when **all** of these are true (evidence-backed, per `CLAUDE
 - [ ] `decision-log.md` has `D-YYYYMMDD-###` entries for every Phase 3 Issue closure and references them from the Phase 3 run-reports.
 - [ ] `architecture.md` + `memory.md` updated to reflect Phase 3 behaviors.
 - [ ] Part 6 Visual Quality Bar passes for every new / modified component.
+
+### 4.1 Mandatory Release Gate — Q&A + Task Visibility (from Part 7)
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] **Q&A view exists in the app** (not file-only) and is reachable from main navigation.
+- [ ] Q&A view supports filters for `open`, `answered`, and `blocked`.
+- [ ] Each Q&A item shows the task(s) it blocks, and each linked task is navigable.
+- [ ] Answering a blocking question updates task unblocked state on the next heartbeat cycle.
+- [ ] **Task visibility view exists in the app** and is reachable from main navigation.
+- [ ] Task view shows: ID/title, status, owner/agent, blockers, last update timestamp, and evidence link(s).
+- [ ] Task view supports quick filtering by status (`backlog`, `in_progress`, `blocked`, `review`, `done_verified`, `done_unverified`).
+- [ ] Active task (currently executing) is clearly highlighted in the UI.
+- [ ] At least one end-to-end demo recorded in `reports/run-*-summary.md` proves both views working from a user perspective.
+
+### 4.2 Mandatory Release Gate — User Plans Full Management (from Part 7 §5B)
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] **User Plans view exists in the app** and is reachable from main navigation.
+- [ ] User can create/import/upload plans inside the app.
+- [ ] User can edit, rename, archive/unarchive, and restore prior versions inside the app.
+- [ ] Plan-section ↔ task mapping is visible and editable.
+- [ ] Plan dashboard clearly shows `done / in_progress / not_started / blocked` at section and plan rollup levels.
+- [ ] User can open evidence links (run report / decision / task link) directly from plan sections.
+- [ ] At least one end-to-end user-perspective demo recorded in `reports/run-*-summary.md` proves full User Plans management works without CLI.
+
+### 4.3 Mandatory Release Gate — Concept-to-Spec Precision Engine (from Part 7 §5C)
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] User can submit a vague concept in-app and receive a structured missing-information analysis.
+- [ ] System generates targeted clarification questions tied to specific missing requirement fields.
+- [ ] User answers are stored as structured spec fields and linked to decisions/tasks.
+- [ ] Spec completeness score is visible and updates after each answer.
+- [ ] System blocks implementation when critical fields are unresolved (unless explicit default/override is chosen).
+- [ ] System produces an implementation-ready spec artifact that links to downstream task decomposition.
+- [ ] At least one end-to-end user-perspective demo recorded in `reports/run-*-summary.md` proves vague→specific conversion works without CLI.
+
+### 4.4 Mandatory Release Gate — Anti-Hallucination Verification (from Part 7 §4A)
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] Every run executes anti-hallucination verification before confirmation.
+- [ ] Unverified/contradictory claims are automatically flagged with source comparison evidence.
+- [ ] Confirmation is blocked while blocking hallucination-risk findings are open.
+- [ ] System creates correction workflow items and re-verifies after fixes.
+- [ ] Final run confirmation includes a passed anti-hallucination verification record.
+- [ ] At least one end-to-end user-perspective demo recorded in `reports/run-*-summary.md` proves flag→fix→recheck flow works without CLI.
+
+### 4.5 Mandatory Release Gate — Pre-Delegation Knowledge Resolution
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] Before delegation, each task runs knowledge lookup across answered Q&A, decision log, plans, and project artifacts.
+- [ ] Task context packet shows which fields were auto-resolved from existing sources.
+- [ ] New questions are generated only for uncovered critical fields.
+- [ ] Delegation is blocked until required fields are either resolved or explicitly defaulted.
+- [ ] At least one end-to-end user-perspective demo recorded in `reports/run-*-summary.md` proves this pre-delegation gate runs before coding handoff.
+
+### 4.6 Mandatory Release Gate — Planning Buffer Policy
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] Backlog-ready queue is maintained at 3+ items.
+- [ ] Planned coding queue supports up to 10 ready non-bug issues.
+- [ ] Reactive bug/fix issues are tracked in a separate lane and do not consume the 10 planned-item cap.
+- [ ] Buffer depletion automatically triggers decomposition/refinement before further delegation.
+- [ ] At least one end-to-end user-perspective demo recorded in `reports/run-*-summary.md` proves queue policy enforcement.
+
+### 4.7 Mandatory Release Gate — Plan-to-Code Readiness & Prompt Contracts
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] Every coding-ready Issue has a complete context packet linked from the Issue.
+- [ ] Dependency-chain validator blocks execution when upstream implementation is missing.
+- [ ] Role-specific prompt templates are enforced and versioned.
+- [ ] Missing required fields trigger targeted Q&A instead of assumption-based delegation.
+- [ ] Coding-ready queue accepts only issues with complete packets and testable AC.
+- [ ] At least one end-to-end user-perspective demo recorded in `reports/run-*-summary.md` proves ordered plan→packet→coding handoff workflow.
+
+### 4.8 Mandatory Release Gate — Context Intelligence & Self-Analysis
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] System auto-builds a next-step context packet from all relevant project sources.
+- [ ] Every critical next-step claim is source-cited.
+- [ ] Context packet exposes confidence and unresolved-field indicators.
+- [ ] Pre-delegation self-analysis flags assumption/hallucination risk before handoff.
+- [ ] Pre-confirmation self-analysis flags risk before final status confirmation.
+- [ ] Flagged claims trigger correction workflow and re-check.
+- [ ] At least one end-to-end user-perspective demo recorded in `reports/run-*-summary.md` proves context→self-analysis→safe handoff/confirmation flow.
+
+### 4.9 Mandatory Release Gate — Uncertainty & "I Don't Know" Handling
+Phase 3 cannot be marked complete until **all** checks below pass:
+
+- [ ] System explicitly labels unknown critical fields as `unknown_insufficient_evidence`.
+- [ ] System states "I don't know yet" instead of generating unsupported claims.
+- [ ] Delegation is blocked when unknown critical fields remain unresolved.
+- [ ] Confirmation is blocked when unresolved unknowns could invalidate claims.
+- [ ] Targeted Q&A generation is triggered automatically for unresolved unknowns.
+- [ ] At least one end-to-end user-perspective demo recorded in `reports/run-*-summary.md` proves no-guess behavior under uncertainty.
 
 Each Issue carries its own atomic AC. Phase-level AC is this list; workstream-level AC is implied by the subtask descriptions in §3.
 
@@ -181,6 +292,18 @@ Issues will be created in this order. Each one lands on `status:backlog` and is 
 **Wave 4 — polish after functional completeness:**
 - §D.8, §D.9, §D.10, §D.11 (a11y, theming, responsive, Storybook)
 - §F.* (prefs conflict, auto-expiry, clarifying Q, dependabot surface)
+
+**Wave 5 — plan-engine hardening:**
+- §G.1, §G.2 (packet + dependency validator)
+- §G.3, §G.5 (role templates + missing-info guard)
+- §G.4 (queue compiler)
+
+**Wave 6 — context intelligence hardening:**
+- §D.19 (context packet engine)
+- §D.20 (self-analysis detector + correction loop)
+
+**Wave 7 — uncertainty hardening:**
+- §D.21 (explicit unknown handling and no-guess gates)
 
 ---
 
