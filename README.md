@@ -16,6 +16,7 @@ The MCP server definitions in `.mcp.json` reference environment variables so the
 |---|---|---|---|
 | `MEMPALACE_PALACE_PATH` | MemPalace MCP server (cross-run memory) | `C:/Users/<you>/.GitHub/mempalace/palace` | `~/.mempalace/palace` |
 | `GITHUB_PERSONAL_ACCESS_TOKEN` | GitHub MCP server (sub-issue graph, Issues/PRs) | A PAT with `repo` scope | Same |
+| `FILESYSTEM_ROOT_PATH` | Filesystem MCP server root exposed to agents | `C:/Users/<you>/.GitHub/Programming-lead-AI-System-` | `/home/<you>/Programming-lead-AI-System-` |
 
 If `MEMPALACE_PALACE_PATH` is unset, the MemPalace MCP server will fail to start — cross-run memory then falls back to `decision-log.md` + `memory.md` + `reports/*.md` per CLAUDE.md §7. Heartbeat will still work, just without MemPalace-backed context grounding.
 
