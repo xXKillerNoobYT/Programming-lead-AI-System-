@@ -69,7 +69,7 @@ graph TD
     MCP --> GH[GitHub MCP]
     MCP --> MEM[MemPalace MCP]
     MCP --> DEL[agent-delegation MCP]
-    DEL --> Agents[3rd-party coding agents: Copilot, Claude subagents]
+    DEL --> Agents[3rd-party coding agents: user-configurable pool]
     HB --> Grok[hourly Grok 4.1 Fast escalation]
     HB --> State[(shared state: Postgres/local JSON)]
 ```
@@ -83,9 +83,8 @@ graph TD
   `microsoft-learn`. `heartbeat.js` does not yet use any of them.
 - **Memory**: MemPalace for cross-run observations; generic `memory` MCP as
   fallback.
-- **Agents**: External coding-only — GitHub Copilot via hosted MCP and
-  Claude Code subagents dispatched from this runtime. Roo Code is
-  explicitly out of scope (D-20260417-006).
+- **Agents**: External coding-only and user-configurable (for example:
+  GitHub Copilot, Claude subagents, Roo Code).
 - **State**: Shared DB + cloud storage in Phase 3+; local filesystem reports
   for v0.
 - **UI**: Three-tab Next.js dashboard for transparent monitoring (see

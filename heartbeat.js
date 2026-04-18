@@ -95,14 +95,15 @@ function extractRecentDecisions(contents, n = 3) {
     const idRe = /D-\d{8}-\d{3}/g;
     const hits = contents.match(idRe) || [];
     const seen = new Set();
-    const ordered = [];
-    for (const id of hits) {
-        if (!seen.has(id)) {
-            seen.add(id);
-            ordered.push(id);
-        }
+    const recent = [];
+    for (let i = hits.length - 1; i >= 0; i -= 1) {
+        const id = hits[i];
+        if (seen.has(id)) continue;
+        seen.add(id);
+        recent.push(id);
+        if (recent.length === n) break;
     }
-    return ordered.slice(-n).reverse();
+    return recent;
 }
 
 /**
