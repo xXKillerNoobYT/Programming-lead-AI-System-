@@ -189,6 +189,9 @@ These are blocking. If one is needed, stop and ask.
 - **Decision IDs** — `D-YYYYMMDD-###`, required on every commit and handoff
 - **GitHub Issues = to-do list** — the user-facing task queue. Always keep at least **3 ready-to-go Issues** decomposed ahead of current work (see §3 Step 2b). Every commit references an Issue #.
 - **Run reports are mandatory** — every heartbeat that produces real work appends to `reports/run-N-summary.md`. The user has explicitly confirmed run reports are valuable. Do not skip them.
+- **Run-complete ↔ Issue-close pairing** — every `decision-log.md` entry that marks a Run as complete MUST close the corresponding GH Issue(s) in the same heartbeat (via `gh issue close` with a comment citing the Decision ID + Run report). No decision logged as "Run N complete" may coexist with an open Issue for that Run. Captured from Issue #5 (D-20260417-011).
+- **GitHub is source of truth for Issues** — update Issues only via `gh` CLI or MCP; never edit `.vscode/github-issues/*.md` directly. That folder is a one-way pull cache and local edits are discarded on next sync.
+- **Heartbeat pick order: oldest-first** — in Step 2, sort open `status:backlog` Issues by creation time ascending and pick the head, unless a newer Issue is an active blocker. Per user directive 2026-04-17. Exceptions: continue `status:in-progress` first; blockers override age. Finish before switching — spawn child Issues if scope grows, but do not context-switch.
 - **Documentation** — when workflow behavior changes, update `README.md` / `architecture.md` / `memory.md` in the same commit
 - **Testing pyramid** — 70% unit, 20% integration, 10% E2E (per `plans/main-plan.md`)
 - **Three-chat dashboard** — Coding AI Relay, User Guidance, Execution Log (do not add or remove tabs without an Issue + decision)
