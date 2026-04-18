@@ -180,3 +180,48 @@ describe('Preferences UI', () => {
         consoleError.mockRestore();
     });
 });
+
+describe('Dashboard content freshness (Issue #13)', () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    const renderWithEmptyStorage = () => {
+        Object.defineProperty(window, 'localStorage', {
+            value: {
+                getItem: jest.fn(),
+                setItem: jest.fn(),
+                removeItem: jest.fn(),
+                clear: jest.fn(),
+            },
+            writable: true,
+        });
+        const { container } = render(<Dashboard />);
+        return container.textContent || '';
+    };
+
+    it('header does not show stale "Run 2: Phase 1 MVP" subtitle', () => {
+        const text = renderWithEmptyStorage();
+        expect(text).not.toMatch(/Run 2:\s*Phase 1 MVP/);
+    });
+
+    it('Coding Relay tab does not reference "Roo Code" (abandoned per D-20260417-006)', () => {
+        const text = renderWithEmptyStorage();
+        expect(text).not.toMatch(/Roo Code/);
+    });
+
+    it('Coding Relay tab does not hardcode "Qwen3.5-32B via Ollama"', () => {
+        const text = renderWithEmptyStorage();
+        expect(text).not.toMatch(/Qwen3\.5-32B via Ollama/);
+    });
+
+    it('footer does not mention "Docker" (violates no-Docker preference, D-20260417-005)', () => {
+        const text = renderWithEmptyStorage();
+        expect(text).not.toMatch(/Docker/);
+    });
+
+    it('footer does not hardcode Ollama as a required runtime component', () => {
+        const text = renderWithEmptyStorage();
+        expect(text).not.toMatch(/Ollama/);
+    });
+});
