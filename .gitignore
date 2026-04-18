@@ -2,6 +2,19 @@
 node_modules/
 dashboard/node_modules/
 
+# Next.js build output + TS incremental cache
+dashboard/.next/
+dashboard/out/
+dashboard/tsconfig.tsbuildinfo
+
+# Jest coverage
+dashboard/coverage/
+
+# Environment variables (never commit)
+.env
+.env.local
+.env.*.local
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
@@ -10,3 +23,7 @@ yarn-error.log*
 # OS/editor noise
 .DS_Store
 Thumbs.db
+
+# Claude Code local/generated state
+.claude/settings.local.json
+.claude/session-state.md
