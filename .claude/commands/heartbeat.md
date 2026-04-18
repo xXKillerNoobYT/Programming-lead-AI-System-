@@ -170,8 +170,10 @@ d. **Record** — run report must include a `## Merge + Security Audit` section 
 - Count `status:backlog` Issues. If < 3: decompose `plans/main-plan.md` (or the active phase plan) into new Issues until backlog ≥ 3.
 - If `plans/` is too fuzzy to produce 3 clear Issues, **refine the plan first** (that becomes the task) — write the next section of `plans/main-plan.md` or create `plans/run-N-<topic>-plan.md`, then decompose. Do not produce vague Issues off vague plans.
 
-### 14. Schedule the next tick (always — last station before end)
-Per **D-20260418-014** + **D-20260418-016**. After committing and closing the Issue, call:
+### 14. Schedule the next tick (**MANDATORY** — last station before end)
+Per **D-20260418-014** + **D-20260418-016** + **D-20260418-032**. This station fires at the end of **every** tick. **No "user is live → skip" exception.** A live user can interrupt the scheduled wake-up; a non-live session needs it to keep the loop running. Skipping it would break the "auto system" the coding agent depends on.
+
+After committing and closing the Issue, call:
 
 ```
 ScheduleWakeup({
@@ -185,10 +187,11 @@ ScheduleWakeup({
 - Backlog empty AND no PRs pending AND no `status:in-progress` → **270s** (≈4.5 min, cache-warm idle)
 - Something actively queued (backlog ≥ 1, PR pending merge-audit, leaf sub-issue waiting) → **60s** (go fast)
 - Tick ended on an UNRESOLVED Singular-Heartbeat collision → **270s** (let the other session finish)
+- User is live + backlog empty / awaiting user action → **270s** (user can interrupt any time; schedule ensures the loop survives idle gaps)
 
 **Clamp is mandatory**: 60s is ScheduleWakeup's hard floor; 270s stays under the 5-min prompt-cache TTL so re-entry is cache-warm.
 
-**End of tick.** After `ScheduleWakeup` returns, the tick is complete. The harness will invoke `/heartbeat` again at the scheduled time.
+**End of tick.** After `ScheduleWakeup` returns, the tick is complete. The harness will invoke `/heartbeat` again at the scheduled time. If the user is actively in-session, a new user message arriving before the schedule fires interrupts the wakeup gracefully — you lose nothing by always scheduling.
 
 ---
 
