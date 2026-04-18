@@ -8,8 +8,8 @@
 **Trigger**: User request + Polsia 5-rule heartbeat, first tick.
 
 ## Changes
-- Added [`CLAUDE.md`](../CLAUDE.md) at project root — heartbeat contract with Polsia 5 rules (pick → capture → refill → queue-depth-≥3 → repeat), planning chain (`Docs/Uerer Plans` → `plans/` → GH Issues → reports), autonomy guardrails, tooling inventory.
-- Added [`.mcp.json`](../.mcp.json) — Claude Code MCP config mirroring the prior MCP server set: `mempalace`, `sequentialthinking`, `context7`, `puppeteer`, `memory`, `microsoft-learn`.
+- Added [`CLAUDE.md`](../CLAUDE.md) at project root — heartbeat contract with Polsia 5 rules (pick → capture → refill → queue-depth-≥3 → repeat), planning chain (`Docs/Plans` → `plans/` → GH Issues → reports), autonomy guardrails, tooling inventory.
+- Added [`.mcp.json`](../.mcp.json) — Claude Code MCP config: `mempalace`, `sequentialthinking`, `context7`, `puppeteer`, `memory`, `microsoft-learn`.
 - Updated [`decision-log.md`](../decision-log.md) with D-20260417-006.
 - Created GitHub label taxonomy: `type:task|bug|epic`, `status:backlog|in-progress|review|done`, `phase:3|4`, `autonomous-lead`.
 - Created 5 initial backlog Issues:
@@ -25,7 +25,7 @@ No code changes in this run — pure configuration/planning. Next heartbeat (Iss
 ## Decisions
 | ID | Decision | Rationale |
 |---|---|---|
-| D-20260417-006 | Adopt Claude Code as autonomous programming lead; CLAUDE.md encodes Polsia 5-rule heartbeat | User reported Roo Code unreliable; wants 100% autonomous programming against locked user intent in `Docs/Uerer Plans/*`; GH Issues = visible to-do list with 3+ lookahead |
+| D-20260417-006 | Adopt Claude Code as autonomous programming lead; CLAUDE.md encodes Polsia 5-rule heartbeat | User reported Roo Code unreliable; wants 100% autonomous programming against locked user intent in `Docs/Plans/*`; GH Issues = visible to-do list with 3+ lookahead |
 
 ## Metrics
 - Commits this run: 2 (`a0a470b`, `10b812f`)
