@@ -101,11 +101,12 @@ function invariantNoUiToBackboneImports() {
   });
 
   const forbidden = [
-    /from\s+['"].*heartbeat\.js['"]/,
+    /from\s+['"].*heartbeat(\.js)?['"]/,
     /from\s+['"].*\/lib\/mcp-client(\.js)?['"]/,
-    /from\s+['"]\.\.\/\.\.\/\.\.\/tests\//, // crude path-walk into root tests
-    /require\(\s*['"].*heartbeat\.js['"]\s*\)/,
+    /from\s+['"](\.\.\/)+tests(\/|['"])/,
+    /require\(\s*['"].*heartbeat(\.js)?['"]\s*\)/,
     /require\(\s*['"].*\/lib\/mcp-client(\.js)?['"]\s*\)/,
+    /require\(\s*['"](\.\.\/)+tests(\/|['"])/,
   ];
 
   const violations = [];
@@ -130,10 +131,7 @@ function invariantNoRootTestsIntoUi() {
   }
   const testFiles = walkFiles(testsRoot, (f) => /\.(test\.)?(mjs|js|cjs)$/.test(f));
 
-  const forbidden = [
-    /from\s+['"].*\bdashboard\//,
-    /require\(\s*['"].*\bdashboard\//,
-  ];
+  const forbidden = [/\bdashboard[\\/]/, /['"`]dashboard['"`]/];
 
   const violations = [];
   for (const file of testFiles) {
