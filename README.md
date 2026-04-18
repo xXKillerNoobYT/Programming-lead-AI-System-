@@ -8,9 +8,19 @@ Pure orchestrator for software projects. Delegates to 3rd-party agents (Roo Code
 2. Upload plan to User Guidance Chat.
 3. Watch Execution Log.
 
+## First-Time Setup (30 sec)
+
+1. `git clone` the repo; `cd` into it.
+2. `cp .env.example .env` — fill in `WORKSPACE_DIR`, `MEMPALACE_PALACE_PATH`, `GITHUB_PERSONAL_ACCESS_TOKEN`. See the table below for each.
+3. `npm install` at repo root (heartbeat deps); `cd dashboard && npm install; cd ..` (dashboard deps).
+4. Start Claude Code in the repo folder — `.mcp.json` auto-loads, MCP servers auto-start with the env vars you set.
+5. `node heartbeat.js` (one-shot) or `node heartbeat.js --watch` (loop).
+
+`.mcp.json.template` ships alongside `.mcp.json` as the authoritative template; `.mcp.json` itself is checked in with `${VAR}` placeholders already, so the live file and the template are the same shape today. A future `scripts/setup.js` (Phase 4 §C.1) will render one from the other per machine.
+
 ## Setup — Required Environment Variables
 
-The MCP server definitions in `.mcp.json` reference environment variables so the repo is portable across machines. Before restarting Claude Code, set these in your shell or `.env`:
+The MCP server definitions in `.mcp.json` reference environment variables so the repo is portable across machines. `heartbeat.js` auto-loads `.env` via Node 20+'s built-in `process.loadEnvFile()` — no `dotenv` package needed. Copy `.env.example` to `.env` and fill in real values before starting Claude Code:
 
 | Variable | Required for | Example (Windows) | Example (Linux/Mac) |
 |---|---|---|---|
