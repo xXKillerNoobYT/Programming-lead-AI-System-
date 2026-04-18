@@ -46,8 +46,11 @@ export default function Dashboard() {
 
     useEffect(() => {
         const saved = localStorage.getItem('preferences');
-        if (saved) {
+        if (!saved) return;
+        try {
             setPreferences(JSON.parse(saved));
+        } catch (err) {
+            console.error('Failed to parse saved preferences; falling back to defaults.', err);
         }
     }, []);
 
