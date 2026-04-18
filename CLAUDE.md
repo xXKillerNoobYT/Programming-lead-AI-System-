@@ -202,7 +202,7 @@ See [`.roo/rules/rules.md`](.roo/rules/rules.md) for the authoritative shared ru
 - **Native**: `Read`, `Edit`, `Write`, `Grep`, `Glob`, `Bash` (node, npm, git, `gh`)
 - **Subagents**: `Agent` tool — use `Explore` for codebase search, `general-purpose` for multi-step tasks, specialized agents (code-reviewer, plugin-validator, etc.) when they fit
 - **Project MCP servers** (configured in [`.mcp.json`](.mcp.json); activate after Claude Code restarts):
-  - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) backed by `C:/Users/weird/.GitHub/mempalace/palace`. Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.
+  - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) backed by a locally configured MemPalace directory (for example, `<LOCAL_MEMPALACE_PALACE_PATH>` or `~/.GitHub/mempalace/palace`, depending on your setup). Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.
   - `sequentialthinking` — step-by-step reasoning for hard decomposition problems.
   - `context7` — up-to-date library/API docs (prefer over web search for SDKs and frameworks).
   - `puppeteer` — browser automation (headed verification of the Next.js dashboard).
@@ -218,7 +218,7 @@ See [`.roo/rules/rules.md`](.roo/rules/rules.md) for the authoritative shared ru
   - `schedule` / `loop` — for managing the heartbeat schedule itself
 - **Memory system** at `~/.claude/projects/<this-project>/memory/` — Claude Code's local persistent facts. Complements MemPalace; prefer MemPalace for project-domain knowledge and local memory for Claude-Code-behavioral facts (user preferences, feedback rules).
 
-**Note**: [`mcp_settings.json`](mcp_settings.json) is the **Roo Code** copy of the same server list, kept for reference only. Claude Code reads [`.mcp.json`](.mcp.json). Keep them in sync when adding/removing servers.
+**Note**: [`.mcp.json`](.mcp.json) is the source of truth in this repository for MCP server configuration used by Claude Code. If Roo Code configuration is ever needed separately, document its actual file location when that file exists.
 
 ---
 

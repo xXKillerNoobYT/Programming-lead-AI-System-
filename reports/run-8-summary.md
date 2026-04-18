@@ -9,7 +9,7 @@
 
 ## Changes
 - Added [`CLAUDE.md`](../CLAUDE.md) at project root — heartbeat contract with Polsia 5 rules (pick → capture → refill → queue-depth-≥3 → repeat), planning chain (`Docs/Uerer Plans` → `plans/` → GH Issues → reports), autonomy guardrails, tooling inventory.
-- Added [`.mcp.json`](../.mcp.json) — Claude Code MCP config mirroring [`mcp_settings.json`](../mcp_settings.json): `mempalace`, `sequentialthinking`, `context7`, `puppeteer`, `memory`, `microsoft-learn`.
+- Added [`.mcp.json`](../.mcp.json) — Claude Code MCP config mirroring the prior MCP server set: `mempalace`, `sequentialthinking`, `context7`, `puppeteer`, `memory`, `microsoft-learn`.
 - Updated [`decision-log.md`](../decision-log.md) with D-20260417-006.
 - Created GitHub label taxonomy: `type:task|bug|epic`, `status:backlog|in-progress|review|done`, `phase:3|4`, `autonomous-lead`.
 - Created 5 initial backlog Issues:
@@ -53,4 +53,4 @@ No code changes in this run — pure configuration/planning. Next heartbeat (Iss
 
 **Heartbeat cadence**: self-paced via `/loop`. User chose "C + A" — manual start (this run) + in-session looping. Fallback delay per tick: 1200–1800s depending on active work.
 
-**Planes folder checked**: `plans/main-plan.md` § Roadmap Phase 3+4 are the decomposition sources for #7 and #8.
+**Plans folder checked**: `plans/main-plan.md` § Roadmap Phase 3+4 are the decomposition sources for #7 and #8.
