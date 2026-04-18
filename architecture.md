@@ -1,8 +1,8 @@
 # Architecture
 
-## Current state (v0, as of D-20260417-015)
+## Current state (v1, as of D-20260418-017)
 
-The only running program today is **`heartbeat.js` v0** — a read-only tick loop that captures repo state into `reports/heartbeat-tick-*.md`. No LLM calls, no MCP clients, no delegation yet. That is deliberately the *first* atomic piece of the product backbone; later Issues bolt on MCP, decomposition, and delegation in order.
+The current runtime is **`heartbeat.js` v1**. It still emits read-oriented tick reports, and it now also loads `.mcp.json`, attempts MCP server connections through `lib/mcp-client.js`, and renders MCP status blocks (connected/failed/skipped) into `reports/heartbeat-tick-*.md`.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -35,15 +35,16 @@ report instead of crashing the loop.
 ### Components present today
 | Component | Status | File |
 |---|---|---|
-| heartbeat.js v0 (read-only tick) | working | `heartbeat.js` |
+| heartbeat.js v1 (tick + MCP status reporting) | working | `heartbeat.js` |
 | Tick tests | 24 passing | `tests/heartbeat.test.js` |
+| MCP client wrapper + tests | working | `lib/mcp-client.js`, `tests/mcp-client.test.js` |
 | Dashboard (operator view, prototype) | working | `dashboard/app/page.tsx` |
 | Dashboard preferences tests | 12/12 passing | `dashboard/__tests__/preferences.test.tsx` |
 | Heartbeat legacy (Run-2 Roo-era stub) | preserved for history | `heartbeat.legacy.js` |
 
-### Components the target diagram references but that are **not yet present**
+### Components the target diagram references but that are **not yet fully present**
 - Lead orchestrator LLM (Ollama / Grok escalation)
-- MCP client layer (filesystem / GitHub / state / delegation)
+- Full MCP transport matrix (today: stdio connect path implemented; remote transports are skipped with explicit reasons)
 - MemPalace persistence wiring (server installed, but not yet called from `heartbeat.js`)
 - 3rd-party agent delegation (GitHub Copilot / Claude Code subagents — never Roo Code per D-20260417-006)
 - Shared state DB

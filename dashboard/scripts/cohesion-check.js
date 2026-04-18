@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Phase 3 §A.2 cohesion-check runner (D-20260418-014).
+// Phase 3 §A.2 cohesion-check runner (D-20260418-015).
 // Spawns each check:* npm script in sequence, captures per-check output +
 // duration + exit code, stops at first failure by default, writes
 // reports/cohesion/<ISO-ts>.json.
@@ -47,12 +47,15 @@ function runSingle(check) {
     }
   );
   const durationMs = Date.now() - start;
-  const output = (res.stdout ?? '') + (res.stderr ?? '');
+  const spawnError = res.error ? `\n[spawn-error] ${res.error.message}` : '';
+  const signalInfo = res.signal ? `\n[signal] ${res.signal}` : '';
+  const output = (res.stdout ?? '') + (res.stderr ?? '') + spawnError + signalInfo;
+  const exitCode = Number.isInteger(res.status) ? res.status : 1;
   return {
     name: check,
-    passed: res.status === 0,
+    passed: exitCode === 0,
     durationMs,
-    exitCode: res.status,
+    exitCode,
     output,
   };
 }
@@ -81,7 +84,7 @@ function writeReport(results, decisionId) {
   const overallPassed = results.every((r) => r.passed);
   const report = {
     ts,
-    decisionId: decisionId ?? null,
+    decisionId,
     passed: overallPassed,
     checks: results.map((r) => ({
       name: r.name,
@@ -98,7 +101,7 @@ function writeReport(results, decisionId) {
 
 function main() {
   const failFast = !process.argv.includes('--all');
-  const decisionId = process.env.COHESION_DECISION_ID ?? null;
+  const decisionId = process.env.COHESION_DECISION_ID || 'UNSPECIFIED';
 
   console.log(
     failFast
