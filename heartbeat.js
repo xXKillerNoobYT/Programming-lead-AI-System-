@@ -1,113 +1,257 @@
-// Heartbeat Scheduler for DevLead MCP (30-90s configurable)
-// Integrated with Ollama client, MemPalace MCP queries, task decomposition, delegation
+#!/usr/bin/env node
+/*
+ * DevLead MCP — heartbeat.js v0
+ *
+ * Read-only tick loop: reads repo state (git, GitHub Issues, last run report,
+ * recent Decision IDs) and writes a tick report to reports/.
+ *
+ * This is the core-backbone v0 per Issue #20 and D-20260417-015. Future
+ * versions will add MCP tool registry, task decomposition, agent delegation,
+ * and hourly Grok escalation — all out of scope here.
+ *
+ * Usage:
+ *   node heartbeat.js              # one-shot tick
+ *   node heartbeat.js --watch      # loop, default 60_000 ms between ticks
+ *   HEARTBEAT_INTERVAL_MS=30000 node heartbeat.js --watch
+ */
 
-const HEARTBEAT_INTERVAL = parseInt(process.env.HEARTBEAT_MS || '45000'); // default ~45s
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const MCP_POSTGRES_URL = 'http://localhost:3003';
-const MCP_FILESYSTEM_URL = 'http://localhost:3001';
-const MCP_GITHUB_URL = 'http://localhost:3002';
+'use strict';
 
-console.log(`[HEARTBEAT] DevLead MCP Scheduler initialized with interval: ${HEARTBEAT_INTERVAL}ms`);
-console.log('[SOUL] Loaded from SOUL.md - Pure orchestrator, MCP delegation only, hourly Grok strategic escalation');
+const { execFileSync } = require('node:child_process');
+const { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } = require('node:fs');
+const { join, resolve } = require('node:path');
 
-// Ollama client integration
-async function queryOllama(prompt) {
-  try {
-    const response = await fetch(`${OLLAMA_URL}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'qwen3.5:32b',
-        prompt,
-        stream: false
-      })
-    });
-    const data = await response.json();
-    return data.response;
-  } catch (error) {
-    console.error('[OLLAMA] Error:', error);
-    return null;
-  }
+const REPO_ROOT = resolve(__dirname);
+const REPORTS_DIR = join(REPO_ROOT, 'reports');
+const DECISION_LOG = join(REPO_ROOT, 'decision-log.md');
+const DEFAULT_INTERVAL_MS = 60_000;
+
+/* --------------------------- pure helpers --------------------------- */
+
+/**
+ * Parse `git branch --show-current` and `git rev-parse --short HEAD` output
+ * into a structured record. Pure — takes strings, returns object.
+ */
+function parseGitState(branchOut, shaOut) {
+    return {
+        branch: (branchOut || '').trim() || '(detached)',
+        sha: (shaOut || '').trim() || 'unknown',
+    };
 }
 
-// MemPalace MCP queries
-async function queryMemPalace() {
-  // Query Postgres for memory state
-  try {
-    const response = await fetch(`${MCP_POSTGRES_URL}/query`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: 'SELECT * FROM mempalace ORDER BY wing, hall, room' })
-    });
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('[MEMPALACE] Error:', error);
-    return [];
-  }
-}
-
-// Task decomposition logic
-async function decomposeTasks(planContent) {
-  const prompt = `Decompose the following plan into atomic tasks that respect pure orchestrator principles (never code, delegate to agents). Plan: ${planContent}`;
-  const response = await queryOllama(prompt);
-  if (response) {
-    // Parse response into tasks array
-    return response.split('\n').filter(line => line.trim().startsWith('-')).map(line => line.trim().substring(1));
-  }
-  return [];
-}
-
-// MCP delegation to Roo Code
-async function delegateToRoo(task) {
-  // Simulate delegation via MCP
-  console.log(`[DELEGATION] Delegating task: ${task} to Roo Code via MCP`);
-  // In real, call MCP delegation server
-  // For MVP, log and assume success
-  return { success: true, report: `Task "${task}" delegated and completed.` };
-}
-
-async function heartbeat() {
-  const timestamp = new Date().toISOString();
-  console.log(`\n[HEARTBEAT ${timestamp}] SOUL alignment check passed`);
-
-  // Query MemPalace for context
-  const memory = await queryMemPalace();
-  console.log('[MEMPALACE] Queried state:', memory.length, 'entries');
-
-  // Read main-plan.md via filesystem MCP
-  let planContent = '';
-  try {
-    const response = await fetch(`${MCP_FILESYSTEM_URL}/read`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: 'plans/main-plan.md' })
-    });
-    const data = await response.json();
-    planContent = data.content;
-  } catch (error) {
-    console.error('[PLAN] Error reading plan:', error);
-  }
-
-  // Decompose tasks
-  const tasks = await decomposeTasks(planContent);
-  console.log('[DECOMPOSITION] Tasks:', tasks);
-
-  // Delegate each task
-  for (const task of tasks) {
-    const result = await delegateToRoo(task);
-    if (result.success) {
-      console.log('[DELEGATION] Success:', result.report);
+/**
+ * Parse `gh issue list --json number,state,labels` JSON output into counts by
+ * status label. Pure — takes JSON string, returns object.
+ */
+function parseIssueCounts(ghJson) {
+    let issues;
+    try {
+        issues = JSON.parse(ghJson);
+    } catch {
+        return { backlog: 0, inProgress: 0, total: 0, parseError: true };
     }
-  }
+    if (!Array.isArray(issues)) return { backlog: 0, inProgress: 0, total: 0, parseError: true };
 
-  console.log('[LOG] WebSocket broadcast to Execution Log page');
-  // Broadcast to WebSocket (implement in dashboard)
+    let backlog = 0;
+    let inProgress = 0;
+    for (const issue of issues) {
+        const names = (issue.labels || []).map((l) => l.name);
+        if (names.includes('status:in-progress')) inProgress += 1;
+        else if (names.includes('status:backlog')) backlog += 1;
+    }
+    return { backlog, inProgress, total: issues.length, parseError: false };
 }
 
-setInterval(heartbeat, HEARTBEAT_INTERVAL);
+/**
+ * From a list of filenames in reports/, pick the highest-numbered
+ * run-N-summary.md. Pure — takes string[], returns string | null.
+ */
+function findLatestRunReport(filenames) {
+    const runRe = /^run-(\d+)-summary\.md$/;
+    let best = null;
+    let bestNum = -1;
+    for (const name of filenames) {
+        const m = name.match(runRe);
+        if (!m) continue;
+        const n = Number(m[1]);
+        if (n > bestNum) {
+            bestNum = n;
+            best = name;
+        }
+    }
+    return best;
+}
 
-// Initial pulse
-heartbeat();
+/**
+ * Extract the top line after the H1 of a run-summary markdown as a one-line
+ * headline. Pure — takes file contents string, returns string.
+ */
+function summariseRunReport(contents) {
+    const lines = contents.split(/\r?\n/);
+    const h1Index = lines.findIndex((l) => /^#\s+/.test(l));
+    if (h1Index === -1) return '(no H1 found)';
+    const h1 = lines[h1Index].replace(/^#\s+/, '').trim();
+    return h1;
+}
 
-console.log(`[INFO] Heartbeat daemon running. Use Ctrl+C to stop. Configurable via HEARTBEAT_MS env.`);
+/**
+ * Extract the last N Decision IDs from decision-log.md contents. Pure —
+ * takes file contents string + N, returns string[] newest-first.
+ */
+function extractRecentDecisions(contents, n = 3) {
+    const idRe = /D-\d{8}-\d{3}/g;
+    const hits = contents.match(idRe) || [];
+    // Dedupe, preserve first-occurrence order, then take last N (file order is
+    // usually append-only so last-occurrence ≈ newest).
+    const seen = new Set();
+    const ordered = [];
+    for (const id of hits) {
+        if (!seen.has(id)) {
+            seen.add(id);
+            ordered.push(id);
+        }
+    }
+    return ordered.slice(-n).reverse();
+}
+
+/**
+ * Build a human-readable markdown tick report. Pure — takes state object,
+ * returns string.
+ */
+function formatTickReport(state) {
+    const { timestamp, git, issues, latestRun, recentDecisions } = state;
+    const issueLine = issues.parseError
+        ? '⚠️ gh output did not parse; check authentication.'
+        : `${issues.backlog} backlog · ${issues.inProgress} in-progress · ${issues.total} total`;
+    const decisionLine = recentDecisions.length
+        ? recentDecisions.join(' · ')
+        : '(none found)';
+    const runLine = latestRun
+        ? `**${latestRun.filename}** — ${latestRun.headline}`
+        : '(no run-*-summary.md found)';
+
+    return [
+        `# Heartbeat Tick — ${timestamp}`,
+        '',
+        '## Git',
+        `- Branch: \`${git.branch}\``,
+        `- HEAD:   \`${git.sha}\``,
+        '',
+        '## GitHub Issues',
+        `- ${issueLine}`,
+        '',
+        '## Latest Run Report',
+        `- ${runLine}`,
+        '',
+        '## Recent Decision IDs',
+        `- ${decisionLine}`,
+        '',
+        '---',
+        '_Generated by `heartbeat.js` v0 (per Issue #20, D-20260417-015)._',
+        '',
+    ].join('\n');
+}
+
+/* ---------------------- side-effectful wrappers ---------------------- */
+
+function runShell(cmd, args, options = {}) {
+    try {
+        return execFileSync(cmd, args, {
+            encoding: 'utf8',
+            cwd: REPO_ROOT,
+            stdio: ['ignore', 'pipe', 'pipe'],
+            ...options,
+        });
+    } catch (err) {
+        return err.stdout || '';
+    }
+}
+
+function readGitState() {
+    const branch = runShell('git', ['branch', '--show-current']);
+    const sha = runShell('git', ['rev-parse', '--short', 'HEAD']);
+    return parseGitState(branch, sha);
+}
+
+function readIssueCounts() {
+    const json = runShell('gh', ['issue', 'list', '--state', 'open', '--limit', '100', '--json', 'number,state,labels']);
+    if (!json.trim()) return { backlog: 0, inProgress: 0, total: 0, parseError: true };
+    return parseIssueCounts(json);
+}
+
+function readLatestRunReport() {
+    if (!existsSync(REPORTS_DIR)) return null;
+    const files = readdirSync(REPORTS_DIR);
+    const filename = findLatestRunReport(files);
+    if (!filename) return null;
+    const contents = readFileSync(join(REPORTS_DIR, filename), 'utf8');
+    return { filename, headline: summariseRunReport(contents) };
+}
+
+function readRecentDecisions(n = 3) {
+    if (!existsSync(DECISION_LOG)) return [];
+    const contents = readFileSync(DECISION_LOG, 'utf8');
+    return extractRecentDecisions(contents, n);
+}
+
+function writeTickReport(timestamp, report) {
+    if (!existsSync(REPORTS_DIR)) mkdirSync(REPORTS_DIR, { recursive: true });
+    // ISO timestamp contains colons which are invalid in Windows filenames —
+    // sanitise to hyphens.
+    const safeStamp = timestamp.replace(/[:.]/g, '-');
+    const path = join(REPORTS_DIR, `heartbeat-tick-${safeStamp}.md`);
+    writeFileSync(path, report, 'utf8');
+    return path;
+}
+
+/* --------------------------- main tick --------------------------- */
+
+function tick() {
+    const timestamp = new Date().toISOString();
+    const git = readGitState();
+    const issues = readIssueCounts();
+    const latestRun = readLatestRunReport();
+    const recentDecisions = readRecentDecisions(3);
+
+    const state = { timestamp, git, issues, latestRun, recentDecisions };
+    const report = formatTickReport(state);
+    const path = writeTickReport(timestamp, report);
+
+    console.log(`[heartbeat] ${timestamp} — ${git.branch}@${git.sha} — wrote ${path}`);
+    return { state, path };
+}
+
+function main(argv = process.argv.slice(2)) {
+    const watch = argv.includes('--watch');
+    const intervalMs = Number(process.env.HEARTBEAT_INTERVAL_MS) || DEFAULT_INTERVAL_MS;
+
+    tick();
+    if (!watch) return;
+
+    console.log(`[heartbeat] watch mode — ticking every ${intervalMs}ms. Ctrl+C to stop.`);
+    const timer = setInterval(() => {
+        try {
+            tick();
+        } catch (err) {
+            console.error('[heartbeat] tick failed:', err.message);
+        }
+    }, intervalMs);
+    timer.unref?.();
+}
+
+if (require.main === module) {
+    main();
+}
+
+module.exports = {
+    // pure helpers (tested directly)
+    parseGitState,
+    parseIssueCounts,
+    findLatestRunReport,
+    summariseRunReport,
+    extractRecentDecisions,
+    formatTickReport,
+    // side-effectful (integration-tested via main())
+    tick,
+    main,
+};
