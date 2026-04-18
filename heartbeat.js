@@ -298,15 +298,36 @@ async function main(argv = process.argv.slice(2)) {
     }
 
     console.log(`[heartbeat] watch mode — ticking every ${intervalMs}ms. Ctrl+C to stop.`);
+    let inFlight = false;
     const timer = setInterval(async () => {
+        if (inFlight) return;
+        inFlight = true;
         try { await tick(clients); }
         catch (err) { console.error('[heartbeat] tick failed:', err.message); }
+        finally { inFlight = false; }
     }, intervalMs);
 
-    process.on('SIGINT', async () => {
+    let shuttingDown = false;
+    const shutdown = async (signal) => {
+        if (shuttingDown) return;
+        shuttingDown = true;
         clearInterval(timer);
+        console.log(`[heartbeat] received ${signal}, shutting down …`);
         await cleanup();
         process.exit(0);
+    };
+
+    process.once('SIGINT', () => {
+        shutdown('SIGINT').catch((err) => {
+            console.error('[heartbeat] cleanup failed:', err.message);
+            process.exit(1);
+        });
+    });
+    process.once('SIGTERM', () => {
+        shutdown('SIGTERM').catch((err) => {
+            console.error('[heartbeat] cleanup failed:', err.message);
+            process.exit(1);
+        });
     });
 }
 

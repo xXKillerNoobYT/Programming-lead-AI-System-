@@ -11,7 +11,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 1. **Orient (Step 1)** — read state in parallel:
    - `git status` and `git log --oneline -10`
    - `plans/main-plan.md` for current phase
-   - `gh issue list --state open --limit 20`
+   - `gh issue list --state open --limit 30`
    - the most recent `reports/run-*-summary.md` for continuity
    - the last ~5 entries in `decision-log.md`
    - `memory.md` for durable observations
@@ -23,7 +23,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
    3. the oldest open `status:backlog` Issue, **unless** a newer Issue is a blocker or advances the core backbone while backlog is all housekeeping
    4. if plans are exhausted, summarize and stop
 
-3. **Keep backlog ≥ 3 (Step 2b)** — if fewer than 3 `status:backlog` Issues remain, decompose `plans/main-plan.md` into new Issues (use `gh issue edit --add-parent` / sub-issues where applicable, per D-20260417-018).
+3. **Keep backlog ≥ 3 (Step 2b)** — if fewer than 3 `status:backlog` Issues remain, decompose `plans/main-plan.md` into new Issues and create child sub-issues where applicable via `gh api graphql` with the `addSubIssue` mutation, per D-20260417-018.
 
 4. **Consult prior decisions (Step 3)** — search `decision-log.md` for relevant `D-YYYYMMDD-###` entries; reuse them rather than re-asking.
 
