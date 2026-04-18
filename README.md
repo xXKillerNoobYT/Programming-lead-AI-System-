@@ -21,7 +21,9 @@ This path is historical context only; use **First-Time Setup** below for the cur
 
 ## Setup — Required Environment Variables
 
-The MCP server definitions in `.mcp.json` reference environment variables so the repo is portable across machines. `heartbeat.js` auto-loads `.env` via Node 20+'s built-in `process.loadEnvFile()` — no `dotenv` package needed. On Node 18/19, `loadEnvFile()` is unavailable, so export variables in your shell manually (or upgrade to Node 20+). Copy `.env.example` to `.env` and fill in real values before starting Claude Code:
+The MCP server definitions in `.mcp.json` reference environment variables so the repo is portable across machines.
+`heartbeat.js` auto-loads `.env` via Node 20+'s built-in `process.loadEnvFile()` (no `dotenv` package needed).
+On Node 18/19, `loadEnvFile()` is unavailable, so export variables in your shell manually (or upgrade to Node 20+). Then copy `.env.example` to `.env` and fill in real values before starting Claude Code:
 
 | Variable | Required for | Example (Windows) | Example (Linux/Mac) |
 |---|---|---|---|
