@@ -185,11 +185,12 @@ ScheduleWakeup({
 })
 ```
 
-**Ideal-delay heuristic** (pick the first that matches):
-- Backlog empty AND no PRs pending AND no `status:in-progress` → **270s** (≈4.5 min, cache-warm idle)
-- Something actively queued (backlog ≥ 1, PR pending merge-audit, leaf sub-issue waiting) → **60s** (go fast)
-- Tick ended on an UNRESOLVED Singular-Heartbeat collision → **270s** (let the other session finish)
-- User is live + backlog empty / awaiting user action → **270s** (user can interrupt any time; schedule ensures the loop survives idle gaps)
+**Ideal-delay heuristic** (per **D-20260418-043** — default biased to 60s; 270s reserved for specific slow-down signals):
+- **Default: 60s** — the loop fires ~1 minute after each tick ends, matching user directive 2026-04-18: *"start like a minute after the last one that would be cool."*
+- **270s ONLY if**:
+  - Tick ended on an UNRESOLVED Singular-Heartbeat collision (let the other session finish; don't race)
+  - User explicitly asks to slow down (record as a new Decision ID when it happens)
+- All other cases (queued work, idle backlog, live user awaiting action, no-op sweeps) → **60s**.
 
 **Clamp is mandatory**: 60s is ScheduleWakeup's hard floor; 270s stays under the 5-min prompt-cache TTL so re-entry is cache-warm.
 

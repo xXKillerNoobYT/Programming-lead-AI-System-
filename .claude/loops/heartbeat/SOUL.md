@@ -50,7 +50,7 @@ At end of tick, leave these artifacts:
 - `reports/run-N-summary.md` with: overview, outcome, changes table, tests-with-output, decision table, open-concerns, next-task recommendation.
 - `decision-log.md` appended with a new `D-YYYYMMDD-###` entry (or `D-### (placeholder)` if another session claimed mine during the tick).
 - Closed GH Issue(s) with comment citing the Decision ID.
-- `ScheduleWakeup` scheduled for the next tick (delay = clamp(ideal, 60, 270)) — **MANDATORY every tick per D-20260418-032**; no "user is live → skip" exception; always cache-warm, 1–4.5 min cadence.
+- `ScheduleWakeup` scheduled for the next tick (delay = clamp(ideal, 60, 270), **default 60s per D-20260418-043**) — **MANDATORY every tick per D-20260418-032**; no "user is live → skip" exception; 270s only if peer-collision or user-slowdown-directive.
 
 ## Safety Guardrails
 
