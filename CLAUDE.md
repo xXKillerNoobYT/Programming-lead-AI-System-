@@ -18,11 +18,29 @@
 
 ## 1. North Star
 
-Build the system described in `Docs/Uerer Plans/Part 1.md` through `Part 6.md`. These files are **locked user intent** — read-only. Translate them into:
-- Execution plans in `plans/`
-- Atomic tasks in **GitHub Issues** (single source of truth for work)
-- Progress in `reports/run-*.md`
-- Decisions in `decision-log.md`
+Build the system described in `Docs/Uerer Plans/Part 1.md` through `Part 6.md`. These files are **locked user intent** — read-only.
+
+### The planning chain
+```
+Docs/Uerer Plans/*.md        (user's high-level locked intent — source of truth)
+           │
+           ▼
+     plans/*.md              (YOUR detailed long-term execution plans;
+                              multi-phase, written in full, lives across runs.
+                              You work off these one little bit at a time.)
+           │
+           ▼
+    GitHub Issues             (atomic tasks derived from plans/ — one heartbeat
+                              = one Issue; visible to-do list with 3+ queued)
+           │
+           ▼
+   reports/run-*.md           (per-heartbeat progress reports)
+           │
+           ▼
+   decision-log.md            (D-YYYYMMDD-### decisions across the chain)
+```
+
+**Key mindset**: `plans/` is where you think big and write it down once. GitHub Issues is where you pick off one small piece at a time. If a plan in `plans/` is too fuzzy to produce the next 3 Issues, refine the plan first — then decompose.
 
 Project identity and guardrails are in [`SOUL.md`](SOUL.md). The SOUL is immutable for Phase 1 — any change requires a GitHub Issue and explicit user approval.
 
@@ -37,7 +55,7 @@ When information conflicts, higher-priority sources win.
 | 1 | `Docs/Uerer Plans/*.md` | Locked user intent | **No** |
 | 2 | `SOUL.md` | System identity & guardrails | **No** (without GH Issue + approval) |
 | 3 | GitHub Issues (`gh issue list`) | Active task queue | Yes — create/update/close |
-| 4 | `plans/*.md` (esp. `main-plan.md`) | AI execution plans derived from #1 | Yes |
+| 4 | `plans/*.md` (esp. `main-plan.md`) | **Your** detailed long-term execution plans derived from #1. Work off these one small piece at a time. Refine them as you learn. | Yes |
 | 5 | `decision-log.md` | Canonical decisions; reuse before re-asking | Append-only |
 | 6 | [`architecture.md`](architecture.md), [`memory.md`](memory.md) | Living context docs | Update when workflow changes |
 | 7 | `reports/run-*.md` | Progress reports | Append per run |
@@ -78,7 +96,9 @@ Priority order:
 **Do not start multiple tasks in one heartbeat.** This enforces the one-task-at-a-time rule from Run 3 (D-20260417-004).
 
 ### Step 2b — Keep the backlog 3+ tasks ahead (lookahead rule)
-**GitHub Issues is the project's to-do list.** Before executing your chosen task, count open Issues labeled `status:backlog`. If there are **fewer than 3**, decompose the next items from `Docs/Uerer Plans/*` and `plans/main-plan.md` into new Issues until the backlog has at least 3 ready-to-go tasks.
+**GitHub Issues is the project's to-do list.** Before executing your chosen task, count open Issues labeled `status:backlog`. If there are **fewer than 3**, decompose the next items from **your plans in `plans/*.md`** (especially `main-plan.md`) into new Issues until the backlog has at least 3 ready-to-go tasks.
+
+If `plans/` is too fuzzy or too shallow to produce 3 clear Issues, **refine the plan first** — that is itself the task. Write the next section of `plans/main-plan.md` (or create a new `plans/run-N-<topic>-plan.md`), then decompose. Do not produce vague Issues off vague plans.
 
 Each Issue should:
 - Have a clear acceptance criterion (how we know it's done)
