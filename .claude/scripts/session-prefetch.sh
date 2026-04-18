@@ -16,13 +16,30 @@ OUT="$REPO_ROOT/.claude/session-state.md"
 TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Run `npm install` for root + dashboard/ so `npm test` works out-of-the-box in
-# fresh remote sessions (fresh clones have no node_modules/). Idempotent; a
-# warm install is effectively a no-op. Dashboard needs --legacy-peer-deps due
-# to the React 19 RC / @testing-library/react peer conflict (D-20260418-001;
-# `overrides` fix is intermittently absent on main — see follow-up Issue).
-# Output is captured for the summary block below. Per Issue #61.
-ROOT_INSTALL_LOG="$(cd "$REPO_ROOT" && npm install --no-audit --no-fund 2>&1 | tail -5)"
-DASH_INSTALL_LOG="$(cd "$REPO_ROOT/dashboard" && npm install --no-audit --no-fund --legacy-peer-deps 2>&1 | tail -5)"
+# fresh remote sessions (fresh clones have no node_modules/). Short-circuits
+# when node_modules/ already exists — warm sessions skip the install entirely
+# and record "already warm" in the summary. Dashboard needs --legacy-peer-deps
+# due to the React 19 RC / @testing-library/react peer conflict
+# (D-20260418-001; `overrides` fix currently absent from main — tracked in
+# #87). Exit code of each install is captured so the summary shows
+# success/fail unambiguously. Per Issue #61.
+prefetch_install() {
+  # $1 = label ("[root]" / "[dashboard/]"), $2 = abs dir, $3.. = extra flags
+  local label="$1" dir="$2"; shift 2
+  if [ -d "$dir/node_modules" ]; then
+    printf '%s exit=0 (already warm — skipped npm install)\n' "$label"
+    return
+  fi
+  local out rc
+  # `set -o pipefail` scoped to this subshell so the exit code reflects
+  # `npm install` rather than `tail`.
+  out="$(set -o pipefail; cd "$dir" && npm install --no-audit --no-fund "$@" 2>&1 | tail -5)"
+  rc=$?
+  printf '%s exit=%d\n%s\n' "$label" "$rc" "$out"
+}
+
+ROOT_INSTALL_LOG="$(prefetch_install '[root]'       "$REPO_ROOT")"
+DASH_INSTALL_LOG="$(prefetch_install '[dashboard/]' "$REPO_ROOT/dashboard" --legacy-peer-deps)"
 
 {
   echo "# Session Prefetch — $TS"
