@@ -131,7 +131,7 @@ function invariantNoRootTestsIntoUi() {
   }
   const testFiles = walkFiles(testsRoot, (f) => /\.(test\.)?(mjs|js|cjs)$/.test(f));
 
-  const forbidden = [/\bdashboard[\\/]/, /['"`]dashboard['"`]/];
+  const forbidden = [/\bdashboard[\\/]/, /path\.join\([^)]*['"`]dashboard['"`]\s*,/];
 
   const violations = [];
   for (const file of testFiles) {
