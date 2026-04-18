@@ -50,7 +50,7 @@ Q-IDs mirror the D-ID format but with `Q-` prefix. Reserve the same number for t
 
 ### Q-20260418-006 — Per-project state storage: Postgres (per main-plan) or local JSON (per phase-3-plan §1.3)?
 **Posted**: 2026-04-18 by Claude Code Run 88
-**Blocks**: Phase 3 §B (multi-project isolation) subtasks. Tracking Issue #86 (`type:question` + `status:needs-user`). Not immediately blocking — current wave-1 work doesn't touch storage — but the answer determines how §B.1–§B.4 are implemented.
+**Blocks**: Phase 3 §B (multi-project isolation) subtasks. Tracking Issue #91 (`type:question` + `status:needs-user`). Not immediately blocking — current wave-1 work doesn't touch storage — but the answer determines how §B.1–§B.4 are implemented.
 **Context**: `plans/main-plan.md` §Architecture locks *"State: Shared Postgres + cloud storage"* but `plans/phase-3-plan.md` §1.3 deliberately defers Postgres to Phase 4 and uses local JSON for Phase 3. The phase-3-plan's §5 Open Questions #1 explicitly asks you to confirm the slippage. Without an answer the `§B.1` (per-project `plans/`, `reports/`, MemPalace wing) will default to local-JSON and may need rework in Phase 4.
 **Options considered**:
 - **A. Local JSON through Phase 3, Postgres in Phase 4** — matches phase-3-plan §1.3 default. Simplest near-term; Phase 4 gets a one-time migration task.
