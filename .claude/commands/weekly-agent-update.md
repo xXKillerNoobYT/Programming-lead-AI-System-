@@ -4,6 +4,15 @@ description: Weekly smart self-update — review each subagent's SOUL + memory, 
 
 # weekly-agent-update
 
+## Read these BEFORE you execute
+
+- [`.claude/loops/weekly-agent-update/SOUL.md`](../loops/weekly-agent-update/SOUL.md) — my identity, the 7-step protocol distilled as numbered rules, and safety guardrails (≤5-line-per-file cap, never-wholesale, never-delete-first-2-sentences).
+- [`.claude/loops/weekly-agent-update/memory.md`](../loops/weekly-agent-update/memory.md) — patterns + contradictions observed by prior weekly runs.
+
+Scope note: enumerate BOTH `.claude/agents/*.md` (subagents) AND `.claude/loops/*/SOUL.md` (command-loop SOULs). Both classes follow the same promote/retire/prune protocol.
+
+---
+
 Runs once per week. Looks at each subagent's **memory** for patterns worth promoting to **SOUL**, and each SOUL rule for accumulating contradictions worth retiring. Makes small surgical edits only — never a wholesale rewrite.
 
 ## Mission

@@ -4,6 +4,15 @@ description: Execute one tick of the autonomous programming-lead heartbeat loop 
 
 # Heartbeat
 
+## Read these BEFORE you execute
+
+- [`.claude/loops/heartbeat/SOUL.md`](../loops/heartbeat/SOUL.md) — my identity, numbered priority rules, Singular-Heartbeat rule, and output contract.
+- [`.claude/loops/heartbeat/memory.md`](../loops/heartbeat/memory.md) — patterns, contradictions, and durable observations from prior ticks.
+
+The SOUL is the load-bearing identity: **singular heartbeat, no parallel peer**. If you see parallel-session signals mid-tick (D-ID collisions, Run-N title thrashing, unattributed commits on your branch), stop and end the tick per the Singular-Heartbeat rule.
+
+---
+
 Execute **one tick** of the Polsia-style heartbeat loop as the autonomous programming lead for this repository, following `CLAUDE.md` §3 exactly.
 
 ## What to do
