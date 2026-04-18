@@ -25,7 +25,7 @@ npm run check:coverage-threshold
 ```
 
 ## Current baseline
-Captured in the Run 30 summary (`reports/run-30-summary.md`). Individual check results are recorded there; failures are triaged as their own Issues per Polsia Rule 2.
+Captured in the Run 31 summary (`reports/run-31-summary.md`). Individual check results are recorded there; failures are triaged as their own Issues per Polsia Rule 2.
 
 ## Next
 - **§A.2 (#23)** replaces `check:all` with `scripts/cohesion-check.js` — better per-check output capture + JSON report.

@@ -36,7 +36,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 
 4. **Consult prior decisions (Step 3)** — search `decision-log.md` for relevant `D-YYYYMMDD-###` entries; reuse them rather than re-asking.
 
-5. **Execute (Step 4)** — follow `.roo/rules/rules.md`, prefer `Edit` over `Write`, write tests alongside code, respect no-Docker.
+5. **Execute (Step 4)** — follow the current `CLAUDE.md` workflow/guardrails, prefer `Edit` over `Write`, write tests alongside code, respect no-Docker.
 
 6. **Capture gaps (Step 4b / Polsia Rule 2)** — any bug/inconsistency/TODO found mid-flight becomes a new GH Issue immediately, not a silent fix.
 

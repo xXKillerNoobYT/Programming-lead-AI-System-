@@ -1,12 +1,12 @@
 # Architecture
 
-## Current state (v0, as of D-20260417-015)
+## Current state (v1, as of D-20260417-020)
 
-The only running program today is **`heartbeat.js` v0** — a read-only tick loop that captures repo state into `reports/heartbeat-tick-*.md`. No LLM calls, no MCP clients, no delegation yet. That is deliberately the *first* atomic piece of the product backbone; later Issues bolt on MCP, decomposition, and delegation in order.
+The only running program today is **`heartbeat.js` v1** — still a read-only tick loop, now with an MCP client layer that connects to servers declared in `.mcp.json`, reports connection health, and records a MemPalace observation probe in `reports/heartbeat-tick-*.md`. No LLM task delegation yet.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│                      heartbeat.js v0 (Node.js)                 │
+│                      heartbeat.js v1 (Node.js)                 │
 │                                                                │
 │   one-shot mode: `node heartbeat.js`                           │
 │   watch mode:    `node heartbeat.js --watch`                   │
@@ -17,6 +17,8 @@ The only running program today is **`heartbeat.js` v0** — a read-only tick loo
 │     • open Issue counts by label  (shell: gh issue list --json)│
 │     • latest reports/run-*.md     (fs)                         │
 │     • last 3 Decision IDs         (fs, parse decision-log.md)  │
+│     • MCP server status summary   (mcp-client layer)           │
+│     • MemPalace search probe      (mcp tool call)              │
 │   ↓                                                            │
 │   writes reports/heartbeat-tick-<ISO>.md                       │
 └────────────────────────────────────────────────────────────────┘
@@ -35,7 +37,7 @@ report instead of crashing the loop.
 ### Components present today
 | Component | Status | File |
 |---|---|---|
-| heartbeat.js v0 (read-only tick) | working | `heartbeat.js` |
+| heartbeat.js v1 (read-only tick + MCP reporting) | working | `heartbeat.js` |
 | Tick tests | 24 passing | `tests/heartbeat.test.js` |
 | Dashboard (operator view, prototype) | working | `dashboard/app/page.tsx` |
 | Dashboard preferences tests | 12/12 passing | `dashboard/__tests__/preferences.test.tsx` |
@@ -43,8 +45,7 @@ report instead of crashing the loop.
 
 ### Components the target diagram references but that are **not yet present**
 - Lead orchestrator LLM (Ollama / Grok escalation)
-- MCP client layer (filesystem / GitHub / state / delegation)
-- MemPalace persistence wiring (server installed, but not yet called from `heartbeat.js`)
+- Full MCP orchestration (today only status + a minimal MemPalace probe are wired)
 - 3rd-party agent delegation (GitHub Copilot / Claude Code subagents — never Roo Code per D-20260417-006)
 - Shared state DB
 - WebSocket feed from `heartbeat.js` → dashboard Execution Log tab
@@ -76,11 +77,12 @@ graph TD
 
 ### Components (target)
 - **heartbeat.js**: planning/decomposition/delegation/review loop (Polsia
-  5-rule cadence; currently v0 read-only tick).
+  5-rule cadence; currently v1 read-only tick + MCP status/observation reporting).
 - **MCP layer**: gateway for all I/O — filesystem, GitHub, state, delegation.
-  Today `.mcp.json` declares stdio servers for `mempalace`,
-  `sequentialthinking`, `context7`, `puppeteer`, `memory`,
-  `microsoft-learn`. `heartbeat.js` does not yet use any of them.
+  Today `.mcp.json` declares servers for `mempalace`, `sequentialthinking`,
+  `context7`, `puppeteer`, `memory`, `microsoft-learn`, `github`, and
+  `filesystem`. `heartbeat.js` currently reads server connectivity and performs
+  a MemPalace probe; broader MCP orchestration is future work.
 - **Memory**: MemPalace for cross-run observations; generic `memory` MCP as
   fallback.
 - **Agents**: External coding-only — GitHub Copilot via hosted MCP and
