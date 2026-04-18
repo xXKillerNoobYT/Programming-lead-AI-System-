@@ -48,6 +48,22 @@ Q-IDs mirror the D-ID format but with `Q-` prefix. Reserve the same number for t
 
 ## Open Questions
 
+### Q-20260418-006 — Per-project state storage: Postgres (per main-plan) or local JSON (per phase-3-plan §1.3)?
+**Posted**: 2026-04-18 by Claude Code Run 88
+**Blocks**: Phase 3 §B (multi-project isolation) subtasks. Tracking Issue #86 (`type:question` + `status:needs-user`). Not immediately blocking — current wave-1 work doesn't touch storage — but the answer determines how §B.1–§B.4 are implemented.
+**Context**: `plans/main-plan.md` §Architecture locks *"State: Shared Postgres + cloud storage"* but `plans/phase-3-plan.md` §1.3 deliberately defers Postgres to Phase 4 and uses local JSON for Phase 3. The phase-3-plan's §5 Open Questions #1 explicitly asks you to confirm the slippage. Without an answer the `§B.1` (per-project `plans/`, `reports/`, MemPalace wing) will default to local-JSON and may need rework in Phase 4.
+**Options considered**:
+- **A. Local JSON through Phase 3, Postgres in Phase 4** — matches phase-3-plan §1.3 default. Simplest near-term; Phase 4 gets a one-time migration task.
+- **B. Postgres now, per main-plan** — aligns with locked architecture. Requires installing Postgres locally (conflicts with no-Docker/no-venv constraints — would need native Windows install or WSL per `feedback_no_docker_wsl_or_linux_ok.md`).
+- **C. SQLite (file-based, zero-install)** — compromise: structured DB without Postgres ops; easy to migrate to Postgres in Phase 4. Adds a library dep but no new infra.
+- **D. Local JSON permanently (amend main-plan)** — simplest long-term for a solo designer's single-machine setup. Loses shared-state property that main-plan was aiming at.
+**Recommendation (non-binding)**: **C (SQLite)**. Gets the structured-state benefit without Postgres ops; WAL mode handles concurrent heartbeat/dashboard reads; migration to Postgres in Phase 4 is well-trodden. If you prefer A (simplicity wins) that's also fine — I can revisit in Phase 4.
+**Hard-to-reverse?**: somewhat — schema/data lives there. A → C → B is forward-compatible. B → local is more work. D breaks main-plan's shared-state intent.
+
+**User answer**: _(empty — awaiting)_
+
+---
+
 ### Q-20260418-005 — Cadence during Copilot-wait-mode: slow down or stay fast?
 **Posted**: 2026-04-18 by Claude Code Run 75
 **Blocks**: Tracking Issue #85 (`type:question` + `status:needs-user`). Not strictly blocking, but rate-limiting — each no-op tick adds 1 row to `decision-log.md` on the meta PR.
