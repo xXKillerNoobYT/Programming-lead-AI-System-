@@ -65,6 +65,6 @@ unhandledRejection Error [PageNotFoundError]: Cannot find module for page: /_doc
 4. **#7** Draft `plans/phase-3-plan.md`.
 5. **#8** Draft `plans/phase-4-plan.md`.
 
-**Planes folder checked**: No changes this run. Phase 3/4 planning remains queued in #7/#8.
+**Plans folder checked**: No changes this run. Phase 3/4 planning remains queued in #7/#8.
 
 **Heartbeat cadence**: still self-paced. Next wake scheduled post-commit.

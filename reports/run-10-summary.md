@@ -1,4 +1,4 @@
-# Run 10 Summary — Green Baseline Restored (D-20260417-008)
+# Run 10 Summary — Infra/Build Green Baseline Restored (D-20260417-008)
 
 ## Overview
 **Task**: Issue #9 — Restore working dashboard baseline (tests runnable + build succeeds).
@@ -74,7 +74,7 @@ Route (app)                              Size     First Load JS
 - **React 19 RC + Next 15 RC** still in `package.json`. Stable releases of both have been out for months; upgrading would reduce surprise bugs like the stale-cache `_document` ghost.
 - **MemPalace MCP still not loaded** in this session despite `.mcp.json` approval + user-level config cleanup. Cross-run memory falls back to `memory.md` + `decision-log.md` + this report. Worth debugging in a later heartbeat.
 
-## Planes folder checked
+## Plans folder checked
 No changes to `plans/` this run. Phase 3/4 planning still queued in #7/#8. `plans/run-6-ui-plan.md` remains in the session-0 stash — not revived, not deleted; Issue #4 (run-numbering) still owns its fate.
 
 ## Heartbeat cadence

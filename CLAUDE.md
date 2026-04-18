@@ -171,7 +171,7 @@ When you must ask:
 
 These are blocking. If one is needed, stop and ask.
 
-- Force-push, `git reset --hard`, `rm -rf`, dropping databases/tables
+- Force-push, `git reset --hard`, dangerous `rm -rf` operations (e.g., deleting outside the repo, targeting `/` or `~`, broad globs, or non-generated source/data directories); **removing generated in-repo build artifacts** such as `dashboard/.next/` or `dashboard/coverage/` is allowed when needed, dropping databases/tables
 - Committing secrets (`.env`, tokens, credentials, API keys)
 - Skipping git hooks (`--no-verify`, `--no-gpg-sign`)
 - Modifying `Docs/Plans/*` (locked user intent)
@@ -196,7 +196,7 @@ These are blocking. If one is needed, stop and ask.
 - **Testing pyramid** — 70% unit, 20% integration, 10% E2E (per `plans/main-plan.md`)
 - **Three-chat dashboard** — Coding AI Relay, User Guidance, Execution Log (do not add or remove tabs without an Issue + decision)
 
-See [`.roo/rules/rules.md`](.roo/rules/rules.md) for the authoritative shared rules.
+This file + the plans under `Docs/Plans/` are the authoritative workflow guidance. [`.roo/rules/rules.md`](.roo/rules/rules.md) is legacy Roo-era reference material only — do not follow it unless it has been explicitly updated to match the current Polsia + Docs/Plans process.
 
 ---
 
@@ -221,7 +221,7 @@ See [`.roo/rules/rules.md`](.roo/rules/rules.md) for the authoritative shared ru
   - `schedule` / `loop` — for managing the heartbeat schedule itself
 - **Memory system** at `~/.claude/projects/<this-project>/memory/` — Claude Code's local persistent facts. Complements MemPalace; prefer MemPalace for project-domain knowledge and local memory for Claude-Code-behavioral facts (user preferences, feedback rules).
 
-**Note**: [`mcp_settings.json`](mcp_settings.json) is the **Roo Code** copy of the same server list, kept for reference only. Claude Code reads [`.mcp.json`](.mcp.json). Keep them in sync when adding/removing servers.
+**Note**: Claude Code reads [`.mcp.json`](.mcp.json) — that is the source of truth for MCP servers in this repo. `mcp_settings.json` (a Roo-era parallel list) is not currently tracked in this repository; if it is reintroduced or kept externally, keep it aligned when adding/removing servers.
 
 ---
 
