@@ -1,4 +1,4 @@
-g # Decision Log
+# Decision Log
 
 ## Format
 | Decision ID | Date | Decision | Rationale | Alternatives Considered | Owner |
