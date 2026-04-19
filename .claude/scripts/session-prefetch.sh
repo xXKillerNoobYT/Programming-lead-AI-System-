@@ -18,11 +18,10 @@ TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 # Run `npm install` for root + dashboard/ so `npm test` works out-of-the-box in
 # fresh remote sessions (fresh clones have no node_modules/). Short-circuits
 # when node_modules/ already exists — warm sessions skip the install entirely
-# and record "already warm" in the summary. Dashboard needs --legacy-peer-deps
-# due to the React 19 RC / @testing-library/react peer conflict
-# (D-20260418-001; `overrides` fix currently absent from main — tracked in
-# #87). Exit code of each install is captured so the summary shows
-# success/fail unambiguously. Per Issue #61.
+# and record "already warm" in the summary. Per Issue #61; Issue #87 resolved
+# by bumping react/react-dom off the RC pin to stable ^19.0.0, so
+# --legacy-peer-deps is no longer needed. Exit code of each install is
+# captured so the summary shows success/fail unambiguously.
 prefetch_install() {
   # $1 = label ("[root]" / "[dashboard/]"), $2 = abs dir, $3.. = extra flags
   local label="$1" dir="$2"; shift 2
@@ -39,7 +38,7 @@ prefetch_install() {
 }
 
 ROOT_INSTALL_LOG="$(prefetch_install '[root]'       "$REPO_ROOT")"
-DASH_INSTALL_LOG="$(prefetch_install '[dashboard/]' "$REPO_ROOT/dashboard" --legacy-peer-deps)"
+DASH_INSTALL_LOG="$(prefetch_install '[dashboard/]' "$REPO_ROOT/dashboard")"
 
 {
   echo "# Session Prefetch — $TS"
