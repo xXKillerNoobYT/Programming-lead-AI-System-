@@ -22,7 +22,7 @@
 'use strict';
 
 const { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } = require('node:fs');
-const { join, resolve } = require('node:path');
+const { join, resolve, basename } = require('node:path');
 
 const {
     loadMcpConfig,
@@ -34,6 +34,7 @@ const {
 
 const { runCohesionGate } = require('./lib/cohesion-gate.js');
 const { safeSpawn } = require('./lib/guardrails.js');
+const { writeAuditRecord } = require('./lib/audit-trail.js');
 
 const REPO_ROOT = resolve(__dirname);
 const REPORTS_DIR = join(REPO_ROOT, 'reports');
@@ -356,18 +357,35 @@ async function tick(clientsByName = {}, options = {}) {
     const report = formatTickReport(state);
     const path = writeTickReport(timestamp, report);
 
+    // §C.2 audit trail (Issue #131): machine-readable sibling to the
+    // markdown tick report. Writer never throws — on failure we log the
+    // skip and keep going so the markdown report (the user-facing artifact)
+    // still reaches the user.
+    const audit = writeAuditRecord({
+        projectRoot: REPO_ROOT,
+        timestamp,
+        state,
+        // filesTouched is the list of paths THIS tick wrote. v1 includes the
+        // markdown report and (when present) the cohesion gate's JSON report.
+        // Future ticks that write additional artifacts should append here.
+        filesTouched: [path, state.cohesionGate && state.cohesionGate.reportPath].filter(Boolean),
+    });
+
     const gateMarker = cohesionGate
         ? (cohesionGate.reportPath === null && cohesionGate.skipReason
             ? 'skip'
             : (cohesionGate.passed ? 'pass' : 'fail'))
         : 'off';
+    const auditMarker = audit.skipped
+        ? ' (audit skipped)'
+        : ` + ${basename(audit.path)}`;
     console.log(
         `[heartbeat] ${timestamp} — ${git.branch}@${git.sha} — ` +
         `mcp ${mcpStatus.connected.length}c/${mcpStatus.failed.length}f/${mcpStatus.skipped.length}s — ` +
         `gate ${gateMarker} — ` +
-        `wrote ${path}`,
+        `wrote ${path}${auditMarker}`,
     );
-    return { state, path };
+    return { state, path, auditPath: audit.path };
 }
 
 async function main(argv = process.argv.slice(2)) {
