@@ -29,7 +29,8 @@ describe('Phase 3 §D.1 + §B.1\' — project-scoped tab routes', () => {
 
     it('shows the project id in the UI so the route shape is visible', () => {
         render(<ProjectTabContent projectId="devlead-mcp" tab="coding" />);
-        expect(screen.getByText(/devlead-mcp/)).toBeInTheDocument();
+        // TopBar + main both surface the id — at least one match is enough
+        expect(screen.getAllByText(/devlead-mcp/).length).toBeGreaterThan(0);
     });
 
     it('renders a recognizable fallback for an unknown tab rather than crashing', () => {
