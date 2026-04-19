@@ -2,6 +2,8 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
+const { existsSync, readFileSync } = require('node:fs');
+const path = require('node:path');
 
 const {
     parseGitState,
@@ -11,6 +13,7 @@ const {
     extractRecentDecisions,
     formatTickReport,
     runShell,
+    tick,
 } = require('../heartbeat.js');
 
 describe('parseGitState', () => {
@@ -231,5 +234,41 @@ describe('formatTickReport', () => {
     test('handles empty recent-decisions list', () => {
         const out = formatTickReport({ ...baseState, recentDecisions: [] });
         assert.match(out, /\(none found\)/);
+    });
+});
+
+describe('tick — §C.2 audit trail (Issue #131)', () => {
+    test('produces BOTH a markdown tick report AND a JSON audit record per invocation', async () => {
+        // No MCP clients, skip cohesion gate — keeps the test fast + deterministic.
+        // Writes to the real REPO_ROOT/reports since tick() uses a module-level
+        // constant; both artifacts are timestamped so they don't collide across runs.
+        const result = await tick({}, { skipCohesionGate: true });
+
+        assert.ok(result.path, 'tick() should return the markdown report path');
+        assert.ok(existsSync(result.path), 'markdown tick report should exist on disk');
+        assert.ok(/\.md$/.test(result.path), 'markdown report should have .md extension');
+
+        assert.ok(result.auditPath, 'tick() should return the audit JSON path');
+        assert.ok(existsSync(result.auditPath), 'audit JSON should exist on disk');
+        assert.ok(/\.json$/.test(result.auditPath), 'audit record should have .json extension');
+
+        // Sibling convention: .md and .json share the same timestamp stem, so
+        // tooling can correlate them by filename.
+        const mdStem = path.basename(result.path).replace(/^heartbeat-tick-/, '').replace(/\.md$/, '');
+        const jsonStem = path.basename(result.auditPath).replace(/\.json$/, '');
+        assert.equal(mdStem, jsonStem, 'md and json siblings should share a timestamp stem');
+
+        // Audit record must parse + contain v1 schema fields.
+        const parsed = JSON.parse(readFileSync(result.auditPath, 'utf8'));
+        assert.equal(parsed.schemaVersion, 1);
+        assert.equal(typeof parsed.timestamp, 'string');
+        assert.deepEqual(parsed.writer, { name: 'heartbeat.js', version: 'v1' });
+        assert.ok(parsed.state, 'state passthrough must be present');
+        assert.ok(Array.isArray(parsed.filesTouched), 'filesTouched must be an array');
+        // The markdown report path is one of the files the tick wrote this call.
+        assert.ok(
+            parsed.filesTouched.includes(result.path),
+            'filesTouched should include the markdown tick report path',
+        );
     });
 });
