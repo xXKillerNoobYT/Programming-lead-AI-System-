@@ -199,3 +199,105 @@ describe('writeAuditRecord — never-throws on failure', () => {
         assert.equal(result.skipped, true);
     });
 });
+
+describe('writeAuditRecord — timestamp validation gate (Issue #132)', () => {
+    // Background: PR #133 review of §C.2 found that missing/non-string
+    // `timestamp` silently produced a literal `.json` filename (empty stem +
+    // extension) and consecutive undefined-timestamp calls overwrote the same
+    // file. Production heartbeat.js#tick always passes a valid ISO string, so
+    // no live bug — but a future caller could trip it without warning. Gate
+    // must short-circuit to the skip branch mirroring the projectRoot gate.
+    //
+    // Same tmp-dir discipline as the "never-throws on failure" block above:
+    // even though these calls should reject before mkdir/write, the cleanup
+    // runs in `finally` so a regressing gate doesn't leak an `.json` file.
+
+    test('returns {skipped:true, skipReason:"timestamp missing"} when timestamp is undefined', () => {
+        const root = mkTmpRoot();
+        try {
+            const result = writeAuditRecord({
+                projectRoot: root,
+                timestamp: undefined,
+                state: {},
+                filesTouched: [],
+            });
+            assert.equal(result.path, null);
+            assert.equal(result.skipped, true);
+            assert.equal(result.skipReason, 'timestamp missing');
+            // Verify no stray `.json` file was written into reports/audit/.
+            assert.equal(
+                existsSync(path.join(root, 'reports', 'audit', '.json')),
+                false,
+                'must not create reports/audit/.json on undefined timestamp',
+            );
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    test('returns {skipped:true, skipReason:"timestamp missing"} when timestamp is null', () => {
+        const root = mkTmpRoot();
+        try {
+            const result = writeAuditRecord({
+                projectRoot: root,
+                timestamp: null,
+                state: {},
+                filesTouched: [],
+            });
+            assert.equal(result.path, null);
+            assert.equal(result.skipped, true);
+            assert.equal(result.skipReason, 'timestamp missing');
+            assert.equal(
+                existsSync(path.join(root, 'reports', 'audit', '.json')),
+                false,
+                'must not create reports/audit/.json on null timestamp',
+            );
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    test('returns {skipped:true, skipReason:"timestamp missing"} when timestamp is empty string', () => {
+        const root = mkTmpRoot();
+        try {
+            const result = writeAuditRecord({
+                projectRoot: root,
+                timestamp: '',
+                state: {},
+                filesTouched: [],
+            });
+            assert.equal(result.path, null);
+            assert.equal(result.skipped, true);
+            assert.equal(result.skipReason, 'timestamp missing');
+            assert.equal(
+                existsSync(path.join(root, 'reports', 'audit', '.json')),
+                false,
+                'must not create reports/audit/.json on empty-string timestamp',
+            );
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    test('returns {skipped:true, skipReason:"timestamp missing"} when timestamp is a number', () => {
+        const root = mkTmpRoot();
+        try {
+            const result = writeAuditRecord({
+                projectRoot: root,
+                timestamp: 42,
+                state: {},
+                filesTouched: [],
+            });
+            assert.equal(result.path, null);
+            assert.equal(result.skipped, true);
+            assert.equal(result.skipReason, 'timestamp missing');
+            assert.equal(
+                existsSync(path.join(root, 'reports', 'audit', '.json')),
+                false,
+                'must not create reports/audit/.json on numeric timestamp',
+            );
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+});
