@@ -51,7 +51,7 @@ report instead of crashing the loop.
 - Hourly Grok escalation
 
 Each of these is a future atomic Issue off the core-backbone plan. See
-`plans/main-plan.md` for phase-level grouping and GitHub Issues for the
+`AI plans/main-plan.md` for phase-level grouping and GitHub Issues for the
 current ready-to-go queue.
 
 ---
@@ -92,5 +92,5 @@ graph TD
   `Docs/Plans/Part 6 UI Master Plan.md`; current prototype is a wireframe
   tracked in epic Issue #19).
 
-Details in [`plans/main-plan.md`](plans/main-plan.md) and
+Details in [`AI plans/main-plan.md`](AI%20plans/main-plan.md) and
 [`Docs/Plans/`](Docs/Plans/) (Parts 1-6).
