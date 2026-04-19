@@ -88,6 +88,27 @@ describe('readPauseLock — valid lockfile, not expired', () => {
             rmSync(root, { recursive: true, force: true });
         }
     });
+
+    // Documents the NaN-fallthrough behaviour at lib/pause-lock.js:113-121: a
+    // hand-edited garbage pausedUntil (not parseable by Date.parse) MUST NOT
+    // silently unlock the heartbeat. User must fix or delete the file. This
+    // test locks that contract in so a future refactor can't regress it into
+    // "garbage expiry == no expiry == unpaused".
+    test('keeps paused when pausedUntil is garbage (NaN fallthrough)', () => {
+        const root = mkTmpRoot();
+        try {
+            writeFileSync(lockfilePath(root), JSON.stringify({
+                pausedAt: '2026-04-19T00:00:00.000Z',
+                pausedUntil: 'not a date',
+                reason: 'test-garbage-expiry',
+            }), 'utf8');
+            const result = readPauseLock(root);
+            assert.equal(result.paused, true);
+            assert.equal(result.reason, 'test-garbage-expiry');
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
 });
 
 describe('readPauseLock — stale lockfile (pausedUntil in the past)', () => {
@@ -131,6 +152,37 @@ describe('readPauseLock — malformed JSON (fail-OPEN)', () => {
             rmSync(root, { recursive: true, force: true });
         }
     });
+
+    // Wrong-shape guard at lib/pause-lock.js:98-106: valid JSON but not an
+    // object (scalar or array) must fall back to the same fail-OPEN posture as
+    // malformed JSON. These two tests lock the scalar + array branches so a
+    // future tightening of the shape check cannot accidentally flip to
+    // paused:true on a hand-edited oddball file.
+    test('returns {paused:false, rawError} on valid-JSON scalar (e.g. "42")', () => {
+        const root = mkTmpRoot();
+        try {
+            writeFileSync(lockfilePath(root), '42', 'utf8');
+            const result = readPauseLock(root);
+            assert.equal(result.paused, false);
+            assert.equal(typeof result.rawError, 'string');
+            assert.ok(result.rawError.length > 0, 'rawError should be populated');
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    test('returns {paused:false, rawError} on valid-JSON array (e.g. "[1,2,3]")', () => {
+        const root = mkTmpRoot();
+        try {
+            writeFileSync(lockfilePath(root), '[1, 2, 3]', 'utf8');
+            const result = readPauseLock(root);
+            assert.equal(result.paused, false);
+            assert.equal(typeof result.rawError, 'string');
+            assert.ok(result.rawError.length > 0, 'rawError should be populated');
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
 });
 
 describe('writePauseLock — indefinite pause', () => {
@@ -146,6 +198,29 @@ describe('writePauseLock — indefinite pause', () => {
             assert.equal(typeof parsed.pausedAt, 'string');
             assert.equal(parsed.reason, 'indefinite halt');
             assert.equal(parsed.pausedUntil, undefined);
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    // Circular-reason guard: JSON.stringify on a circular object throws
+    // TypeError. The outer try/catch in writePauseLock must catch it and
+    // return {path:null} rather than letting the exception escape into the
+    // heartbeat loop. Locks the never-throws contract for reason payloads.
+    test('never throws on circular reason (returns {path: null})', () => {
+        const root = mkTmpRoot();
+        try {
+            const circular = {};
+            circular.self = circular;
+            let caught = null;
+            let result;
+            try {
+                result = writePauseLock({ projectRoot: root, reason: circular });
+            } catch (err) {
+                caught = err;
+            }
+            assert.equal(caught, null, 'must not throw');
+            assert.equal(result.path, null);
         } finally {
             rmSync(root, { recursive: true, force: true });
         }
@@ -171,6 +246,48 @@ describe('writePauseLock — bounded pause', () => {
 
             const parsed = JSON.parse(readFileSync(result.path, 'utf8'));
             assert.equal(parsed.pausedUntil, result.pausedUntil);
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    // durationMs > 0 guard (Issue #136 AC#1): reviewer flagged that
+    // Number.isFinite(durationMs) alone accepts 0 and negatives, producing an
+    // immediately-stale lockfile. Contract: coerce to indefinite pause +
+    // stderr one-liner. Two tests lock the zero and negative branches.
+    test('coerces durationMs=0 to indefinite pause (no pausedUntil)', () => {
+        const root = mkTmpRoot();
+        try {
+            const result = writePauseLock({
+                projectRoot: root,
+                reason: 'zero duration coerced',
+                durationMs: 0,
+            });
+            assert.equal(result.path, lockfilePath(root));
+            assert.equal(result.pausedUntil, undefined, 'return must omit pausedUntil on coercion');
+
+            const parsed = JSON.parse(readFileSync(result.path, 'utf8'));
+            assert.equal(parsed.pausedUntil, undefined, 'on-disk file must omit pausedUntil on coercion');
+            assert.equal(parsed.reason, 'zero duration coerced');
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+
+    test('coerces negative durationMs to indefinite pause (no pausedUntil)', () => {
+        const root = mkTmpRoot();
+        try {
+            const result = writePauseLock({
+                projectRoot: root,
+                reason: 'negative duration coerced',
+                durationMs: -5_000,
+            });
+            assert.equal(result.path, lockfilePath(root));
+            assert.equal(result.pausedUntil, undefined, 'return must omit pausedUntil on coercion');
+
+            const parsed = JSON.parse(readFileSync(result.path, 'utf8'));
+            assert.equal(parsed.pausedUntil, undefined, 'on-disk file must omit pausedUntil on coercion');
+            assert.equal(parsed.reason, 'negative duration coerced');
         } finally {
             rmSync(root, { recursive: true, force: true });
         }
