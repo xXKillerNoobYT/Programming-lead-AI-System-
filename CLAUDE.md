@@ -25,12 +25,12 @@ Build the system described in `Docs/Plans/Part 1.md` through `Part 6.md`. These 
 Docs/Plans/*.md        (user's high-level locked intent — source of truth)
            │
            ▼
-     plans/*.md              (YOUR detailed long-term execution plans;
+     AI plans/*.md           (YOUR detailed long-term execution plans;
                               multi-phase, written in full, lives across runs.
                               You work off these one little bit at a time.)
            │
            ▼
-    GitHub Issues             (atomic tasks derived from plans/ — one heartbeat
+    GitHub Issues             (atomic tasks derived from AI plans/ — one heartbeat
                               = one Issue; visible to-do list with 3+ queued)
            │
            ▼
@@ -40,7 +40,9 @@ Docs/Plans/*.md        (user's high-level locked intent — source of truth)
    decision-log.md            (D-YYYYMMDD-### decisions across the chain)
 ```
 
-**Key mindset**: `plans/` is where you think big and write it down once. GitHub Issues is where you pick off one small piece at a time. If a plan in `plans/` is too fuzzy to produce the next 3 Issues, refine the plan first — then decompose.
+**Key mindset**: `AI plans/` is where you think big and write it down once. GitHub Issues is where you pick off one small piece at a time. If a plan in `AI plans/` is too fuzzy to produce the next 3 Issues, refine the plan first — then decompose.
+
+> **Folder rename (2026-04-18)**: the folder formerly named `plans/` was renamed to `AI plans/` per direct user directive ("i changed the plans forder for your use to 'AI plans' use it its there for a reson"). All references to `AI plans/*.md` in this file, `SOUL.md`, `.claude/commands/heartbeat.md`, and `.claude/agents/issue-triage-picker.md` now point to `AI plans/*.md`. Historical `reports/run-*.md` and `decision-log.md` entries retain the old `plans/` path for provenance.
 
 Project identity and guardrails are in [`SOUL.md`](SOUL.md). The SOUL is immutable for Phase 1 — any change requires a GitHub Issue and explicit user approval.
 
@@ -56,7 +58,7 @@ When information conflicts, higher-priority sources win.
 | 1a | [`Docs/Plans/Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md) | Async design-question board — system posts, user answers, system cleans up (see §4) | **Yes** — the only writable file under `Docs/Plans/` |
 | 2 | `SOUL.md` | System identity & guardrails | **No** (without GH Issue + approval) |
 | 3 | GitHub Issues (`gh issue list`) | Active task queue | Yes — create/update/close |
-| 4 | `plans/*.md` (esp. `main-plan.md`) | **Your** detailed long-term execution plans derived from #1. Work off these one small piece at a time. Refine them as you learn. | Yes |
+| 4 | `AI plans/*.md` (esp. `main-plan.md`) | **Your** detailed long-term execution plans derived from #1. Work off these one small piece at a time. Refine them as you learn. | Yes |
 | 5 | `decision-log.md` | Canonical decisions; reuse before re-asking. When the user answers a `Dev-Q&A.md` question, record here before removing from Q&A. | Append-only |
 | 6 | [`architecture.md`](architecture.md), [`memory.md`](memory.md) | Living context docs | Update when workflow changes |
 | 7 | `reports/run-*.md` | Progress reports | Append per run |
@@ -81,7 +83,7 @@ Execute these steps **in order**. Treat them as a checklist.
 ### Step 1 — Orient (read state, ~30s of tool calls)
 Run in parallel where possible:
 - `git status` and `git log --oneline -10`
-- Read `plans/main-plan.md` → current phase
+- Read `AI plans/main-plan.md` → current phase
 - `gh issue list --state open --limit 30` (use `--limit 30`+ so new Issues aren't silently missed)
 - Read the most recent `reports/run-*.md` for continuity
 - Scan last 5 entries in `decision-log.md`
@@ -93,15 +95,15 @@ Priority order:
 1. An open GitHub Issue labeled `status:in-progress` (continue it)
 2. **An open *child* sub-issue whose parent is also open.** Before picking any top-level Issue, check whether any open Issue has open sub-issues — if so, pick a leaf (child with no open children of its own) first. A parent cannot close while any child is open. See §6 "Multi-layer decomposition" for the full rule. This is what the user means by "if a parent task needs to be done and there are child tasks, the child tasks can be done" — children are not optional, they are the *real* work units.
 3. Highest-priority open Issue labeled `status:backlog` that has no open sub-issues. Within `status:backlog`, the default pick is **oldest first** (see §6 for the full rule and its deviation conditions). Recommended, not required — if the backlog is entirely housekeeping and a newer Issue directly advances the **core backbone** (DevLead MCP runtime: `heartbeat.js`, MCP orchestrator, branch/agent management), pick the backbone Issue and record the reason in the run report.
-4. If none exist → decompose the next unstarted item from `plans/main-plan.md` into a new Issue, then start it
+4. If none exist → decompose the next unstarted item from `AI plans/main-plan.md` into a new Issue, then start it
 5. If plans are exhausted → summarize progress, open an Issue requesting user direction, and stop
 
 **Do not start multiple tasks in one heartbeat.** This enforces the one-task-at-a-time rule from Run 3 (D-20260417-004).
 
 ### Step 2b — Keep the backlog 3+ tasks ahead (lookahead rule)
-**GitHub Issues is the project's to-do list.** Before executing your chosen task, count open Issues labeled `status:backlog`. If there are **fewer than 3**, decompose the next items from **your plans in `plans/*.md`** (especially `main-plan.md`) into new Issues until the backlog has at least 3 ready-to-go tasks.
+**GitHub Issues is the project's to-do list.** Before executing your chosen task, count open Issues labeled `status:backlog`. If there are **fewer than 3**, decompose the next items from **your plans in `AI plans/*.md`** (especially `main-plan.md`) into new Issues until the backlog has at least 3 ready-to-go tasks.
 
-If `plans/` is too fuzzy or too shallow to produce 3 clear Issues, **refine the plan first** — that is itself the task. Write the next section of `plans/main-plan.md` (or create a new `plans/run-N-<topic>-plan.md`), then decompose. Do not produce vague Issues off vague plans.
+If `AI plans/` is too fuzzy or too shallow to produce 3 clear Issues, **refine the plan first** — that is itself the task. Write the next section of `AI plans/main-plan.md` (or create a new `AI plans/run-N-<topic>-plan.md`), then decompose. Do not produce vague Issues off vague plans.
 
 Each Issue should:
 - Have a clear acceptance criterion (how we know it's done)
@@ -122,7 +124,7 @@ Before acting on anything non-trivial:
 - Follow `.roo/rules/rules.md` conventions
 - Use the `Agent` tool for independent parallel work; use `Explore` subagent for codebase search
 - Prefer `Edit` over `Write` for existing files
-- Write tests alongside code (Jest, target >90% coverage per `plans/main-plan.md`)
+- Write tests alongside code (Jest, target >90% coverage per `AI plans/main-plan.md`)
 - Respect user's **no-Docker** preference — local Node.js only
 
 ### Step 4b — Capture gaps/bugs found mid-flight (Polsia Rule 2)
@@ -228,7 +230,7 @@ These are blocking. If one is needed, stop and ask.
   5. **Parent Issue body should list its children** (or link to the GitHub-rendered sub-issue list). When all children close, the parent's AC "all sub-issues closed" auto-trips and the parent can be closed with a final Decision ID.
   6. **This rule applies to BOTH** (a) Claude Code as orchestrator creating Issues for the coding agent, and (b) the product runtime (`heartbeat.js`) once it gains the ability to decompose plans itself. Per user directive: *"this is for you claude code & the program that i want this applyed to."*
 - **Documentation** — when workflow behavior changes, update `README.md` / `architecture.md` / `memory.md` in the same commit
-- **Testing pyramid** — 70% unit, 20% integration, 10% E2E (per `plans/main-plan.md`)
+- **Testing pyramid** — 70% unit, 20% integration, 10% E2E (per `AI plans/main-plan.md`)
 - **Three-chat dashboard** — Coding AI Relay, User Guidance, Execution Log (do not add or remove tabs without an Issue + decision)
 
 This file + the plans under `Docs/Plans/` are the authoritative workflow guidance. [`.roo/rules/rules.md`](.roo/rules/rules.md) is legacy Roo-era reference material only — do not follow it unless it has been explicitly updated to match the current Polsia + Docs/Plans process.
@@ -277,7 +279,7 @@ The agent heartbeat is what makes this file meaningful. To set it up:
 
 ## 9. Completion Criteria (per phase)
 
-A phase in `plans/main-plan.md` is complete when **all** are true:
+A phase in `AI plans/main-plan.md` is complete when **all** are true:
 - Every GH Issue for the phase is closed
 - `npm test` passes in `dashboard/` with coverage ≥ target
 - `reports/run-N-summary.md` exists and references every Decision ID used
