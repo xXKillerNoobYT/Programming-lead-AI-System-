@@ -203,6 +203,6 @@ Issues will be created in this order. Each one lands on `status:backlog` and is 
 ## 7. Provenance & Maintenance
 
 - **Author**: Claude Code, 2026-04-17, per Issue #7 acceptance criteria.
-- **Source material**: `Docs/Plans/Part 1.md` §§3,4,8,10,12; `Part 2.md` §§3,4,6; `Part 4.md` §§3,4,5,7; `Part 6.md` §§1,4.5,6,7,8,10,13,14,15,20; `plans/main-plan.md` §Roadmap §Testing §Considerations; `CLAUDE.md` §§1–8; `decision-log.md` D-20260417-004 through D-20260417-013.
+- **Source material**: `Docs/Plans/Part 1.md` §§3,4,8,10,12; `Part 2.md` §§3,4,6; `Part 4.md` §§3,4,5,7; `Part 6.md` §§1,4.5,6,7,8,10,13,14,15,20; `AI plans/main-plan.md` §Roadmap §Testing §Considerations; `CLAUDE.md` §§1–8; `decision-log.md` D-20260417-004 through D-20260417-013.
 - **Update rule**: refine this plan before producing more `phase:3` Issues whenever any subtask proves ambiguous (CLAUDE.md §3 Step 2b). Refinements land under a new Decision ID (D-20260417-017 is this document's birth ID).
 - **Lock status**: Draft v1.0 — open to user revision. Next revision becomes v1.1 with a new DocVersion tag at the top.

@@ -9,4 +9,4 @@
 ## Usage
 Lead queries on every heartbeat for context grounding.
 
-See [plans/main-plan.md](plans/main-plan.md) for full integration.
+See [AI plans/main-plan.md](AI%20plans/main-plan.md) for full integration.

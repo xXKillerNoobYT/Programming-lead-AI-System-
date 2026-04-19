@@ -241,7 +241,7 @@ Issues will be created in waves. Each parent epic §X gets one `type:epic` Issue
 ## 7. Provenance & Maintenance
 
 - **Author**: Claude Code, 2026-04-17, per Issue #8 acceptance criteria.
-- **Source material**: `Docs/Plans/Part 1.md` §§10,11,12; `Part 2.md` §6; `Part 4.md` §§4,7; `Part 6.md` §§14,15,17; `plans/main-plan.md` §Roadmap §CI/CD §Considerations; `plans/phase-3-plan.md` §§A,B,C (dependencies); `CLAUDE.md` §§3,4,5,6,7; `decision-log.md` D-20260417-005 (no-Docker), D-007 (evidence-before-assertion), D-015 (heartbeat.js v0), D-018 (sub-issues), D-019 (Dev-Q&A), D-020 (MCP client layer).
+- **Source material**: `Docs/Plans/Part 1.md` §§10,11,12; `Part 2.md` §6; `Part 4.md` §§4,7; `Part 6.md` §§14,15,17; `AI plans/main-plan.md` §Roadmap §CI/CD §Considerations; `AI plans/phase-3-plan.md` §§A,B,C (dependencies); `CLAUDE.md` §§3,4,5,6,7; `decision-log.md` D-20260417-005 (no-Docker), D-007 (evidence-before-assertion), D-015 (heartbeat.js v0), D-018 (sub-issues), D-019 (Dev-Q&A), D-020 (MCP client layer).
 - **Update rule**: refine this plan before producing more `phase:4` Issues whenever any subtask proves ambiguous (CLAUDE.md §3 Step 2b). Refinements land under a new Decision ID; **D-20260417-022** is this document's birth ID.
 - **Lock status**: Draft v1.0 — open to user revision. Next revision becomes v1.1 with a new DocVersion tag at the top.
 - **Cross-reference with Phase 3**: §B.1 here depends on `npm run check:all` from Phase 3 §A.2 existing. §C.1 depends on multi-project layout from Phase 3 §B. Pick Phase 3 Issues first when a Phase 4 Issue is otherwise ready — the dependency check lives in each Issue's Dependencies section.

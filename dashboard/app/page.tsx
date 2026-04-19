@@ -257,7 +257,7 @@ export default function Dashboard() {
             </main>
 
             <footer className="border-t border-gray-800 p-4 text-center text-xs text-gray-500">
-                Local-Node infrastructure • MCP + Next.js 15 • See plans/main-plan.md
+                Local-Node infrastructure • MCP + Next.js 15 • See AI plans/main-plan.md
             </footer>
         </div>
     );

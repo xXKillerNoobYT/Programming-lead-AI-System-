@@ -42,7 +42,7 @@ Docs/Plans/*.md        (user's high-level locked intent — source of truth)
 
 **Key mindset**: `AI plans/` is where you think big and write it down once. GitHub Issues is where you pick off one small piece at a time. If a plan in `AI plans/` is too fuzzy to produce the next 3 Issues, refine the plan first — then decompose.
 
-> **Folder rename (2026-04-18)**: the folder formerly named `plans/` was renamed to `AI plans/` per direct user directive ("i changed the plans forder for your use to 'AI plans' use it its there for a reson"). All references to `AI plans/*.md` in this file, `SOUL.md`, `.claude/commands/heartbeat.md`, and `.claude/agents/issue-triage-picker.md` now point to `AI plans/*.md`. Historical `reports/run-*.md` and `decision-log.md` entries retain the old `plans/` path for provenance.
+> **Folder rename (2026-04-18)**: the folder formerly named `plans/` was renamed to `AI plans/` per direct user directive ("i changed the plans forder for your use to 'AI plans' use it its there for a reson"). Operational references updated to `AI plans/*.md` in: this file, `README.md`, `architecture.md`, `memory.md`, `dashboard/app/page.tsx`, `.claude/commands/heartbeat.md`, `.claude/agents/issue-triage-picker.md`, `AI plans/phase-3-plan.md`, and `AI plans/phase-4-plan.md`. **Pending** (tracked by a follow-up Issue): `SOUL.md` still references `plans/main-plan.md` on lines 11 + 27 — SOUL.md cannot be edited without explicit user approval per §5. `Docs/Plans/Part 6 UI Master Plan.md` also retains two `plans/main-plan.md` mentions (lines 374, 437); that file is locked user intent per §2, so those are expected drift, not broken links. Historical `reports/run-*.md` and earlier `decision-log.md` entries retain the old `plans/` path for provenance — not rewriting history.
 
 Project identity and guardrails are in [`SOUL.md`](SOUL.md). The SOUL is immutable for Phase 1 — any change requires a GitHub Issue and explicit user approval.
 
@@ -126,7 +126,7 @@ Before acting on anything non-trivial:
 - Follow `.roo/rules/rules.md` conventions
 - Use the `Agent` tool for independent parallel work; use `Explore` subagent for codebase search
 - Prefer `Edit` over `Write` for existing files
-- Write tests alongside code (Jest, target >90% coverage per `AI plans/main-plan.md`)
+- Write tests alongside code using the existing harness for that area of the repo (`node:test` for root/non-dashboard code per `package.json` `test` script; Jest + React Testing Library in `dashboard/`), targeting >90% coverage per `AI plans/main-plan.md`
 - Respect user's **no-Docker** preference — local Node.js only
 
 ### Step 4b — Capture gaps/bugs found mid-flight (Polsia Rule 2)
