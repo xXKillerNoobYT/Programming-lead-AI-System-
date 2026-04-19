@@ -55,6 +55,8 @@ When information conflicts, higher-priority sources win.
 | # | Source | Purpose | Writable? |
 |---|---|---|---|
 | 1 | `Docs/Plans/*.md` (except `Dev-Q&A.md`) | Locked user intent | **No** |
+
+> **Naming convention (D-20260419-004, user answer to Q-20260418-001 option A)**: when two or more files share the same "Part N" number, each MUST carry a distinguishing subtitle in its filename (e.g., `Part 6 LLM Usage Strategy.md` + `Part 6 UI Master Plan.md`). All citations in code, docs, commit messages, and Decision IDs MUST use the **full filename including subtitle** — never bare `Part 6` — to avoid disambiguation drift. Adding a new file under the same Part N is allowed; silently overwriting an existing subtitle is not.
 | 1a | [`Docs/Plans/Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md) | Async design-question board — system posts, user answers, system cleans up (see §4) | **Yes** — the only writable file under `Docs/Plans/` |
 | 2 | `SOUL.md` | System identity & guardrails | **No** (without GH Issue + approval) |
 | 3 | GitHub Issues (`gh issue list`) | Active task queue | Yes — create/update/close |
