@@ -14,6 +14,7 @@
     "check:tests": "jest --ci",
     "check:coverage-threshold": "node scripts/check-coverage-threshold.js",
     "check:arch": "node scripts/check-arch.js",
+    "check:guardrail-coverage": "node scripts/check-guardrail-coverage.js",
     "check:deps": "npm audit --audit-level=high --omit=dev",
     "check:all": "node scripts/cohesion-check.js"
   },
