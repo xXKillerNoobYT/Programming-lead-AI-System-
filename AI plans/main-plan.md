@@ -81,10 +81,10 @@ graph TD
 - Persisted state; loaded on startup; dynamic mode creation support.
 
 ## Roadmap
-- **Phase 1 MVP**: Local Lead, Roo delegation, three chats, heartbeat. (Complete)
-- **Phase 2**: Prefs + smart multi-agent model mapping + planning enforcement. (Current Run 3)
-- **Phase 3**: Checks, multi-project.
-- **Phase 4**: Production scale.
+- **Phase 1 MVP** ✓ **Complete** — Local Lead, three chats, heartbeat, SOUL, .mcp.json, red→green test baseline. Retrospective plan: [`AI plans/phase-1-plan.md`](phase-1-plan.md) (D-20260419-022).
+- **Phase 2** ✓ **Complete** — Preferences editor, smart multi-agent model mapping, planning-enforcement suite (single-task rule, decision IDs, run reports, Dev-Q&A, 5-area framework, multi-layer sub-issues, companion GH Issues, naming conventions). Retrospective plan: [`AI plans/phase-2-plan.md`](phase-2-plan.md) (D-20260419-023).
+- **Phase 3** — **In progress** — Cohesion/checks layer, multi-project scaffold, UI upgrade (shell + routes + TopBar + LeftRail + MainPanes + shadcn primitives already landed via #24 + #104), heartbeat hardening, observability, release-gate surfaces. Plan: [`AI plans/phase-3-plan.md`](phase-3-plan.md).
+- **Phase 4** — **Planned** — PM2/task-scheduler supervision, GitHub Actions CI gating, one-command install, production observability, release automation. Plan: [`AI plans/phase-4-plan.md`](phase-4-plan.md).
 
 ## Considerations
 Security (MCP least-priv), multi-project isolation, VRAM monitoring, fallbacks, etc. Full list consolidated from originals.
