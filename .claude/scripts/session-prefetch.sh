@@ -15,6 +15,14 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="$REPO_ROOT/.claude/session-state.md"
 TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
+# Remote sessions don't have the `gh` CLI. Detect once and branch the Issues
+# snapshot accordingly — don't shell out to a binary that isn't there (#62).
+if command -v gh >/dev/null 2>&1; then
+  HAS_GH=1
+else
+  HAS_GH=0
+fi
+
 {
   echo "# Session Prefetch — $TS"
   echo
@@ -33,7 +41,11 @@ TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
   echo "## gh issue list --state open --limit 30"
   echo '```'
-  (cd "$REPO_ROOT" && gh issue list --state open --limit 30 2>&1 | head -40)
+  if [ "$HAS_GH" = "1" ]; then
+    (cd "$REPO_ROOT" && gh issue list --state open --limit 30 2>&1 | head -40)
+  else
+    echo "_(gh CLI unavailable in this session — agent should use \`mcp__github__list_issues\` in §3 Step 1 instead.)_"
+  fi
   echo '```'
   echo
   echo "## Latest run report"
