@@ -240,7 +240,7 @@ This file + the plans under `Docs/Plans/` are the authoritative workflow guidanc
 - **Native**: `Read`, `Edit`, `Write`, `Grep`, `Glob`, `Bash` (node, npm, git, `gh`)
 - **Subagents**: `Agent` tool — use `Explore` for codebase search, `general-purpose` for multi-step tasks, specialized agents (code-reviewer, plugin-validator, etc.) when they fit
 - **Project MCP servers** (configured in [`.mcp.json`](.mcp.json); activate after Claude Code restarts):
-  - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) backed by `C:/Users/weird/.GitHub/mempalace/palace`. Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.
+  - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) configured via `MEMPALACE_PALACE_PATH`. Set this env var before launching Claude Code (so MCP server initialization can read it); see `README.md` → **Environment setup** for examples. Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.
   - `sequentialthinking` — step-by-step reasoning for hard decomposition problems.
   - `context7` — up-to-date library/API docs (prefer over web search for SDKs and frameworks).
   - `puppeteer` — browser automation (headed verification of the Next.js dashboard).

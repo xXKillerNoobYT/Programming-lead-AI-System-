@@ -14,5 +14,11 @@ See [architecture.md](architecture.md).
 ## Master Plan
 [plans/main-plan.md](plans/main-plan.md)
 
+## Environment setup
+- For the MemPalace MCP server, set `MEMPALACE_PALACE_PATH` to your local palace directory **before starting Claude Code / MCP server initialization**.
+- Example (bash/zsh): `export MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"`
+- Example (PowerShell): `$env:MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"`
+- `.mcp.json` reads this value for the `mempalace` server `--palace` argument. If unset, MemPalace startup will fail.
+
 ## License
 MIT
