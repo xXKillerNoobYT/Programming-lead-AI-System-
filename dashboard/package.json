@@ -8,7 +8,14 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "check:lint": "next lint",
+    "check:types": "tsc --noEmit",
+    "check:tests": "jest --ci",
+    "check:coverage-threshold": "node scripts/check-coverage-threshold.js",
+    "check:arch": "node scripts/check-arch.js",
+    "check:deps": "npm audit --audit-level=high --omit=dev",
+    "check:all": "node scripts/cohesion-check.js"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
