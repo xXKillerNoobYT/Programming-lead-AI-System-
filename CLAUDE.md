@@ -237,7 +237,7 @@ This file + the plans under `Docs/Plans/` are the authoritative workflow guidanc
 
 ## 7. Tools You Have Available
 
-- **Native**: `Read`, `Edit`, `Write`, `Grep`, `Glob`, `Bash` (node, npm, git; `gh` is available on local machines only — remote heartbeat sessions on claude.ai/code must use the `mcp__github__*` MCP tools listed in §7 instead, see Issue #62)
+- **Native**: `Read`, `Edit`, `Write`, `Grep`, `Glob`, `Bash` (node, npm, git; `gh` is available on local machines only — remote heartbeat sessions on claude.ai/code must use the GitHub MCP tools instead, e.g. `mcp__github__list_issues`, `mcp__github__issue_read`, `mcp__github__issue_write`, `mcp__github__sub_issue_write`, `mcp__github__create_pull_request`, `mcp__github__merge_pull_request`; see Issue #62)
 - **Subagents**: `Agent` tool — use `Explore` for codebase search, `general-purpose` for multi-step tasks, specialized agents (code-reviewer, plugin-validator, etc.) when they fit
 - **Project MCP servers** (configured in [`.mcp.json`](.mcp.json); activate after Claude Code restarts):
   - `mempalace` — **authoritative project memory** (Wings → Halls → Rooms) backed by `C:/Users/weird/.GitHub/mempalace/palace`. Use for all durable cross-run observations (this overrides the generic `memory` MCP for project-specific knowledge). Tools: `mempalace_search`, `mempalace_kg_query`, `mempalace_diary_write`, `mempalace_add_drawer`, etc.

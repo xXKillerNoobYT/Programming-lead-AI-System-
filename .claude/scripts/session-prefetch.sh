@@ -45,8 +45,7 @@ fi
   if [ "$HAS_GH" = "1" ]; then
     (cd "$REPO_ROOT" && gh issue list --state open --limit 30 2>&1 | head -40)
   else
-    echo "(gh CLI unavailable — remote heartbeat session. Agent MUST fetch"
-    echo " open Issues via mcp__github__list_issues in Step 1 instead. See #62.)"
+    echo "(gh CLI unavailable — remote heartbeat session. Agent MUST fetch open Issues via mcp__github__list_issues in Step 1 instead. See #62.)"
   fi
   echo '```'
   echo

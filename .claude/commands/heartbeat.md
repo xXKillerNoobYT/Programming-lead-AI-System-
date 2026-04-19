@@ -11,7 +11,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 1. **Orient (Step 1)** — read state in parallel:
    - `git status` and `git log --oneline -10`
    - `plans/main-plan.md` for current phase
-   - `gh issue list --state open --limit 20` (on remote without `gh`: `mcp__github__list_issues` with `state: OPEN`, `perPage: 30` — see #62)
+   - `gh issue list --state open --limit 30` (on remote without `gh`: `mcp__github__list_issues` with `state: OPEN`, `perPage: 30` — see #62)
    - the most recent `reports/run-*-summary.md` for continuity
    - the last ~5 entries in `decision-log.md`
    - `memory.md` for durable observations
