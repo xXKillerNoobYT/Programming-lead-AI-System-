@@ -21,7 +21,6 @@
 
 'use strict';
 
-const { execFileSync } = require('node:child_process');
 const { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } = require('node:fs');
 const { join, resolve } = require('node:path');
 
@@ -34,6 +33,7 @@ const {
 } = require('./lib/mcp-client.js');
 
 const { runCohesionGate } = require('./lib/cohesion-gate.js');
+const { safeSpawn } = require('./lib/guardrails.js');
 
 const REPO_ROOT = resolve(__dirname);
 const REPORTS_DIR = join(REPO_ROOT, 'reports');
@@ -230,17 +230,34 @@ function formatTickReport(state) {
 
 /* ---------------------- side-effectful wrappers ---------------------- */
 
+/**
+ * Thin wrapper around lib/guardrails.js#safeSpawn that preserves the legacy
+ * stdout-or-empty-string contract used across this file: on success returns
+ * the child's stdout; on any non-zero exit, spawn error, or missing stdout,
+ * returns ''. NEVER throws for the no-allowlist call path (Issue #129).
+ *
+ * `options._spawnImpl` is a test-only injection seam threaded through to
+ * safeSpawn's guard config — production callers MUST NOT pass it. All other
+ * keys in `options` are forwarded as spawnOptions (cwd, encoding, stdio, …).
+ *
+ * Migrated from execFileSync + catch per Issue #129 / Phase 3 §C.1.c.
+ */
 function runShell(cmd, args, options = {}) {
-    try {
-        return execFileSync(cmd, args, {
+    const { _spawnImpl, ...spawnOptions } = options;
+    const result = safeSpawn(cmd, args, {
+        spawnOptions: {
             encoding: 'utf8',
             cwd: REPO_ROOT,
             stdio: ['ignore', 'pipe', 'pipe'],
-            ...options,
-        });
-    } catch (err) {
-        return err.stdout || '';
-    }
+            ...spawnOptions,
+        },
+        _spawnImpl,
+    });
+    // spawnSync returns {status, stdout, stderr, error, signal, pid}. Parity
+    // with the prior execFileSync+catch: return stdout-or-empty regardless of
+    // exit code or spawn error. safeSpawn itself does not throw on this path
+    // because (a) args is an Array and (b) no allowCmds is supplied.
+    return (result && result.stdout) || '';
 }
 
 function readGitState() {
@@ -407,6 +424,7 @@ module.exports = {
     formatCohesionGateBlock,
     formatTickReport,
     // side-effectful
+    runShell,
     collectMcpObservations,
     runCohesionGateSafely,
     tick,
