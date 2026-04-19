@@ -236,6 +236,11 @@ These are blocking. If one is needed, stop and ask.
 - **Documentation** — when workflow behavior changes, update `README.md` / `architecture.md` / `memory.md` in the same commit
 - **Testing pyramid** — 70% unit, 20% integration, 10% E2E (per `AI plans/main-plan.md`)
 - **Three-chat dashboard** — Coding AI Relay, User Guidance, Execution Log (do not add or remove tabs without an Issue + decision)
+- **Branch instruction-file sync — main is canonical** — per user directive 2026-04-19: *"the main branch should have the latest updates when it comes to those"*. Before starting work on any feature branch, ensure its instruction files (`CLAUDE.md`, `SOUL.md`, `.claude/**`, `AI plans/**`, `architecture.md`, `memory.md`) are at the same version as `origin/main`. Concretely:
+  1. **Create branches off latest main**: `git fetch origin main && git checkout -b feature/... origin/main` (never `git checkout -b feature/... main` — local main may be stale)
+  2. **Long-lived branches merge main periodically**: if a feature branch is >5 commits behind main on any instruction file, run `git merge origin/main` before the next leaf
+  3. **Never modify instruction files as a feature side-effect**: instruction-file changes go on their own `docs:`- or `chore:`-prefixed PR (keeps the canonical-main guarantee enforceable)
+  4. **Supersession sweep as corrective action**: PRs with net-negative diffs vs main (more deletions than additions by a lot) are usually branches that ignored this rule — close them as superseded (D-20260418-012) rather than rebasing
 
 This file + the plans under `Docs/Plans/` are the authoritative workflow guidance. [`.roo/rules/rules.md`](.roo/rules/rules.md) is legacy Roo-era reference material only — do not follow it unless it has been explicitly updated to match the current Polsia + Docs/Plans process.
 
