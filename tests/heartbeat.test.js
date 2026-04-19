@@ -10,6 +10,7 @@ const {
     summariseRunReport,
     extractRecentDecisions,
     formatTickReport,
+    runShell,
 } = require('../heartbeat.js');
 
 describe('parseGitState', () => {
@@ -148,6 +149,49 @@ describe('extractRecentDecisions', () => {
     test('respects the N parameter', () => {
         const md = 'D-20260101-001 D-20260101-002 D-20260101-003 D-20260101-004';
         assert.equal(extractRecentDecisions(md, 2).length, 2);
+    });
+});
+
+describe('runShell (safeSpawn migration, Issue #129)', () => {
+    test('returns stdout string on success', () => {
+        const fakeSpawn = () => ({ status: 0, stdout: 'hello\n', stderr: '' });
+        const out = runShell('git', ['status'], { _spawnImpl: fakeSpawn });
+        assert.equal(out, 'hello\n');
+    });
+
+    test('returns empty string on non-zero exit (never throws)', () => {
+        const fakeSpawn = () => ({ status: 1, stdout: '', stderr: 'oops' });
+        assert.doesNotThrow(() => {
+            const out = runShell('git', ['bogus'], { _spawnImpl: fakeSpawn });
+            assert.equal(out, '');
+        });
+    });
+
+    test('returns best-available stdout even when exit is non-zero', () => {
+        // Parity with previous execFileSync+catch behavior: when the process
+        // errored but still produced partial stdout, we surface the partial.
+        const fakeSpawn = () => ({ status: 1, stdout: 'partial output', stderr: 'then failed' });
+        const out = runShell('gh', ['something'], { _spawnImpl: fakeSpawn });
+        assert.equal(out, 'partial output');
+    });
+
+    test('returns empty string when spawn result has no stdout (never throws)', () => {
+        const fakeSpawn = () => ({ status: null, stdout: undefined, error: new Error('ENOENT') });
+        assert.doesNotThrow(() => {
+            const out = runShell('nope', [], { _spawnImpl: fakeSpawn });
+            assert.equal(out, '');
+        });
+    });
+
+    test('forwards cmd and args unchanged to the spawn implementation', () => {
+        let seen = null;
+        const fakeSpawn = (cmd, args) => {
+            seen = { cmd, args };
+            return { status: 0, stdout: 'ok' };
+        };
+        runShell('git', ['rev-parse', '--short', 'HEAD'], { _spawnImpl: fakeSpawn });
+        assert.equal(seen.cmd, 'git');
+        assert.deepEqual(seen.args, ['rev-parse', '--short', 'HEAD']);
     });
 });
 
