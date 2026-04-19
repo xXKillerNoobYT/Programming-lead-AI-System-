@@ -11,7 +11,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 1. **Orient (Step 1)** — read state in parallel:
    - `git status` and `git log --oneline -10`
    - `plans/main-plan.md` for current phase
-   - `gh issue list --state open --limit 20`
+   - `gh issue list --state open --limit 20` (on remote without `gh`: `mcp__github__list_issues` with `state: OPEN`, `perPage: 30` — see #62)
    - the most recent `reports/run-*-summary.md` for continuity
    - the last ~5 entries in `decision-log.md`
    - `memory.md` for durable observations
@@ -23,7 +23,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
    3. the oldest open `status:backlog` Issue, **unless** a newer Issue is a blocker or advances the core backbone while backlog is all housekeeping
    4. if plans are exhausted, summarize and stop
 
-3. **Keep backlog ≥ 3 (Step 2b)** — if fewer than 3 `status:backlog` Issues remain, decompose `plans/main-plan.md` into new Issues (use `gh issue edit --add-parent` / sub-issues where applicable, per D-20260417-018).
+3. **Keep backlog ≥ 3 (Step 2b)** — if fewer than 3 `status:backlog` Issues remain, decompose `plans/main-plan.md` into new Issues (use `gh issue edit --add-parent` / sub-issues where applicable, per D-20260417-018; on remote without `gh`, use `mcp__github__issue_write` + `mcp__github__sub_issue_write` — see #62).
 
 4. **Consult prior decisions (Step 3)** — search `decision-log.md` for relevant `D-YYYYMMDD-###` entries; reuse them rather than re-asking.
 
@@ -37,7 +37,9 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 
 9. **Commit (Step 7)** — conventional message citing the Decision ID and Issue #; never force-push, never skip hooks, never amend pushed commits.
 
-10. **Close Issue(s)** — per CLAUDE.md §6 "Run-complete ↔ Issue-close pairing": every decision-log entry marking a Run complete MUST close the corresponding GH Issue(s) via `gh issue close` with a comment citing the Decision ID + run report path.
+10. **Close Issue(s)** — per CLAUDE.md §6 "Run-complete ↔ Issue-close pairing": every decision-log entry marking a Run complete MUST close the corresponding GH Issue(s) via `gh issue close` (local) or `mcp__github__issue_write` with `method: "update"` + `state: "closed"` (remote, see #62), with a comment citing the Decision ID + run report path.
+
+11. **Merge station (auto-merge gate passed)** — on pass: merge the PR via `gh pr merge --squash --delete-branch` on local, or `mcp__github__merge_pull_request` with `merge_method: "SQUASH"` on remote (see #62). Delete the branch after merge either way.
 
 ## Hard stops (CLAUDE.md §5 — NEVER without explicit user approval)
 Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip hooks · modify `Docs/Plans/*` (except `Dev-Q&A.md`) · modify `SOUL.md` · publish to external services · close GH Issues you did not resolve · add Docker / containers / Python venvs · chat-platform messaging.

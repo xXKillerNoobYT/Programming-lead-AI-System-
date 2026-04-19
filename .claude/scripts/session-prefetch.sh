@@ -15,6 +15,15 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="$REPO_ROOT/.claude/session-state.md"
 TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
+# Detect whether the GitHub CLI is available. Remote heartbeat sessions
+# (claude.ai/code) ship without `gh`; the agent must reach Issues/PRs via the
+# `mcp__github__*` MCP tools instead. See Issue #62.
+if command -v gh >/dev/null 2>&1; then
+  HAS_GH=1
+else
+  HAS_GH=0
+fi
+
 {
   echo "# Session Prefetch — $TS"
   echo
@@ -33,7 +42,12 @@ TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
   echo "## gh issue list --state open --limit 30"
   echo '```'
-  (cd "$REPO_ROOT" && gh issue list --state open --limit 30 2>&1 | head -40)
+  if [ "$HAS_GH" = "1" ]; then
+    (cd "$REPO_ROOT" && gh issue list --state open --limit 30 2>&1 | head -40)
+  else
+    echo "(gh CLI unavailable — remote heartbeat session. Agent MUST fetch"
+    echo " open Issues via mcp__github__list_issues in Step 1 instead. See #62.)"
+  fi
   echo '```'
   echo
   echo "## Latest run report"
