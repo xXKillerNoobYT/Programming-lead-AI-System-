@@ -181,12 +181,14 @@ This is the file-based Q&A board for questions that don't need a synchronous ans
 **Write protocol** (when posting a new question):
 1. Append a new `### Q-YYYYMMDD-### — Short Title` block to the "Open Questions" section (see the Entry Format at the top of `Dev-Q&A.md`). Q-IDs share the YYYYMMDD-### format but use a `Q-` prefix; they are independent of D-IDs.
 2. Populate: **Posted**, **Blocks** (Issue #s), **Context**, **Options considered** (A/B/C…), **Recommendation** (non-binding), **Hard-to-reverse?** (yes/no), and leave **User answer** empty.
-3. Do not block on it. **Keep working on other Issues.** Note in the current run report that a new Q was posted.
+3. **Also file a companion GH Issue** per D-20260418-033/039 + user directive 2026-04-19 *"use githube issue for Q&A there's tage's all ready"*. Labels: `type:question`, `status:needs-user`, plus the area tag (e.g. `phase:3`, `area:ui`). Issue title = the Q heading. Issue body = full Q block copy-paste + a link to `Docs/Plans/Dev-Q&A.md#q-YYYYMMDD-NNN`. This lets the user answer either by editing Dev-Q&A.md OR by commenting on the Issue — whichever surface they prefer.
+4. Do not block on it. **Keep working on other Issues.** Note in the current run report that a new Q was posted AND the companion Issue #.
 
 **Read/clean protocol** (every Step 1 orient):
-1. Read `Dev-Q&A.md`. For each question with a non-empty **User answer**:
+1. Read `Dev-Q&A.md` AND `gh issue list --label type:question --label status:needs-user` for companion Issues. For each question with a non-empty **User answer** (in either place):
    - Record the decision as a new `D-YYYYMMDD-###` entry in `decision-log.md`, citing the Q-ID it resolves
    - Remove the question block from `Dev-Q&A.md`
+   - Close the companion GH Issue with a comment citing the D-ID; strip the `status:needs-user` label
    - Act on the answer this heartbeat if it unblocks the current pick; else file/update the relevant Issue
 2. For each question whose blocking task is now completed (done differently or no longer needed):
    - Remove the question block

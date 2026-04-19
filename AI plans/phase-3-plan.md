@@ -26,13 +26,19 @@ Phase 3 takes the system from **"works on the happy path"** (Phases 1 & 2) to **
 - Preferences hardening (conflict resolution, approval auto-expiry, live-effect toasts).
 
 ### 1.3 Out of scope (deferred to Phase 4)
-- Cloud Postgres / S3 storage (local JSON continues for Phase 3).
-- CI/CD pipelines (GitHub Actions) — manual verification is enough until Phase 4.
-- PM2 / Windows Task Scheduler / systemd packaging.
+- **Cloud Postgres / S3 storage** — SQLite remains the Phase-4 target per Q-006=C / D-20260418-152; Phase 3 ships without per-project DB files.
+- **Real multi-project isolation (SQLite per project, §B.1-§B.7)** — deferred to Phase 4 §D per Q-20260419-004=C / D-20260419-008. Phase 3 only scaffolds the route shape (`/projects/<id>/*`) with a single hard-coded project id (`devlead-mcp`). §B below collapses to one item (§B.1') rather than seven.
+- CI/CD pipelines (GitHub Actions) — manual verification is enough until Phase 4 per Q-20260419-003=B / D-20260419-007 (Phase-3 gate is tests-green + types-green + coverage-no-regression; lint/arch/security flagged but non-blocking).
+- PM2 / Windows Task Scheduler / systemd packaging — Phase 4 §A per Q-20260419-002 / D-20260419-006 (Phase-3 lifecycle = CLI-invoked `heartbeat once` / `heartbeat watch` per option B).
 - Installer / one-click project setup.
 - Cross-project learning (read-only shared knowledge base MCP).
 - Messaging-app bridges (Telegram / WhatsApp / Slack).
 - Distribution beyond `git clone` + `npm install`.
+
+### 1.3a In scope (added by Run 192 user answers)
+- **Two-pane hybrid dashboard layout** per Q-20260419-001=A+B / D-20260419-005. Left pane = A (Operator console, Linear/Raycast-style dense — User Plans + Logs + task queue). Right pane = B (Living-document conversational panel — AI interaction, context-sensitive guidance, inline Q&A). §D.1-§D.11 below retune to this shape.
+- **Heartbeat status surface in dashboard** per Q-20260419-002 "want" / D-20260419-006. New §E.x item: a passive observer surface that reads a status file / WebSocket event emitted by the running CLI-heartbeat. This is NOT embedding heartbeat runtime in the dashboard — it IS visualizing its state there.
+- **Reversibility classifier for missing-info guard** per Q-20260419-005=C / D-20260419-009. §G.5 + §D.21 both consume a `classify(field) → reversible|irreversible` oracle; strict "I don't know" blocking fires only when `irreversible` OR classifier-uncertain. Reversible fields get "apply lowest-risk default + flag" treatment.
 
 ### 1.4 Hard guardrails that stay from Phase 1/2
 - **No Docker, no containers, no Python venv** — user preference (D-20260417-005).
@@ -71,6 +77,9 @@ If any of these are untrue when a Phase 3 Issue is picked up, the heartbeat eith
 Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will be created with: `type:task` (or `type:bug`), `status:backlog`, `phase:3`, `autonomous-lead`, plus an area tag (`area:cohesion` · `area:multi-project` · `area:heartbeat` · `area:ui` · `area:observability` · `area:polish`).
 
 ### A. Cohesion & Checks Layer  *(area:cohesion)*
+
+**Phase 3 pass threshold** per Q-20260419-003=B / D-20260419-007: `check:tests` + `check:types` + `check:coverage-threshold` are **blocking**; `check:lint` + `check:arch` + `check:deps` are **non-blocking (flagged, not gated)**. Phase 4 §B promotes the flagged checks to blocking on `main` while keeping them flagged on `beta` (tiered option C). This means a Phase-3 heartbeat can merge a PR that has lint warnings, but cannot merge one with failing tests, failing type-checks, or coverage below floor.
+
 - **A.1** Add `check:lint`, `check:types`, `check:tests`, `check:coverage-threshold`, `check:arch`, `check:deps` scripts to `dashboard/package.json`. AC: each script runs standalone and exits non-zero on any failure.
 - **A.2** Create `dashboard/scripts/cohesion-check.js` that runs all `check:*` in sequence, surfaces first failure with a captured stdout/stderr block, exits 0 only if every check passes, and writes `reports/cohesion/<timestamp>.json`.
 - **A.3** Wire `cohesion-check` into the heartbeat loop in `heartbeat.js` (or its successor per #18) as the gate between "agent report received" and "decision logged."
@@ -80,13 +89,19 @@ Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will 
 - **A.7** Rollback-on-failure: if cohesion check fails on a post-merge commit, `scripts/auto-revert.js` creates a revert commit tagged `revert:D-YYYYMMDD-###` and opens a `type:bug` Issue.
 
 ### B. Multi-Project  *(area:multi-project)*
-- **B.1** Refactor `heartbeat.js` to accept `--project-id=<id>` and isolate run-state under `projects/<id>/`.
-- **B.2** Per-project MemPalace wing: `mempalace_kg_add` calls tag `wing=<id>`; retrieval filters by active project.
-- **B.3** Per-project `plans/`, `reports/`, `decision-log.md`, `memory.md` live under `projects/<id>/` — top-level versions stay as the "devlead itself" meta-project.
-- **B.4** Dashboard multi-project switcher UI (Part 6 §9 implementation): route scaffolding `/projects/<id>/(coding|guidance|log)`.
-- **B.5** Global concurrency cap across all active projects — read from preference `maxGlobalParallel` (default 3).
-- **B.6** Per-project `SOUL.md` (Part 4 §5) with dashboard editor at `/projects/<id>/soul` (plain textarea + preview is fine for Phase 3).
-- **B.7** Migration script: port the existing single-project layout into `projects/devlead-mcp/` without losing history.
+
+**Phase 3 scope reduced** per Q-20260419-004=C / D-20260419-008. Only §B.1' below ships in Phase 3; original §B.1-§B.7 are deferred to Phase 4 §D.
+
+- **B.1'** Scaffold dashboard routes `/projects/<id>/(coding|guidance|log)` with a hard-coded project id of `devlead-mcp`. No SQLite, no per-project `plans/`, no migration, no concurrency cap yet. Route shape is the only investment this phase so that Phase 4 §D can fill in real isolation (SQLite, memory wing, migration) additively without inventing new URLs.
+
+*Phase-4 work, not Phase 3 (kept here for reference; re-opens as §D.* in `AI plans/phase-4-plan.md`):*
+- ~~B.1 Refactor `heartbeat.js` to accept `--project-id=<id>`~~ *(Phase 4)*
+- ~~B.2 Per-project MemPalace wing~~ *(Phase 4)*
+- ~~B.3 Per-project `plans/`, `reports/`, `decision-log.md`, `memory.md` under `projects/<id>/`~~ *(Phase 4)*
+- ~~B.4 Dashboard multi-project switcher UI~~ *(Phase 4 — §B.1' scaffold is the pre-req)*
+- ~~B.5 Global concurrency cap `maxGlobalParallel`~~ *(Phase 4)*
+- ~~B.6 Per-project `SOUL.md`~~ *(Phase 4)*
+- ~~B.7 Migration script~~ *(Phase 4)*
 
 ### C. Heartbeat Hardening  *(area:heartbeat)*
 - **C.1** Guardrail module: all outbound calls funnel through a single MCP gateway; any direct `fetch`/`https`/raw-shell-spawn call path throws a guardrail violation and auto-files a `type:bug` Issue.
@@ -96,7 +111,7 @@ Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will 
 - **C.5** Tick timeout: if a heartbeat exceeds `maxTickDurationMs` (default 5 min), abort the tick, log a `C.5-timeout` decision, and wait for the next scheduled wake.
 
 ### D. UI Upgrade (subset of Part 6 §20)  *(area:ui)*
-- **D.1** Shell + routing (Part 6 §6, §3.1): top bar + left rail + main + optional inspector; WebSocket store; project routing.
+- **D.1** Shell + routing (Part 6 UI Master Plan §6, §3.1) — **two-pane layout per D-20260419-005**: top bar + left rail + **left pane (Operator console, A-style dense: User Plans, task queue, logs, command palette)** + **right pane (Living-document AI panel, B-style conversational: Q&A inline, AI-action guidance, context-sensitive assistance)** + optional inspector overlay; WebSocket store feeds both panes; project routing `/projects/<id>/(coding|guidance|log)` with hard-coded `<id>=devlead-mcp` (§B.1').
 - **D.2** Design tokens + shadcn install (Part 6 §4, §5.1): Tailwind config tokens, shadcn CLI init, base component set.
 - **D.3** Coding tab skeleton (Part 6 §7.1): `HandoffThread`, `AgentBadge`, filter bar, inspector.
 - **D.4** Guidance tab skeleton (Part 6 §7.2): `ClarifyingQCard`, `DesignerInput` with slash-commands, timeline.
@@ -113,7 +128,8 @@ Each `§X.N` line below is one GitHub Issue. Titles and labels shown. Each will 
 - **E.2** `HourlyGrokCountdown` — local timer synced to last escalation timestamp.
 - **E.3** `CoverageTrend` chart reading `reports/coverage-floor.json` history.
 - **E.4** `QueueDepth` bar with red-below-3 warning (Polsia Rule 4 surface).
-- **E.5** WebSocket broadcaster: single `/ws` endpoint; typed messages per Part 6 §6.2.
+- **E.5** WebSocket broadcaster: single `/ws` endpoint; typed messages per Part 6 UI Master Plan §6.2.
+- **E.6** **Heartbeat status panel** per Q-20260419-002 / D-20260419-006 — passive observer surface in the top bar + inspector: reads `reports/heartbeat-state.json` (emitted by the running CLI-heartbeat per §C.2 audit-trail wiring) and/or a WebSocket event; shows last tick time, current station, backlog depth, next-wake delay. *This does NOT run the heartbeat inside Next.js* — it surfaces its state only. Runtime lifecycle stays CLI-invoked per §C / Q-20260419-002=B.
 
 ### F. Polish & Edge Cases  *(area:polish)*
 - **F.1** Preferences conflict resolution banner (Part 6 §8.5) when project-level and global prefs disagree.
