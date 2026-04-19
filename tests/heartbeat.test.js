@@ -2,7 +2,7 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { existsSync, readFileSync } = require('node:fs');
+const { existsSync, readFileSync, readdirSync, writeFileSync, unlinkSync } = require('node:fs');
 const path = require('node:path');
 
 const {
@@ -15,6 +15,9 @@ const {
     runShell,
     tick,
 } = require('../heartbeat.js');
+
+const REPO_ROOT = path.resolve(__dirname, '..');
+const LOCKFILE_PATH = path.join(REPO_ROOT, '.heartbeat-paused');
 
 describe('parseGitState', () => {
     test('trims branch and SHA output', () => {
@@ -234,6 +237,71 @@ describe('formatTickReport', () => {
     test('handles empty recent-decisions list', () => {
         const out = formatTickReport({ ...baseState, recentDecisions: [] });
         assert.match(out, /\(none found\)/);
+    });
+});
+
+describe('tick — §C.3 pause-lock (Issue #135)', () => {
+    // Hygiene: these tests must NEVER leave `.heartbeat-paused` on the real
+    // repo root because a lingering lockfile would silently halt the
+    // autonomous heartbeat on the next /loop tick. Defensive cleanup in
+    // both beforeEach AND afterEach, plus a try/finally per test.
+
+    const cleanLockfile = () => {
+        try {
+            if (existsSync(LOCKFILE_PATH)) unlinkSync(LOCKFILE_PATH);
+        } catch { /* best-effort */ }
+    };
+
+    test('returns {paused:true, …} and writes NO tick report or audit when lockfile is active', async () => {
+        cleanLockfile();
+        // Snapshot report counts BEFORE so we can verify nothing new is written.
+        const reportsDir = path.join(REPO_ROOT, 'reports');
+        const auditDir = path.join(REPO_ROOT, 'reports', 'audit');
+        const beforeReportCount = existsSync(reportsDir)
+            ? readdirSync(reportsDir).filter((f) => f.startsWith('heartbeat-tick-')).length
+            : 0;
+        const beforeAuditCount = existsSync(auditDir)
+            ? readdirSync(auditDir).filter((f) => f.endsWith('.json')).length
+            : 0;
+
+        // Active pause lock — use a future pausedUntil so it's NOT stale.
+        const pausedAt = new Date().toISOString();
+        const pausedUntil = new Date(Date.now() + 60_000).toISOString();
+        writeFileSync(
+            LOCKFILE_PATH,
+            JSON.stringify({ pausedAt, pausedUntil, reason: 'heartbeat test pause' }),
+            'utf8',
+        );
+
+        try {
+            const result = await tick({}, { skipCohesionGate: true });
+
+            // Paused shape: no state, no path, no auditPath.
+            assert.equal(result.paused, true, 'tick should report paused:true');
+            assert.equal(result.state, null, 'no state when paused');
+            assert.equal(result.path, null, 'no tick report path when paused');
+            assert.equal(result.auditPath, null, 'no audit path when paused');
+
+            // No new files on disk.
+            const afterReportCount = existsSync(reportsDir)
+                ? readdirSync(reportsDir).filter((f) => f.startsWith('heartbeat-tick-')).length
+                : 0;
+            const afterAuditCount = existsSync(auditDir)
+                ? readdirSync(auditDir).filter((f) => f.endsWith('.json')).length
+                : 0;
+            assert.equal(afterReportCount, beforeReportCount, 'must NOT write a tick report when paused');
+            assert.equal(afterAuditCount, beforeAuditCount, 'must NOT write an audit record when paused');
+        } finally {
+            cleanLockfile();
+        }
+    });
+
+    test('runs normally when lockfile is absent (regression guard for the gate)', async () => {
+        cleanLockfile();
+        const result = await tick({}, { skipCohesionGate: true });
+        assert.ok(!result.paused, 'paused flag should be falsy on normal tick');
+        assert.ok(result.path, 'normal tick must return a report path');
+        assert.ok(existsSync(result.path), 'normal tick must write the report');
     });
 });
 

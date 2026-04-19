@@ -35,6 +35,7 @@ const {
 const { runCohesionGate } = require('./lib/cohesion-gate.js');
 const { safeSpawn } = require('./lib/guardrails.js');
 const { writeAuditRecord } = require('./lib/audit-trail.js');
+const { readPauseLock } = require('./lib/pause-lock.js');
 
 const REPO_ROOT = resolve(__dirname);
 const REPORTS_DIR = join(REPO_ROOT, 'reports');
@@ -333,6 +334,20 @@ async function runCohesionGateSafely(projectRoot = REPO_ROOT, options = {}) {
 }
 
 async function tick(clientsByName = {}, options = {}) {
+    // §C.3 pause-lock (Issue #135): FIRST step of every tick. If the human
+    // (or, later, the dashboard "Pause heartbeat" button) has written
+    // `.heartbeat-paused` at the repo root, emit a short status line and
+    // return early — NO tick report, NO audit record. Fail-OPEN inside
+    // readPauseLock guarantees a corrupt lockfile does not silently halt.
+    const pauseLock = readPauseLock(REPO_ROOT);
+    if (pauseLock.paused) {
+        const pausedTimestamp = new Date().toISOString();
+        const until = pauseLock.pausedUntil || 'indefinite';
+        const reason = pauseLock.reason || 'no reason';
+        console.log(`[heartbeat] ${pausedTimestamp} — paused: ${reason} — until ${until}`);
+        return { paused: true, state: null, path: null, auditPath: null };
+    }
+
     const timestamp = new Date().toISOString();
     const git = readGitState();
     const issues = readIssueCounts();
