@@ -4,12 +4,7 @@ import { LeftRail } from '../../../_components/LeftRail';
 import { MainPanes } from '../../../_components/MainPanes';
 import { CodingTabContent } from '../../../_components/coding/CodingTabContent';
 import type { HandoffThreadData } from '../../../_components/coding/types';
-
-const TAB_TITLES: Record<string, string> = {
-    coding: 'Coding AI Relay',
-    guidance: 'User Guidance',
-    log: 'Execution Log',
-};
+import { TAB_TITLES } from './tab-titles';
 
 /**
  * Mock handoff threads for Issue #145 / §D.3.a skeleton. Three threads
