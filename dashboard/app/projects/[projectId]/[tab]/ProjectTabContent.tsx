@@ -63,11 +63,19 @@ const MOCK_CODING_THREADS: HandoffThreadData[] = [
                 // Issue #154 §D.3.c — sample diffs so the Coding-tab mock
                 // exercises the new DiffBlock renderer. Two files, each
                 // small enough to default to expanded.
+                //
+                // Issue #168 §D.3.e — first diff carries an explicit
+                // `language: 'js'` to exercise the override path; the
+                // second relies on `.js` extension inference. Both render
+                // identically via Shiki's `js` grammar, but we want both
+                // code paths live in the mock so dev-time regressions are
+                // visible without a test run.
                 diffs: [
                     {
                         path: 'lib/guardrails.js',
                         added: 4,
                         removed: 2,
+                        language: 'js',
                         patch: [
                             '--- a/lib/guardrails.js',
                             '+++ b/lib/guardrails.js',
