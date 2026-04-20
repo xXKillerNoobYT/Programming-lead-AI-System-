@@ -60,6 +60,46 @@ const MOCK_CODING_THREADS: HandoffThreadData[] = [
                 from: 'copilot',
                 to: 'claude',
                 text: 'rebased; 2 trivial conflicts resolved in favor of main',
+                // Issue #154 §D.3.c — sample diffs so the Coding-tab mock
+                // exercises the new DiffBlock renderer. Two files, each
+                // small enough to default to expanded.
+                diffs: [
+                    {
+                        path: 'lib/guardrails.js',
+                        added: 4,
+                        removed: 2,
+                        patch: [
+                            '--- a/lib/guardrails.js',
+                            '+++ b/lib/guardrails.js',
+                            '@@ -12,7 +12,9 @@ function safeFetch(url, opts) {',
+                            '     const u = new URL(url);',
+                            '-    if (!ALLOWLIST.includes(u.host)) {',
+                            '-        throw new Error("blocked host");',
+                            '+    if (!ALLOWLIST.has(u.host)) {',
+                            '+        const err = new Error("blocked host: " + u.host);',
+                            '+        err.code = "GUARDRAIL_BLOCKED";',
+                            '+        throw err;',
+                            '     }',
+                            '     return doFetch(u, opts);',
+                            ' }',
+                        ].join('\n'),
+                    },
+                    {
+                        path: 'tests/guardrails.test.js',
+                        added: 3,
+                        removed: 1,
+                        patch: [
+                            '--- a/tests/guardrails.test.js',
+                            '+++ b/tests/guardrails.test.js',
+                            '@@ -44,5 +44,7 @@ test("safeFetch blocks disallowed hosts", () => {',
+                            '-    expect(() => safeFetch("https://evil.example")).toThrow();',
+                            '+    const err = catchError(() => safeFetch("https://evil.example"));',
+                            '+    expect(err.message).toMatch(/blocked host/);',
+                            '+    expect(err.code).toBe("GUARDRAIL_BLOCKED");',
+                            ' });',
+                        ].join('\n'),
+                    },
+                ],
             },
         ],
     },
