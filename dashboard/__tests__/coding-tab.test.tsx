@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AgentBadge } from '../app/_components/coding/AgentBadge';
 import { FilterBar } from '../app/_components/coding/FilterBar';
@@ -638,5 +638,139 @@ describe('Issue #154 §D.3.c — Inline diff rendering in HandoffThread', () => 
         const row = screen.getByText('message-with-diff');
         fireEvent.click(row);
         expect(screen.getByLabelText(/close inspector/i)).toBeInTheDocument();
+    });
+});
+
+describe('Issue #159 §D.3.b polish — inspector a11y v2 (re-announce + verbose copy errors)', () => {
+    afterEach(cleanup);
+
+    // 29 — A1: rapid consecutive Copy clicks must re-mount the live region so
+    //         polite screen readers re-announce "Copied ✓" the second time.
+    //         Polite live regions coalesce identical text, so we force a fresh
+    //         announcement by changing the React `key` on the status <span>
+    //         (nonce-based remount). The DOM-level proof is node-identity
+    //         inequality between the first and second mounted status nodes.
+    it('InspectorPanel re-mounts the status node on consecutive Copy clicks (re-announce)', async () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'copy-twice',
+        };
+        const writeText = jest.fn().mockResolvedValue(undefined);
+        const originalClipboard = Object.getOwnPropertyDescriptor(
+            navigator,
+            'clipboard',
+        );
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText },
+            configurable: true,
+        });
+        try {
+            render(
+                <InspectorPanel message={message} threadId="t-1" onClose={() => {}} />,
+            );
+            const copyBtn = screen.getByRole('button', { name: /copy json/i });
+
+            // First click → status mounts.
+            fireEvent.click(copyBtn);
+            const firstNode = await screen.findByRole('status');
+            expect(firstNode).toHaveTextContent(/copied/i);
+
+            // Second click → status SHOULD re-mount (different DOM node).
+            fireEvent.click(copyBtn);
+            // Wait until the status node is no longer the first one.
+            await waitFor(() => {
+                const current = screen.getByRole('status');
+                expect(current).not.toBe(firstNode);
+            });
+            const secondNode = screen.getByRole('status');
+            expect(secondNode).toHaveTextContent(/copied/i);
+            expect(writeText).toHaveBeenCalledTimes(2);
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            } else {
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: undefined,
+                    configurable: true,
+                });
+            }
+        }
+    });
+
+    // 30 — B1: when navigator.clipboard is undefined entirely, the failure
+    //         message must say so explicitly so the user knows the API itself
+    //         is missing (not a permission issue). Existing /copy failed/i
+    //         regex from test 24 should still match this stricter message.
+    it('InspectorPanel reports "clipboard unavailable" when navigator.clipboard is undefined', async () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'copy-no-api',
+        };
+        const originalClipboard = Object.getOwnPropertyDescriptor(
+            navigator,
+            'clipboard',
+        );
+        Object.defineProperty(navigator, 'clipboard', {
+            value: undefined,
+            configurable: true,
+        });
+        try {
+            render(
+                <InspectorPanel message={message} threadId="t-1" onClose={() => {}} />,
+            );
+            fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            await screen.findByText(/copy failed.+clipboard unavailable/i);
+            // Regression guard: bare /copy failed/i regex still matches.
+            expect(screen.getByRole('status')).toHaveTextContent(/copy failed/i);
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            }
+        }
+    });
+
+    // 31 — B2: when navigator.clipboard.writeText rejects (browser permission
+    //         denied is the typical case), say so explicitly. Distinct error
+    //         path from B1 — clipboard exists but the call failed.
+    it('InspectorPanel reports "permission denied" when clipboard.writeText rejects', async () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'copy-perm-denied',
+        };
+        const writeText = jest
+            .fn()
+            .mockRejectedValue(new Error('NotAllowedError'));
+        const originalClipboard = Object.getOwnPropertyDescriptor(
+            navigator,
+            'clipboard',
+        );
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText },
+            configurable: true,
+        });
+        try {
+            render(
+                <InspectorPanel message={message} threadId="t-1" onClose={() => {}} />,
+            );
+            fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            await screen.findByText(/copy failed.+permission/i);
+            // Regression guard: bare /copy failed/i regex still matches.
+            expect(screen.getByRole('status')).toHaveTextContent(/copy failed/i);
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            } else {
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: undefined,
+                    configurable: true,
+                });
+            }
+        }
     });
 });
