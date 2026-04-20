@@ -5,9 +5,11 @@ import { AgentBadge } from '../app/_components/coding/AgentBadge';
 import { FilterBar } from '../app/_components/coding/FilterBar';
 import { HandoffThread } from '../app/_components/coding/HandoffThread';
 import { CodingTabContent } from '../app/_components/coding/CodingTabContent';
+import { InspectorPanel } from '../app/_components/coding/InspectorPanel';
 import {
     EMPTY_FILTERS,
     type Filters,
+    type HandoffMessage,
     type HandoffThreadData,
 } from '../app/_components/coding/types';
 
@@ -202,5 +204,203 @@ describe('Issue #145 §D.3.a — Coding tab skeleton', () => {
         expect(
             screen.getByText(/No handoffs match the current filters\./i),
         ).toBeInTheDocument();
+    });
+});
+
+describe('Issue #150 §D.3.b — Inspector panel', () => {
+    afterEach(cleanup);
+
+    // 13 — AC 5.1: Inspector NOT rendered when no message selected (initial state).
+    it('CodingTabContent does not render InspectorPanel when no message is selected', () => {
+        const threads: HandoffThreadData[] = [
+            makeThread({ id: 'a', headline: 'Initial leaf' }),
+        ];
+        render(<CodingTabContent threads={threads} />);
+        // The inspector's dialog region should not be present.
+        expect(screen.queryByRole('dialog', { name: /inspector/i })).not.toBeInTheDocument();
+        // Nor should its Close button.
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+    });
+
+    // 14 — AC 5.2: Clicking a message line sets selection and shows the payload.
+    it('CodingTabContent shows the InspectorPanel with the clicked message payload', () => {
+        const thread = makeThread({
+            id: 'a',
+            headline: 'Click me',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'inspect-this',
+                },
+            ],
+        });
+        render(<CodingTabContent threads={[thread]} />);
+        // Initially, inspector not rendered.
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+
+        // Click the message line (now a <button>).
+        const line = screen.getByRole('button', { name: /inspect-this/ });
+        fireEvent.click(line);
+
+        // Inspector is now rendered, with payload text visible.
+        expect(screen.getByLabelText(/close inspector/i)).toBeInTheDocument();
+        // The pretty-printed JSON should contain the message text.
+        const preEl = screen.getByTestId('inspector-payload');
+        expect(preEl.textContent).toContain('"text": "inspect-this"');
+        expect(preEl.textContent).toContain('"from": "claude"');
+    });
+
+    // 15 — AC 5.3: Close button fires onClose and inspector unmounts.
+    it('InspectorPanel close button fires onClose', () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'hi',
+        };
+        const onClose = jest.fn();
+        render(<InspectorPanel message={message} threadId="t-1" onClose={onClose} />);
+        const closeBtn = screen.getByLabelText(/close inspector/i);
+        fireEvent.click(closeBtn);
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    // 15b — Integration check: close button unmounts the inspector inside CodingTabContent.
+    it('CodingTabContent unmounts the inspector when its close button is clicked', () => {
+        const thread = makeThread({
+            id: 'a',
+            headline: 'Select then close',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'open-me',
+                },
+            ],
+        });
+        render(<CodingTabContent threads={[thread]} />);
+        fireEvent.click(screen.getByRole('button', { name: /open-me/ }));
+        expect(screen.getByLabelText(/close inspector/i)).toBeInTheDocument();
+        fireEvent.click(screen.getByLabelText(/close inspector/i));
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+    });
+
+    // 16 — AC 5.4: Escape key closes the inspector.
+    it('InspectorPanel closes when Escape is pressed', () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'escape-me',
+        };
+        const onClose = jest.fn();
+        render(<InspectorPanel message={message} threadId="t-1" onClose={onClose} />);
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    // 17 — AC 5.5: Copy button writes pretty-printed JSON to clipboard.
+    it('InspectorPanel Copy button writes the pretty-printed JSON to the clipboard', () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'copy-me',
+        };
+        const writeText = jest.fn();
+        const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText },
+            configurable: true,
+        });
+        try {
+            render(<InspectorPanel message={message} threadId="t-1" onClose={() => {}} />);
+            fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            const expected = JSON.stringify(message, null, 2);
+            expect(writeText).toHaveBeenCalledTimes(1);
+            expect(writeText).toHaveBeenCalledWith(expected);
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            } else {
+                // Best-effort restore when the env had no prior descriptor.
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: undefined,
+                    configurable: true,
+                });
+            }
+        }
+    });
+
+    // 18 — AC 5.6: Copy gracefully no-ops when clipboard API is unavailable.
+    it('InspectorPanel Copy button no-ops gracefully when navigator.clipboard is undefined', () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'no-clipboard',
+        };
+        const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', {
+            value: undefined,
+            configurable: true,
+        });
+        try {
+            render(<InspectorPanel message={message} threadId="t-1" onClose={() => {}} />);
+            expect(() => {
+                fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            }).not.toThrow();
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            } else {
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: undefined,
+                    configurable: true,
+                });
+            }
+        }
+    });
+
+    // 19 — Empty-payload guard renders "No payload" instead of JSON.
+    it('InspectorPanel renders "No payload" when message.text is empty', () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: '',
+        };
+        render(<InspectorPanel message={message} threadId="t-1" onClose={() => {}} />);
+        expect(screen.getByText(/no payload/i)).toBeInTheDocument();
+    });
+
+    // 20 — HandoffThread renders messages as <button>s when onMessageClick is passed.
+    it('HandoffThread renders message lines as buttons when onMessageClick is provided', () => {
+        const thread = makeThread({
+            id: 'btn',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'button-line',
+                },
+            ],
+        });
+        const onMessageClick = jest.fn();
+        render(
+            <HandoffThread
+                thread={thread}
+                expanded
+                onMessageClick={onMessageClick}
+            />,
+        );
+        const line = screen.getByRole('button', { name: /button-line/ });
+        fireEvent.click(line);
+        expect(onMessageClick).toHaveBeenCalledTimes(1);
+        expect(onMessageClick).toHaveBeenCalledWith('btn', thread.messages[0]);
     });
 });
