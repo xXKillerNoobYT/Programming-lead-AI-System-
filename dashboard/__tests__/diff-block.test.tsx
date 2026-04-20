@@ -58,16 +58,30 @@ jest.mock('shiki', () => {
         currentDeferred = makeDeferred();
     };
 
+    // Issue #171 §D.3.e — real Shiki v3 wraps its output in
+    // `<pre class="shiki ..."><code>` and emits one `<span class="line">...</span>`
+    // per input line (separated by '\n'). This mock mirrors that shape so
+    // the implementation's combined-code + line-split path can be
+    // exercised end-to-end. The mock also tags each line's inner content
+    // with a `data-line` attribute carrying the source body — tests can
+    // then assert the rendered DOM for a specific source line was derived
+    // from the single combined-code call.
     const highlighter = {
         codeToHtml: (code: string, options: { lang: string; theme: string }) => {
             shikiControl.calls.push({ code, lang: options.lang });
-            // Mock: emit a <span class="shiki-token"> wrapping the escaped
-            // code so tests can identify "this was Shiki-highlighted".
-            const escaped = code
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-            return `<span class="shiki-token" data-lang="${options.lang}">${escaped}</span>`;
+            const escape = (s: string) =>
+                s
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+            const lines = code.split('\n');
+            const inner = lines
+                .map(
+                    (ln) =>
+                        `<span class="line"><span class="shiki-token" data-lang="${options.lang}" data-line="${escape(ln)}">${escape(ln)}</span></span>`,
+                )
+                .join('\n');
+            return `<pre class="shiki"><code>${inner}</code></pre>`;
         },
     };
 
@@ -388,5 +402,162 @@ describe('Issue #168 §D.3.e — DiffBlock Shiki syntax highlighting', () => {
         ).toBeInTheDocument();
         // Shiki was never called because the highlighter never resolved.
         expect(shikiControl.calls.length).toBe(0);
+    });
+});
+
+/**
+ * Issue #171 / Phase 3 §D.3.e — Multi-line token regression tests.
+ *
+ * Bug being fixed: `DiffBlock.tsx` previously called Shiki once per line,
+ * which breaks TextMate grammars whose state spans multiple lines
+ * (template literals, JSDoc comments, Python triple-quoted strings, JSX
+ * multi-line attributes, YAML block scalars). The fix collects every
+ * highlight-eligible line body, joins with '\n', calls `codeToHtml` ONCE,
+ * and splits the emitted `<span class="line">...</span>` per-line wrappers
+ * back onto the source indices.
+ *
+ * We cannot assert real TextMate grammar output against the mock — the
+ * mock isn't a grammar engine. Instead we assert the IMPLEMENTATION
+ * CONTRACT that makes multi-line tokens possible in the real Shiki:
+ *   1. Exactly ONE call to `codeToHtml` per diff (not N).
+ *   2. The `code` argument to that single call is the '\n'-joined bodies
+ *      of every non-hunk/non-file-header line, in order.
+ *   3. The per-line split maps back to the right `data-diff-line-kind`
+ *      wrapper (post-resolve DOM shows each line's highlighted content).
+ */
+
+// A TS multi-line template literal patch. Content lines:
+//   const msg = `hello
+//   world`;
+const TEMPLATE_LITERAL_PATCH = [
+    '--- a/src/msg.ts',
+    '+++ b/src/msg.ts',
+    '@@ -1,0 +1,3 @@',
+    '+const msg = `hello',
+    '+world`;',
+    '+more context',
+].join('\n');
+
+const TEMPLATE_LITERAL_DIFF: DiffFile = {
+    path: 'src/msg.ts',
+    added: 3,
+    removed: 0,
+    patch: TEMPLATE_LITERAL_PATCH,
+};
+
+// A Python triple-quoted string spanning 3 lines.
+const PYTHON_TRIPLE_QUOTE_PATCH = [
+    '--- a/src/doc.py',
+    '+++ b/src/doc.py',
+    "@@ -1,0 +1,3 @@",
+    "+'''",
+    '+docstring body',
+    "+'''",
+].join('\n');
+
+const PYTHON_TRIPLE_QUOTE_DIFF: DiffFile = {
+    path: 'src/doc.py',
+    added: 3,
+    removed: 0,
+    patch: PYTHON_TRIPLE_QUOTE_PATCH,
+};
+
+// Multi-line JSDoc comment — bonus case.
+const JSDOC_PATCH = [
+    '--- a/src/a.ts',
+    '+++ b/src/a.ts',
+    '@@ -1,0 +1,3 @@',
+    '+/**',
+    '+ * multi-line',
+    '+ */',
+].join('\n');
+
+const JSDOC_DIFF: DiffFile = {
+    path: 'src/a.ts',
+    added: 3,
+    removed: 0,
+    patch: JSDOC_PATCH,
+};
+
+describe('Issue #171 §D.3.e — DiffBlock Shiki multi-line token preservation', () => {
+    beforeEach(() => {
+        shikiControl.reset();
+        resetHighlighterForTests();
+    });
+    afterEach(cleanup);
+
+    // T13 — TS multi-line template literal: Shiki must see both content
+    // lines in ONE call joined by '\n' so the template-literal state spans
+    // line 1 → line 2.
+    it('sends multi-line TS template literal content as a single joined codeToHtml call', async () => {
+        render(<DiffBlock diff={TEMPLATE_LITERAL_DIFF} />);
+        await act(async () => {
+            shikiControl.resolve();
+        });
+        await waitFor(() => {
+            expect(shikiControl.calls.length).toBeGreaterThan(0);
+        });
+        // CONTRACT 1: exactly one call, not one per line.
+        expect(shikiControl.calls.length).toBe(1);
+        const only = shikiControl.calls[0];
+        expect(only.lang).toBe('ts');
+        // CONTRACT 2: combined code contains both template-literal lines
+        // joined by '\n' in source order (bodies only, no +/- marker).
+        expect(only.code).toBe(
+            ['const msg = `hello', 'world`;', 'more context'].join('\n'),
+        );
+        // CONTRACT 3: the second line's highlighted content reaches the
+        // DOM under its own `data-diff-line-kind="added"` wrapper. Using
+        // the mock's `data-line` attribute as a proxy for "this span was
+        // emitted by the single combined-code call for this source line".
+        await waitFor(() => {
+            const addedWrappers = document.querySelectorAll(
+                '[data-diff-line-kind="added"]',
+            );
+            // 3 added content lines.
+            expect(addedWrappers.length).toBe(3);
+            // Line 2 — `world`;
+            expect(addedWrappers[1].innerHTML).toContain('data-line="world`;"');
+        });
+    });
+
+    // T14 — Python triple-quoted string across 3 lines: single-call
+    // contract must still hold (the quote markers open on line 1 and
+    // close on line 3).
+    it('sends multi-line Python triple-quoted string as a single joined codeToHtml call', async () => {
+        render(<DiffBlock diff={PYTHON_TRIPLE_QUOTE_DIFF} />);
+        await act(async () => {
+            shikiControl.resolve();
+        });
+        await waitFor(() => {
+            expect(shikiControl.calls.length).toBeGreaterThan(0);
+        });
+        expect(shikiControl.calls.length).toBe(1);
+        const only = shikiControl.calls[0];
+        expect(only.lang).toBe('python');
+        expect(only.code).toBe(["'''", 'docstring body', "'''"].join('\n'));
+        // All 3 source lines survive as addition wrappers.
+        await waitFor(() => {
+            const addedWrappers = document.querySelectorAll(
+                '[data-diff-line-kind="added"]',
+            );
+            expect(addedWrappers.length).toBe(3);
+        });
+    });
+
+    // T15 — Multi-line JSDoc block comment: the `/**` opens on line 1,
+    // body on line 2, `*/` closes on line 3. Same single-call contract.
+    it('sends multi-line JSDoc block comment as a single joined codeToHtml call', async () => {
+        render(<DiffBlock diff={JSDOC_DIFF} />);
+        await act(async () => {
+            shikiControl.resolve();
+        });
+        await waitFor(() => {
+            expect(shikiControl.calls.length).toBeGreaterThan(0);
+        });
+        expect(shikiControl.calls.length).toBe(1);
+        const only = shikiControl.calls[0];
+        expect(only.lang).toBe('ts');
+        expect(only.code).toBe(['/**', ' * multi-line', ' */'].join('\n'));
     });
 });
