@@ -1,11 +1,12 @@
 'use client';
 
 import type { ReactElement } from 'react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HandoffMessage } from './types';
 
 /**
  * Issue #150 / Phase 3 §D.3.b — Coding-tab inspector panel (skeleton).
+ * Issue #152 / Phase 3 §D.3.b — polish: dialog focus management + copy feedback.
  *
  * Fixed-width (w-80 = 320 px) right-side panel rendered next to the thread
  * list when a `HandoffMessage` is selected. V1 is deliberately a skeleton:
@@ -15,11 +16,22 @@ import type { HandoffMessage } from './types';
  *   - Footer: a "Copy JSON" button that writes the pretty-printed JSON to
  *     the clipboard via `navigator.clipboard.writeText`. When the clipboard
  *     API is unavailable (older browsers, jsdom without polyfill), the click
- *     is a graceful no-op — never throws.
+ *     surfaces an inline "Copy failed" status so the user isn't left guessing.
+ *     On success an inline "Copied ✓" status appears for ~2 s.
  *   - Escape key closes the inspector (document-level listener, cleaned up
  *     on unmount so we don't swallow Escape when nothing is inspected).
  *   - Empty-payload guard: when `message.text` is an empty string, the body
  *     renders "No payload" instead of serializing a near-empty struct.
+ *
+ * Focus management (Issue #152 §1):
+ *   - On mount, keyboard focus moves to the close button so Escape / Shift-Tab
+ *     are immediately available without hunting.
+ *   - On unmount, focus is restored to whatever element was active at mount
+ *     time (typically the <button> message line that opened the inspector in
+ *     `HandoffThread`). The restore runs in the mount-effect's cleanup, which
+ *     fires when `CodingTabContent` switches `activeSelection` to null (i.e.
+ *     unmounts the inspector). This is simpler than prop-drilling a ref back
+ *     up to the parent.
  */
 
 interface InspectorPanelProps {
@@ -28,33 +40,37 @@ interface InspectorPanelProps {
     onClose: () => void;
 }
 
-function copyToClipboard(text: string): void {
-    // Guard on both `navigator` (SSR safety) and `navigator.clipboard`
-    // (older browsers / test env without polyfill). Any rejection from the
-    // underlying writeText promise is swallowed so a transient clipboard
-    // denial can't crash the UI.
-    if (typeof navigator === 'undefined') return;
-    const clipboard = navigator.clipboard as
-        | { writeText?: (s: string) => Promise<void> | void }
-        | undefined;
-    if (!clipboard || typeof clipboard.writeText !== 'function') return;
-    try {
-        const result = clipboard.writeText(text);
-        if (result && typeof (result as Promise<void>).catch === 'function') {
-            (result as Promise<void>).catch(() => {
-                /* graceful no-op on permission / transient failures */
-            });
-        }
-    } catch {
-        /* graceful no-op */
-    }
-}
+type CopyStatus = 'idle' | 'copied' | 'failed';
+
+/** How long the "Copied ✓" / "Copy failed" status is visible before resetting. */
+const COPY_STATUS_RESET_MS = 2000;
 
 export function InspectorPanel({
     message,
     threadId,
     onClose,
 }: InspectorPanelProps): ReactElement {
+    const closeBtnRef = useRef<HTMLButtonElement>(null);
+    const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
+
+    // Focus-on-mount + restore-on-unmount. Single effect keyed to [] so it
+    // runs exactly once per mount; the cleanup re-focuses the element that
+    // owned focus when the inspector opened (typically the originating
+    // HandoffThread message button).
+    useEffect(() => {
+        const previouslyFocused = document.activeElement as HTMLElement | null;
+        closeBtnRef.current?.focus();
+        return () => {
+            // Guard: if the element was detached (or was <body>), this is a
+            // cheap no-op. `focus` on <body> is harmless but pointless — the
+            // browser already defaults there when no other element is active.
+            if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+                previouslyFocused.focus();
+            }
+        };
+    }, []);
+
     // Escape closes. Document-level listener only exists while mounted so we
     // don't steal Escape from other components when the inspector is hidden.
     useEffect(() => {
@@ -65,13 +81,74 @@ export function InspectorPanel({
         return () => document.removeEventListener('keydown', onKeyDown);
     }, [onClose]);
 
+    // Clear any pending copy-status reset timer on unmount so the setter is
+    // never called on an unmounted component (avoids the React dev warning
+    // and any state-after-unmount noise).
+    useEffect(() => {
+        return () => {
+            if (copyResetTimerRef.current !== null) {
+                clearTimeout(copyResetTimerRef.current);
+                copyResetTimerRef.current = null;
+            }
+        };
+    }, []);
+
     const hasPayload = message.text !== '';
     const prettyJson = hasPayload ? JSON.stringify(message, null, 2) : '';
 
-    const handleCopy = useCallback(() => {
+    const scheduleCopyStatusReset = useCallback((): void => {
+        // Replace any in-flight reset so rapid repeat clicks don't leak
+        // stacked timers (each press restarts the ~2 s idle countdown).
+        if (copyResetTimerRef.current !== null) {
+            clearTimeout(copyResetTimerRef.current);
+        }
+        copyResetTimerRef.current = setTimeout(() => {
+            copyResetTimerRef.current = null;
+            setCopyStatus('idle');
+        }, COPY_STATUS_RESET_MS);
+    }, []);
+
+    const handleCopy = useCallback((): void => {
         if (!hasPayload) return;
-        copyToClipboard(prettyJson);
-    }, [hasPayload, prettyJson]);
+        // Guard on both `navigator` (SSR safety) and `navigator.clipboard`
+        // (older browsers / test env without polyfill). Surfaces a "Copy
+        // failed" status in any branch where writeText cannot be invoked.
+        if (typeof navigator === 'undefined') {
+            setCopyStatus('failed');
+            scheduleCopyStatusReset();
+            return;
+        }
+        const clipboard = navigator.clipboard as
+            | { writeText?: (s: string) => Promise<void> | void }
+            | undefined;
+        if (!clipboard || typeof clipboard.writeText !== 'function') {
+            setCopyStatus('failed');
+            scheduleCopyStatusReset();
+            return;
+        }
+        try {
+            const result = clipboard.writeText(prettyJson);
+            if (result && typeof (result as Promise<void>).then === 'function') {
+                (result as Promise<void>).then(
+                    () => {
+                        setCopyStatus('copied');
+                        scheduleCopyStatusReset();
+                    },
+                    () => {
+                        setCopyStatus('failed');
+                        scheduleCopyStatusReset();
+                    },
+                );
+            } else {
+                // Synchronous (or void-returning) polyfills — assume success.
+                setCopyStatus('copied');
+                scheduleCopyStatusReset();
+            }
+        } catch {
+            setCopyStatus('failed');
+            scheduleCopyStatusReset();
+        }
+    }, [hasPayload, prettyJson, scheduleCopyStatusReset]);
 
     // Header title: use the first ~80 chars of the message text as a summary.
     // (The parent passes the selection context via threadId for later leaves
@@ -97,6 +174,7 @@ export function InspectorPanel({
                     {headerTitle}
                 </h3>
                 <button
+                    ref={closeBtnRef}
                     type="button"
                     onClick={onClose}
                     aria-label="Close inspector"
@@ -122,7 +200,17 @@ export function InspectorPanel({
                 )}
             </div>
 
-            <footer className="border-t border-gray-800 px-3 py-2 flex justify-end">
+            <footer className="border-t border-gray-800 px-3 py-2 flex items-center justify-end gap-2">
+                {copyStatus === 'copied' ? (
+                    <span role="status" className="text-xs text-green-400">
+                        Copied ✓
+                    </span>
+                ) : null}
+                {copyStatus === 'failed' ? (
+                    <span role="status" className="text-xs text-red-400">
+                        Copy failed
+                    </span>
+                ) : null}
                 <button
                     type="button"
                     onClick={handleCopy}

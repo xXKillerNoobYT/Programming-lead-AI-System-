@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { act, render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AgentBadge } from '../app/_components/coding/AgentBadge';
 import { FilterBar } from '../app/_components/coding/FilterBar';
@@ -402,5 +402,259 @@ describe('Issue #150 §D.3.b — Inspector panel', () => {
         fireEvent.click(line);
         expect(onMessageClick).toHaveBeenCalledTimes(1);
         expect(onMessageClick).toHaveBeenCalledWith('btn', thread.messages[0]);
+    });
+});
+
+describe('Issue #152 §D.3.b — Inspector polish (focus, copy feedback, null-selection)', () => {
+    afterEach(() => {
+        cleanup();
+        jest.useRealTimers();
+    });
+
+    // 21 — Focus on mount: the close button receives keyboard focus when the
+    //      inspector mounts so the keyboard path (Escape / Shift-Tab out) is
+    //      immediately available without hunting for focus.
+    it('InspectorPanel moves focus to the close button on mount', () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'focus-on-mount',
+        };
+        render(<InspectorPanel message={message} threadId="t-1" onClose={() => {}} />);
+        const closeBtn = screen.getByLabelText(/close inspector/i);
+        expect(document.activeElement).toBe(closeBtn);
+    });
+
+    // 22 — Focus restore on close-button click: unmounting via CodingTabContent
+    //      restores focus to the originating message-line button so keyboard
+    //      users don't lose their place in the thread list.
+    it('CodingTabContent restores focus to the originating message button after close click', () => {
+        const thread = makeThread({
+            id: 'a',
+            headline: 'Focus restore click',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'restore-click-line',
+                },
+            ],
+        });
+        render(<CodingTabContent threads={[thread]} />);
+        const line = screen.getByRole('button', { name: /restore-click-line/ });
+        // Focus the message button explicitly, then click — simulates the real
+        // browser behavior where a pointer click on a <button> also focuses it.
+        // jsdom's fireEvent.click does not auto-focus so we wire it ourselves.
+        line.focus();
+        fireEvent.click(line);
+        // Inspector mounted — focus is now on the close button.
+        const closeBtn = screen.getByLabelText(/close inspector/i);
+        expect(document.activeElement).toBe(closeBtn);
+        // Close → the inspector unmounts and focus should return to `line`.
+        fireEvent.click(closeBtn);
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+        expect(document.activeElement).toBe(line);
+    });
+
+    // 23 — Focus restore on Escape: same behavior as the close-button click
+    //      but the unmount is driven by the document-level keydown listener.
+    it('CodingTabContent restores focus to the originating message button after Escape', () => {
+        const thread = makeThread({
+            id: 'a',
+            headline: 'Focus restore escape',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'restore-escape-line',
+                },
+            ],
+        });
+        render(<CodingTabContent threads={[thread]} />);
+        const line = screen.getByRole('button', { name: /restore-escape-line/ });
+        line.focus();
+        fireEvent.click(line);
+        // Sanity — focus moved to the close button on mount.
+        expect(document.activeElement).toBe(
+            screen.getByLabelText(/close inspector/i),
+        );
+        // Escape → unmount → focus returns to the originating message button.
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+        expect(document.activeElement).toBe(line);
+    });
+
+    // 24 — Copy feedback success: clicking Copy with a mocked writeText that
+    //      resolves surfaces an inline "Copied ✓" status label.
+    it('InspectorPanel shows "Copied ✓" status after a successful copy', async () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'copy-success',
+        };
+        const writeText = jest.fn().mockResolvedValue(undefined);
+        const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText },
+            configurable: true,
+        });
+        try {
+            render(<InspectorPanel message={message} threadId="t-1" onClose={() => {}} />);
+            fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            const status = await screen.findByRole('status');
+            expect(status).toHaveTextContent(/copied/i);
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            } else {
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: undefined,
+                    configurable: true,
+                });
+            }
+        }
+    });
+
+    // 25 — Copy feedback failure: when the clipboard API is unavailable the
+    //      button must communicate the failure via a "Copy failed" status label
+    //      (user should never be left guessing whether their click did anything).
+    it('InspectorPanel shows "Copy failed" status when the clipboard API is unavailable', async () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'copy-failure',
+        };
+        const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', {
+            value: undefined,
+            configurable: true,
+        });
+        try {
+            render(<InspectorPanel message={message} threadId="t-1" onClose={() => {}} />);
+            fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            const status = await screen.findByRole('status');
+            expect(status).toHaveTextContent(/copy failed/i);
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            } else {
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: undefined,
+                    configurable: true,
+                });
+            }
+        }
+    });
+
+    // 26 — Null-selection (controlled "no selection"): passing
+    //      `selectedMessage={null}` MUST NOT render the inspector. Locks the
+    //      dual-mode discriminator (`selectedMessage !== undefined`) against
+    //      a future refactor to `!!selectedMessage` that would collapse the
+    //      uncontrolled/controlled distinction.
+    it('CodingTabContent does not render InspectorPanel when selectedMessage={null} (controlled no-selection)', () => {
+        const threads: HandoffThreadData[] = [
+            makeThread({ id: 'a', headline: 'Null-selection leaf' }),
+        ];
+        render(
+            <CodingTabContent
+                threads={threads}
+                selectedMessage={null}
+                onSelectedMessageChange={() => {}}
+            />,
+        );
+        expect(screen.queryByRole('dialog', { name: /inspector/i })).not.toBeInTheDocument();
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+    });
+
+    // 27 — Null-selection → populated selection round-trip: re-rendering with
+    //      a non-null controlled value must mount the inspector. Protects the
+    //      controlled-mode "flip from null to value" code path end-to-end.
+    it('CodingTabContent mounts the inspector when selectedMessage flips from null to a value (controlled)', () => {
+        const thread = makeThread({
+            id: 'a',
+            headline: 'Controlled flip',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'controlled-flip-payload',
+                },
+            ],
+        });
+        const { rerender } = render(
+            <CodingTabContent
+                threads={[thread]}
+                selectedMessage={null}
+                onSelectedMessageChange={() => {}}
+            />,
+        );
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+        rerender(
+            <CodingTabContent
+                threads={[thread]}
+                selectedMessage={{ threadId: 'a', message: thread.messages[0] }}
+                onSelectedMessageChange={() => {}}
+            />,
+        );
+        expect(screen.getByLabelText(/close inspector/i)).toBeInTheDocument();
+        const pre = screen.getByTestId('inspector-payload');
+        expect(pre.textContent).toContain('"text": "controlled-flip-payload"');
+    });
+
+    // 28 — setTimeout cleanup: unmount during the 2-second "Copied ✓" window
+    //      must not attempt to update state on an unmounted component. We
+    //      spy on console.error — if React's "setState on unmounted component"
+    //      warning fires, the test fails.
+    it('InspectorPanel clears the copy-status timeout on unmount (no setState-after-unmount warning)', () => {
+        jest.useFakeTimers();
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'unmount-during-window',
+        };
+        const writeText = jest.fn().mockResolvedValue(undefined);
+        const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText },
+            configurable: true,
+        });
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            const { unmount } = render(
+                <InspectorPanel message={message} threadId="t-1" onClose={() => {}} />,
+            );
+            fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            unmount();
+            // Flush any pending microtasks (the resolved writeText promise) +
+            // all pending timers (the 2s idle-reset). Neither should set state.
+            act(() => {
+                jest.runAllTimers();
+            });
+            // Broader /unmount/i regex instead of the literal 'unmounted'
+            // substring: React's exact wording has changed before (e.g.,
+            // "after it was unmounted") and we don't want this test to
+            // silently rot if the library rephrases again.
+            const unmountWarning = errorSpy.mock.calls.find((c) =>
+                /unmount/i.test(String(c[0] ?? '')),
+            );
+            expect(unmountWarning).toBeUndefined();
+        } finally {
+            errorSpy.mockRestore();
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            } else {
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: undefined,
+                    configurable: true,
+                });
+            }
+        }
     });
 });
