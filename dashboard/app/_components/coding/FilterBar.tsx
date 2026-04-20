@@ -100,7 +100,6 @@ export function FilterBar({ filters, onChange, live }: FilterBarProps): ReactEle
                 <span className="sr-only">Search</span>
                 <input
                     type="search"
-                    aria-label="Search"
                     placeholder="Search handoffs..."
                     className={INPUT_CLASSES}
                     value={filters.search}
