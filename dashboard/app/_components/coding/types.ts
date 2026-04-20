@@ -18,17 +18,27 @@ export type ThreadStatus = 'in_progress' | 'done' | 'blocked' | 'failed';
 
 /**
  * Issue #154 / Phase 3 §D.3.c — inline diff payloads on handoff messages.
+ * Issue #168 / Phase 3 §D.3.e — optional `language` for Shiki syntax highlighting.
  *
  * A single file diff attached to a HandoffMessage. `patch` is the raw unified
  * diff body (including hunk headers and optional --- / +++ file headers);
  * `added` / `removed` are precomputed line counts so the UI does not have to
  * re-parse to show a summary.
+ *
+ * `language` (optional): explicit Shiki language ID. When absent, DiffBlock
+ * infers the language from the `path` extension (see LANGUAGE_BY_EXT in
+ * DiffBlock.tsx). When present, it overrides extension inference — useful
+ * for unusual file paths (`.envrc`, shebang scripts without extensions, etc.)
+ * or when the diff came from a backbone that already knows the language.
+ * Must be one of the SUPPORTED_LANGUAGES in shiki-highlighter.ts; unknown
+ * values are coerced to 'text'.
  */
 export interface DiffFile {
     path: string;
     added: number;
     removed: number;
     patch: string;
+    language?: string;
 }
 
 export interface HandoffMessage {
