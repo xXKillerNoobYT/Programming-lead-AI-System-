@@ -1,15 +1,18 @@
 'use client';
 
-import type { ReactElement } from 'react';
+import type { KeyboardEvent, ReactElement } from 'react';
 import { useState } from 'react';
 import { cn } from '../../../lib/utils';
 import { AgentBadge } from './AgentBadge';
+import { DiffBlock } from './DiffBlock';
 import type { HandoffMessage, HandoffThreadData, ThreadStatus } from './types';
 
 /**
  * Issue #145 / Phase 3 §D.3.a — Coding tab skeleton.
  * Issue #150 / Phase 3 §D.3.b — added optional onMessageClick so each
- * message line becomes a <button> that opens the inspector panel.
+ * message line becomes a click-target that opens the inspector panel.
+ * Issue #154 / Phase 3 §D.3.c — renders per-file `DiffBlock`s after the
+ * message text when `message.diffs` is present.
  *
  * A single handoff thread card. Collapsed view: one-line summary with
  * headline + agent badge + status. Expanded view: summary + full ordered
@@ -25,9 +28,17 @@ import type { HandoffMessage, HandoffThreadData, ThreadStatus } from './types';
  * internal state when uncontrolled.
  *
  * onMessageClick (optional): when provided, each rendered message line is a
- * native <button type="button"> so keyboard Enter/Space work for free. When
- * omitted (existing callers, storybook stubs) messages render as plain <div>s
- * exactly as before — no existing render path breaks.
+ * keyboard-accessible click target (`<div role="button" tabIndex={0}>` with
+ * Enter/Space handlers). Using a role=button div instead of a real <button>
+ * is deliberate — message lines now embed child interactive elements
+ * (DiffBlock toggle buttons) and nesting <button> inside <button> is invalid
+ * HTML that browsers flatten. Clicks inside the DiffBlock wrapper are
+ * intercepted with stopPropagation so toggling a diff does NOT open the
+ * inspector.
+ *
+ * When `onMessageClick` is omitted (existing callers, storybook stubs)
+ * messages render as plain <div>s exactly as before — no existing render
+ * path breaks.
  */
 
 interface HandoffThreadProps {
@@ -116,6 +127,29 @@ export function HandoffThread({
                     className="border-t border-gray-800 bg-gray-950/40 divide-y divide-gray-800"
                 >
                     {thread.messages.map((msg, idx) => {
+                        const hasDiffs = msg.diffs && msg.diffs.length > 0;
+                        const diffsNode = hasDiffs ? (
+                            // stopPropagation wrapper: clicks on DiffBlock
+                            // toggles must not bubble up to the message-row
+                            // click handler (would spuriously open the
+                            // inspector). keydown is also stopped so Enter/
+                            // Space inside a focused DiffBlock toggle does
+                            // not double-trigger the row handler.
+                            <div
+                                className="mt-2"
+                                data-testid={`handoff-msg-diffs-${thread.id}-${idx}`}
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => e.stopPropagation()}
+                            >
+                                {msg.diffs!.map((d, di) => (
+                                    <DiffBlock
+                                        key={`${thread.id}-msg-${idx}-diff-${di}`}
+                                        diff={d}
+                                    />
+                                ))}
+                            </div>
+                        ) : null;
+
                         const body = (
                             <>
                                 <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
@@ -128,23 +162,43 @@ export function HandoffThread({
                                 <p className="mt-1 whitespace-pre-wrap text-gray-200 text-xs leading-snug">
                                     {msg.text}
                                 </p>
+                                {diffsNode}
                             </>
                         );
+
+                        function handleRowKeyDown(
+                            ev: KeyboardEvent<HTMLDivElement>,
+                        ): void {
+                            // Enter / Space should activate the row (match
+                            // native <button> semantics). Space also needs
+                            // preventDefault to avoid page-scroll.
+                            if (ev.key === 'Enter' || ev.key === ' ') {
+                                ev.preventDefault();
+                                onMessageClick?.(thread.id, msg);
+                            }
+                        }
+
                         return (
                             <li
                                 key={`${thread.id}-msg-${idx}`}
                                 className="text-xs text-gray-200"
                             >
                                 {onMessageClick ? (
-                                    <button
-                                        type="button"
+                                    // role=button div (not <button>) because
+                                    // the body may embed DiffBlock toggle
+                                    // <button>s — nested <button>s are
+                                    // invalid HTML.
+                                    <div
+                                        role="button"
+                                        tabIndex={0}
                                         onClick={() =>
                                             onMessageClick(thread.id, msg)
                                         }
+                                        onKeyDown={handleRowKeyDown}
                                         className="block w-full text-left px-3 py-2 cursor-pointer hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:ring-inset"
                                     >
                                         {body}
-                                    </button>
+                                    </div>
                                 ) : (
                                     <div className="px-3 py-2">{body}</div>
                                 )}

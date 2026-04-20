@@ -16,11 +16,31 @@ export type AgentName = 'RooCode' | 'Copilot' | 'Claude' | string;
 
 export type ThreadStatus = 'in_progress' | 'done' | 'blocked' | 'failed';
 
+/**
+ * Issue #154 / Phase 3 §D.3.c — inline diff payloads on handoff messages.
+ *
+ * A single file diff attached to a HandoffMessage. `patch` is the raw unified
+ * diff body (including hunk headers and optional --- / +++ file headers);
+ * `added` / `removed` are precomputed line counts so the UI does not have to
+ * re-parse to show a summary.
+ */
+export interface DiffFile {
+    path: string;
+    added: number;
+    removed: number;
+    patch: string;
+}
+
 export interface HandoffMessage {
     timestamp: string;
     from: string;
     to: string;
     text: string;
+    /**
+     * Optional per-file diffs attached to this message. Rendered as
+     * `DiffBlock` components after the message text (Issue #154 §D.3.c).
+     */
+    diffs?: DiffFile[];
 }
 
 export interface HandoffThreadData {

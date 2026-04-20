@@ -8,6 +8,7 @@ import { CodingTabContent } from '../app/_components/coding/CodingTabContent';
 import { InspectorPanel } from '../app/_components/coding/InspectorPanel';
 import {
     EMPTY_FILTERS,
+    type DiffFile,
     type Filters,
     type HandoffMessage,
     type HandoffThreadData,
@@ -548,6 +549,94 @@ describe('Issue #152 §D.3.b polish — focus + copy feedback + null-selection',
                 selectedMessage={{ threadId: 'flip', message: thread.messages[0] }}
             />,
         );
+        expect(screen.getByLabelText(/close inspector/i)).toBeInTheDocument();
+    });
+});
+
+describe('Issue #154 §D.3.c — Inline diff rendering in HandoffThread', () => {
+    afterEach(cleanup);
+
+    const FIXTURE_PATCH = [
+        '--- a/src/gamma.ts',
+        '+++ b/src/gamma.ts',
+        '@@ -1,3 +1,4 @@',
+        ' untouched',
+        '-old-line',
+        '+new-line',
+    ].join('\n');
+
+    const FIXTURE_DIFF: DiffFile = {
+        path: 'src/gamma.ts',
+        added: 4,
+        removed: 2,
+        patch: FIXTURE_PATCH,
+    };
+
+    // 27 — HandoffThread renders a DiffBlock per file when a message carries diffs.
+    it('HandoffThread renders DiffBlocks for each diff attached to a message', () => {
+        const thread = makeThread({
+            id: 'diff-thread',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'applied patch',
+                    diffs: [
+                        FIXTURE_DIFF,
+                        { ...FIXTURE_DIFF, path: 'src/delta.ts' },
+                    ],
+                },
+            ],
+        });
+        render(<HandoffThread thread={thread} expanded />);
+        // Both file headers present.
+        expect(screen.getByText('src/gamma.ts')).toBeInTheDocument();
+        expect(screen.getByText('src/delta.ts')).toBeInTheDocument();
+        // Diff body visible (small diff → expanded by default).
+        expect(screen.getAllByText('+new-line').length).toBeGreaterThanOrEqual(1);
+    });
+
+    // 28 — AC 3 / pitfalls: clicking the diff toggle must NOT open the inspector.
+    //       Exercises the stopPropagation wrapper inside CodingTabContent's
+    //       render path.
+    it('clicking the diff toggle does not open the inspector (stopPropagation)', () => {
+        const thread: HandoffThreadData = {
+            id: 'no-bubble',
+            agent: 'RooCode',
+            status: 'in_progress',
+            headline: 'diff-click-isolation',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'message-with-diff',
+                    diffs: [FIXTURE_DIFF],
+                },
+            ],
+        };
+        render(<CodingTabContent threads={[thread]} />);
+
+        // Sanity: inspector not open yet.
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+
+        // Click the DiffBlock toggle button. Use aria-label so we don't
+        // collide with the message-row (role=button div) whose accessible
+        // name also includes the file path as descendant text.
+        const diffToggle = screen.getByLabelText(
+            /src\/gamma\.ts\s+—\s+\+4\s*\/\s*-2/i,
+        );
+        fireEvent.click(diffToggle);
+
+        // Inspector must still be closed — click did not bubble up to the
+        // message-row click target.
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+
+        // But the message-row itself must still be clickable to open the
+        // inspector (regression guard for the nested-button fix).
+        const row = screen.getByText('message-with-diff');
+        fireEvent.click(row);
         expect(screen.getByLabelText(/close inspector/i)).toBeInTheDocument();
     });
 });
