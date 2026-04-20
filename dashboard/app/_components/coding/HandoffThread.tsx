@@ -50,7 +50,7 @@ export function HandoffThread({
     const [internalExpanded, setInternalExpanded] = useState<boolean>(
         defaultExpandedFor(thread.status),
     );
-    const isExpanded = isControlled ? (expanded as boolean) : internalExpanded;
+    const isExpanded = isControlled ? expanded : internalExpanded;
 
     function handleToggle(): void {
         if (onToggle) {

@@ -113,8 +113,13 @@ export function ProjectTabContent({ projectId, tab }: ProjectTabContentProps): R
             </div>
         );
     } else {
+        // <section> (not <main>) per Issue #146 §1: this branch renders INSIDE
+        // MainPanes's <section role="region"> landmark, and the page's single
+        // <main> lives in app/projects/[projectId]/[tab]/layout.tsx (the
+        // project-tab layout, not the root layout — root only owns <html>/<body>).
+        // ARIA forbids nesting <main>.
         operator = (
-            <main className="h-full p-6">
+            <section aria-label={title} className="h-full p-6">
                 <div className="text-xs text-gray-500 mb-2">
                     project: <span className="font-mono">{projectId}</span>
                 </div>
@@ -122,7 +127,7 @@ export function ProjectTabContent({ projectId, tab }: ProjectTabContentProps): R
                 <p className="mt-3 text-sm text-gray-400">
                     Operator pane (left, dense) — plans, logs, task queue land here.
                 </p>
-            </main>
+            </section>
         );
     }
 

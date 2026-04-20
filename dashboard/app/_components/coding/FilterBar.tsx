@@ -54,7 +54,6 @@ export function FilterBar({ filters, onChange, live }: FilterBarProps): ReactEle
             <label className="flex items-center gap-1 text-xs text-gray-400">
                 <span>Agent</span>
                 <select
-                    aria-label="Agent"
                     className={SELECT_CLASSES}
                     value={filters.agent}
                     onChange={onSelect('agent')}
@@ -70,7 +69,6 @@ export function FilterBar({ filters, onChange, live }: FilterBarProps): ReactEle
             <label className="flex items-center gap-1 text-xs text-gray-400">
                 <span>Task type</span>
                 <select
-                    aria-label="Task type"
                     className={SELECT_CLASSES}
                     value={filters.taskType}
                     onChange={onSelect('taskType')}
@@ -86,7 +84,6 @@ export function FilterBar({ filters, onChange, live }: FilterBarProps): ReactEle
             <label className="flex items-center gap-1 text-xs text-gray-400">
                 <span>Status</span>
                 <select
-                    aria-label="Status"
                     className={SELECT_CLASSES}
                     value={filters.status}
                     onChange={onSelect('status')}

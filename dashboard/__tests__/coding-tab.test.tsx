@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AgentBadge } from '../app/_components/coding/AgentBadge';
 import { FilterBar } from '../app/_components/coding/FilterBar';
@@ -204,6 +204,3 @@ describe('Issue #145 §D.3.a — Coding tab skeleton', () => {
         ).toBeInTheDocument();
     });
 });
-
-// Silence unused-import warning for `within` in strict TS (kept for future use).
-void within;
