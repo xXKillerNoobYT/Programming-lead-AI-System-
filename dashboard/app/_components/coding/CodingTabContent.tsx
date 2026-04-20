@@ -1,10 +1,16 @@
 'use client';
 
 import type { ReactElement } from 'react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FilterBar } from './FilterBar';
 import { HandoffThread } from './HandoffThread';
-import { EMPTY_FILTERS, type Filters, type HandoffThreadData } from './types';
+import { InspectorPanel } from './InspectorPanel';
+import {
+    EMPTY_FILTERS,
+    type Filters,
+    type HandoffMessage,
+    type HandoffThreadData,
+} from './types';
 
 /**
  * Issue #145 / Phase 3 §D.3.a — Coding tab skeleton.
@@ -33,12 +39,27 @@ import { EMPTY_FILTERS, type Filters, type HandoffThreadData } from './types';
  *                 the data model and wire the predicate.
  */
 
+export interface SelectedMessage {
+    threadId: string;
+    message: HandoffMessage;
+}
+
 interface CodingTabContentProps {
     threads: HandoffThreadData[];
     filters?: Filters;
     onFiltersChange?: (f: Filters) => void;
     initialFilters?: Filters;
     live?: boolean;
+    /**
+     * Issue #150 §D.3.b — inspector selection.
+     *   - If `selectedMessage` is undefined → uncontrolled (internal useState).
+     *   - If `selectedMessage` is passed (including `null`) → fully controlled;
+     *     parent owns the value and `onSelectedMessageChange` notifies it.
+     *
+     * Mirrors the existing controlled/uncontrolled filters pattern above.
+     */
+    selectedMessage?: SelectedMessage | null;
+    onSelectedMessageChange?: (next: SelectedMessage | null) => void;
 }
 
 function matchesFilters(thread: HandoffThreadData, filters: Filters): boolean {
@@ -64,17 +85,43 @@ export function CodingTabContent({
     onFiltersChange,
     initialFilters,
     live = false,
+    selectedMessage,
+    onSelectedMessageChange,
 }: CodingTabContentProps): ReactElement {
-    const isControlled = filters !== undefined;
+    const isFiltersControlled = filters !== undefined;
     const [internalFilters, setInternalFilters] = useState<Filters>(
         initialFilters ?? { ...EMPTY_FILTERS },
     );
-    const activeFilters: Filters = isControlled ? filters : internalFilters;
+    const activeFilters: Filters = isFiltersControlled ? filters : internalFilters;
 
     function handleFiltersChange(next: Filters): void {
         if (onFiltersChange) onFiltersChange(next);
-        if (!isControlled) setInternalFilters(next);
+        if (!isFiltersControlled) setInternalFilters(next);
     }
+
+    // Inspector selection — mirrors the filters controlled/uncontrolled pattern.
+    // NOTE: `undefined` means uncontrolled; `null` is a legal controlled value
+    // meaning "no selection". We discriminate on `selectedMessage !== undefined`.
+    const isSelectionControlled = selectedMessage !== undefined;
+    const [internalSelected, setInternalSelected] =
+        useState<SelectedMessage | null>(null);
+    const activeSelection: SelectedMessage | null = isSelectionControlled
+        ? selectedMessage
+        : internalSelected;
+
+    const handleMessageClick = useCallback(
+        (threadId: string, message: HandoffMessage): void => {
+            const next: SelectedMessage = { threadId, message };
+            if (onSelectedMessageChange) onSelectedMessageChange(next);
+            if (!isSelectionControlled) setInternalSelected(next);
+        },
+        [isSelectionControlled, onSelectedMessageChange],
+    );
+
+    const handleInspectorClose = useCallback((): void => {
+        if (onSelectedMessageChange) onSelectedMessageChange(null);
+        if (!isSelectionControlled) setInternalSelected(null);
+    }, [isSelectionControlled, onSelectedMessageChange]);
 
     const visibleThreads = useMemo(
         () => threads.filter((t) => matchesFilters(t, activeFilters)),
@@ -97,17 +144,30 @@ export function CodingTabContent({
                 onChange={handleFiltersChange}
                 live={live}
             />
-            <div className="flex-1 min-h-0 overflow-auto p-3 space-y-2">
-                <h2 className="sr-only">Coding AI Relay</h2>
-                {visibleThreads.length === 0 ? (
-                    <p className="text-sm text-gray-400 py-8 text-center">
-                        No handoffs match the current filters.
-                    </p>
-                ) : (
-                    visibleThreads.map((thread) => (
-                        <HandoffThread key={thread.id} thread={thread} />
-                    ))
-                )}
+            <div className="flex-1 min-h-0 flex overflow-hidden">
+                <div className="flex-1 min-w-0 overflow-auto p-3 space-y-2">
+                    <h2 className="sr-only">Coding AI Relay</h2>
+                    {visibleThreads.length === 0 ? (
+                        <p className="text-sm text-gray-400 py-8 text-center">
+                            No handoffs match the current filters.
+                        </p>
+                    ) : (
+                        visibleThreads.map((thread) => (
+                            <HandoffThread
+                                key={thread.id}
+                                thread={thread}
+                                onMessageClick={handleMessageClick}
+                            />
+                        ))
+                    )}
+                </div>
+                {activeSelection !== null ? (
+                    <InspectorPanel
+                        message={activeSelection.message}
+                        threadId={activeSelection.threadId}
+                        onClose={handleInspectorClose}
+                    />
+                ) : null}
             </div>
         </section>
     );

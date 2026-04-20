@@ -4,10 +4,12 @@ import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { cn } from '../../../lib/utils';
 import { AgentBadge } from './AgentBadge';
-import type { HandoffThreadData, ThreadStatus } from './types';
+import type { HandoffMessage, HandoffThreadData, ThreadStatus } from './types';
 
 /**
  * Issue #145 / Phase 3 §D.3.a — Coding tab skeleton.
+ * Issue #150 / Phase 3 §D.3.b — added optional onMessageClick so each
+ * message line becomes a <button> that opens the inspector panel.
  *
  * A single handoff thread card. Collapsed view: one-line summary with
  * headline + agent badge + status. Expanded view: summary + full ordered
@@ -21,12 +23,18 @@ import type { HandoffThreadData, ThreadStatus } from './types';
  *
  * Click on the header calls `onToggle` if provided; falls back to updating
  * internal state when uncontrolled.
+ *
+ * onMessageClick (optional): when provided, each rendered message line is a
+ * native <button type="button"> so keyboard Enter/Space work for free. When
+ * omitted (existing callers, storybook stubs) messages render as plain <div>s
+ * exactly as before — no existing render path breaks.
  */
 
 interface HandoffThreadProps {
     thread: HandoffThreadData;
     expanded?: boolean;
     onToggle?: () => void;
+    onMessageClick?: (threadId: string, message: HandoffMessage) => void;
 }
 
 const STATUS_CLASSES: Record<ThreadStatus, string> = {
@@ -45,6 +53,7 @@ export function HandoffThread({
     thread,
     expanded,
     onToggle,
+    onMessageClick,
 }: HandoffThreadProps): ReactElement {
     const isControlled = expanded !== undefined;
     const [internalExpanded, setInternalExpanded] = useState<boolean>(
@@ -106,23 +115,42 @@ export function HandoffThread({
                     id={`handoff-thread-body-${thread.id}`}
                     className="border-t border-gray-800 bg-gray-950/40 divide-y divide-gray-800"
                 >
-                    {thread.messages.map((msg, idx) => (
-                        <li
-                            key={`${thread.id}-msg-${idx}`}
-                            className="px-3 py-2 text-xs text-gray-200"
-                        >
-                            <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
-                                <span>{msg.timestamp}</span>
-                                <span aria-hidden>·</span>
-                                <span>
-                                    {msg.from} → {msg.to}
-                                </span>
-                            </div>
-                            <p className="mt-1 whitespace-pre-wrap text-gray-200">
-                                {msg.text}
-                            </p>
-                        </li>
-                    ))}
+                    {thread.messages.map((msg, idx) => {
+                        const body = (
+                            <>
+                                <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono">
+                                    <span>{msg.timestamp}</span>
+                                    <span aria-hidden>·</span>
+                                    <span>
+                                        {msg.from} → {msg.to}
+                                    </span>
+                                </div>
+                                <p className="mt-1 whitespace-pre-wrap text-gray-200 text-xs leading-snug">
+                                    {msg.text}
+                                </p>
+                            </>
+                        );
+                        return (
+                            <li
+                                key={`${thread.id}-msg-${idx}`}
+                                className="text-xs text-gray-200"
+                            >
+                                {onMessageClick ? (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            onMessageClick(thread.id, msg)
+                                        }
+                                        className="block w-full text-left px-3 py-2 cursor-pointer hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:ring-inset"
+                                    >
+                                        {body}
+                                    </button>
+                                ) : (
+                                    <div className="px-3 py-2">{body}</div>
+                                )}
+                            </li>
+                        );
+                    })}
                 </ol>
             ) : null}
         </article>
