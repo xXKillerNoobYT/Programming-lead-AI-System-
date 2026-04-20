@@ -289,3 +289,132 @@ describe('runWithTimeout — onTimeout fires BEFORE the throw', () => {
             'onTimeout must run synchronously before the throw propagates to caller catch');
     });
 });
+
+/*
+ * =============================================================================
+ * Issue #142 — polish leaf follow-up tests (2 task-type-guard + 4 edge-value).
+ *
+ * 1) task-type guard (AC #1): before Issue #142 the module would let a missing
+ *    or non-function `task` slip through to `Promise.resolve().then(() => task())`
+ *    and reject asynchronously with a confusing TypeError: "task is not a function".
+ *    We now fail-fast SYNCHRONOUSLY at the top of runWithTimeout so the error
+ *    surfaces at the call site — matches the fs.readFile / URL(...) style of
+ *    caller-contract violation. Style-matched against lib/pause-lock.js line 75
+ *    (`if (!projectRoot || typeof projectRoot !== 'string') { ... }`).
+ *
+ *    These two tests use `assert.throws(() => runWithTimeout(...))` NOT
+ *    `assert.rejects` — synchronous throw is part of the contract.
+ *
+ * 2) edge-value timeoutMs (AC #2): test-lock CURRENT pass-through behavior so
+ *    that callers passing `NaN` / `-5` / `'100'` / `0` see the exact shape we
+ *    have today. Rationale per spec: don't add a guard — the caller owns
+ *    correctness. These tests capture what was PASSED to the fake timer (not
+ *    what Node would coerce) so the assertions are independent of Node's
+ *    setTimeout coercion rules. If a future refactor decides to coerce or
+ *    guard timeoutMs, these tests will fail loudly and the author has to make
+ *    the decision explicitly instead of silently changing the contract.
+ * =============================================================================
+ */
+
+describe('runWithTimeout — task-type guard (Issue #142 AC #1)', () => {
+    test('throws TypeError SYNCHRONOUSLY when task is missing (runWithTimeout({}))', () => {
+        assert.throws(
+            () => runWithTimeout({}),
+            (err) => {
+                assert.ok(err instanceof TypeError,
+                    'missing task must throw TypeError (not a plain Error)');
+                assert.equal(err.message, 'runWithTimeout: task must be a function',
+                    'message must be the exact contract-violation string');
+                return true;
+            },
+        );
+    });
+
+    test('throws TypeError SYNCHRONOUSLY when task is a non-function (e.g. 42)', () => {
+        assert.throws(
+            () => runWithTimeout({ task: 42 }),
+            (err) => {
+                assert.ok(err instanceof TypeError,
+                    'non-function task must throw TypeError');
+                assert.equal(err.message, 'runWithTimeout: task must be a function');
+                return true;
+            },
+        );
+    });
+});
+
+describe('runWithTimeout — edge-value timeoutMs (Issue #142 AC #2, test-lock pass-through)', () => {
+    test('timeoutMs: 0 — timer registered with ms === 0; firing it rejects with TickTimeoutError', async () => {
+        const timer = mkFakeTimer();
+        const neverSettles = new Promise(() => {});
+
+        const runPromise = runWithTimeout({
+            task: () => neverSettles,
+            timeoutMs: 0,
+            _timer: timer,
+        });
+
+        await Promise.resolve();
+        assert.equal(timer.fires.length, 1, 'one setTimeout registered');
+        assert.equal(timer.fires[0].ms, 0,
+            'ms passed to the timer is exactly 0 (no coercion)');
+        timer.fire(0);
+
+        await assert.rejects(
+            runPromise,
+            (err) => {
+                assert.ok(err instanceof TickTimeoutError);
+                assert.equal(err.timeoutMs, 0,
+                    'TickTimeoutError.timeoutMs preserves the 0 value');
+                return true;
+            },
+        );
+    });
+
+    test('timeoutMs: NaN — pass-through unchanged (runWithTimeout does NOT coerce; we record what was passed, independent of Node setTimeout coercion)', async () => {
+        const timer = mkFakeTimer();
+
+        // Task resolves immediately so we can await without racing the fake timer.
+        await runWithTimeout({
+            task: async () => 'ok',
+            timeoutMs: NaN,
+            _timer: timer,
+        });
+
+        assert.equal(timer.fires.length, 1, 'one setTimeout registered');
+        // Note: Number.isNaN, not === NaN (NaN !== NaN).
+        assert.ok(Number.isNaN(timer.fires[0].ms),
+            'ms passed to the fake timer is NaN, unchanged — proves runWithTimeout does not coerce. Node\'s real setTimeout would coerce NaN→1ms, but that\'s outside this module\'s contract.');
+    });
+
+    test('timeoutMs: -5 — pass-through unchanged (we record what was passed; Node would coerce to 1ms but that is the platform\'s concern)', async () => {
+        const timer = mkFakeTimer();
+
+        await runWithTimeout({
+            task: async () => 'ok',
+            timeoutMs: -5,
+            _timer: timer,
+        });
+
+        assert.equal(timer.fires.length, 1, 'one setTimeout registered');
+        assert.equal(timer.fires[0].ms, -5,
+            'ms passed is exactly -5 — runWithTimeout does not normalize negative values');
+    });
+
+    test('timeoutMs: "100" (string) — pass-through unchanged (the fake records the string as-is; again, Node\'s real setTimeout would coerce to 100ms but this module does not)', async () => {
+        const timer = mkFakeTimer();
+
+        await runWithTimeout({
+            task: async () => 'ok',
+            timeoutMs: '100',
+            _timer: timer,
+        });
+
+        assert.equal(timer.fires.length, 1, 'one setTimeout registered');
+        assert.equal(timer.fires[0].ms, '100',
+            'ms passed is the literal string "100" — no Number() coercion in runWithTimeout');
+        // And strict-equal on type as well to pin that the string did not become a number.
+        assert.equal(typeof timer.fires[0].ms, 'string',
+            'typeof remains "string" — confirms zero coercion');
+    });
+});
