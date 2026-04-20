@@ -189,6 +189,38 @@ function unwrapShikiHtml(html: string): string {
     return html.slice(codeOpenEnd + 1, codeClose);
 }
 
+/**
+ * Issue #171 §D.3.e — Split Shiki's multi-line `<code>` inner HTML into
+ * one HTML chunk per source line.
+ *
+ * Shiki v3 default output for multi-line input wraps each line in
+ * `<span class="line">...</span>`, with a single `\n` literal between
+ * adjacent line wrappers. Splitting the unwrapped inner on `\n` therefore
+ * yields exactly one chunk per source line, each a fully-formed
+ * `<span class="line">`. We keep the `<span class="line">` wrappers in
+ * the chunk so the inner HTML stays semantically complete and grep-able.
+ *
+ * Why this matters: calling `codeToHtml` once per line drops TextMate
+ * grammar state between lines — template literals, JSDoc block comments,
+ * Python triple-quoted strings, etc. miscolor because their open/close
+ * markers live on DIFFERENT lines. The combined-call + split preserves
+ * state across lines.
+ *
+ * Returns `null` if the chunk count doesn't match `expectedCount`, which
+ * signals the caller to fall through to plain-text rendering for the
+ * whole diff (a defensive guard — should never happen with a healthy
+ * Shiki response).
+ */
+export function splitShikiLines(
+    innerHtml: string,
+    expectedCount: number,
+): string[] | null {
+    if (expectedCount === 0) return [];
+    const chunks = innerHtml.split('\n');
+    if (chunks.length !== expectedCount) return null;
+    return chunks;
+}
+
 export function DiffBlock({
     diff,
     expanded,
@@ -217,10 +249,15 @@ export function DiffBlock({
         if (!isControlled) setInternalExpanded(next);
     }
 
-    // Load Shiki and highlight every content line. Runs once on mount (per
-    // diff.patch + language). The effect is cancellable via `cancelled` —
-    // if the component unmounts before the highlighter resolves, we never
-    // call setState.
+    // Issue #171 §D.3.e — Load Shiki and highlight every content line as a
+    // SINGLE combined-code call, then split the per-line `<span class="line">`
+    // wrappers back onto the source indices. Calling `codeToHtml` once per
+    // line would drop TextMate grammar state between lines (template
+    // literals, Python triple-quoted strings, JSDoc blocks, …), so this
+    // must stay as one call per diff.
+    //
+    // The effect is cancellable via `cancelled` — if the component unmounts
+    // before the highlighter resolves, we never call setState.
     useEffect(() => {
         let cancelled = false;
         void (async () => {
@@ -233,26 +270,66 @@ export function DiffBlock({
                 return;
             }
             if (cancelled) return;
-            const next: Record<number, string> = {};
+
+            // Collect highlight-eligible line indices + bodies in source
+            // order. Skip hunk + file-header lines (framing bytes have no
+            // language tokenization). Blank bodies are INCLUDED so the
+            // per-line split preserves 1:1 positional mapping — an empty
+            // body still occupies one '\n'-separated slot in the combined
+            // code.
+            const eligibleIndices: number[] = [];
+            const eligibleBodies: string[] = [];
             for (let i = 0; i < parsedLines.length; i++) {
                 const ln = parsedLines[i];
-                // Hunk + file-header lines intentionally skipped: framing
-                // bytes have no language tokenization.
                 if (ln.kind === 'hunk' || ln.kind === 'fileHeader') continue;
-                const { body } = splitMarker(ln);
-                // Blank body → no highlighting needed (empty string passes
-                // through as-is in fallback).
-                if (body === '') continue;
-                try {
-                    const html = highlighter.codeToHtml(body, {
-                        lang: language,
-                        theme: SHIKI_THEME,
-                    });
-                    next[i] = unwrapShikiHtml(html);
-                } catch {
-                    // Per-line failure: leave this line to fallback.
-                }
+                eligibleIndices.push(i);
+                eligibleBodies.push(splitMarker(ln).body);
             }
+
+            // Zero eligible lines → nothing to highlight, fallback stays.
+            if (eligibleIndices.length === 0) return;
+
+            const combinedCode = eligibleBodies.join('\n');
+
+            let innerHtml: string;
+            try {
+                const html = highlighter.codeToHtml(combinedCode, {
+                    lang: language,
+                    theme: SHIKI_THEME,
+                });
+                innerHtml = unwrapShikiHtml(html);
+            } catch {
+                // Whole-diff Shiki failure: leave the full diff to
+                // fallback rendering (plain-colored parsed lines).
+                return;
+            }
+
+            const chunks = splitShikiLines(innerHtml, eligibleIndices.length);
+            if (chunks === null) {
+                // Line-count mismatch: defensive guard. Log a warning in
+                // development and fall back to plain-text rendering for
+                // the whole diff. Should not happen with a healthy Shiki
+                // response.
+                if (
+                    typeof console !== 'undefined' &&
+                    typeof console.warn === 'function'
+                ) {
+                    console.warn(
+                        '[DiffBlock] Shiki line-count mismatch; falling back to plain-text rendering',
+                        {
+                            expected: eligibleIndices.length,
+                            received: innerHtml.split('\n').length,
+                        },
+                    );
+                }
+                return;
+            }
+
+            const next: Record<number, string> = {};
+            for (let j = 0; j < eligibleIndices.length; j++) {
+                next[eligibleIndices[j]] = chunks[j];
+            }
+
             if (cancelled) return;
             setHighlightedLines(next);
         })();
