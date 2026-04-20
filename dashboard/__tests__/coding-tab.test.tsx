@@ -404,3 +404,150 @@ describe('Issue #150 §D.3.b — Inspector panel', () => {
         expect(onMessageClick).toHaveBeenCalledWith('btn', thread.messages[0]);
     });
 });
+
+describe('Issue #152 §D.3.b polish — focus + copy feedback + null-selection', () => {
+    afterEach(cleanup);
+
+    // 21 — AC 1a: close button receives focus on mount.
+    it('InspectorPanel moves focus to the close button on mount', () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'focus-on-mount',
+        };
+        render(<InspectorPanel message={message} threadId="t-1" onClose={() => {}} />);
+        const closeBtn = screen.getByLabelText(/close inspector/i);
+        expect(document.activeElement).toBe(closeBtn);
+    });
+
+    // 22 — AC 1b: focus returns to the previously-active trigger element on unmount.
+    it('InspectorPanel restores focus to the previously-active element on unmount', () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'focus-restore',
+        };
+        const trigger = document.createElement('button');
+        trigger.textContent = 'trigger';
+        document.body.appendChild(trigger);
+        trigger.focus();
+        expect(document.activeElement).toBe(trigger);
+        try {
+            const { unmount } = render(
+                <InspectorPanel message={message} threadId="t-1" onClose={() => {}} />,
+            );
+            // Panel stole focus from the trigger.
+            expect(document.activeElement).not.toBe(trigger);
+            unmount();
+            // Panel restored it on the way out.
+            expect(document.activeElement).toBe(trigger);
+        } finally {
+            document.body.removeChild(trigger);
+        }
+    });
+
+    // 23 — AC 2a: "Copied" confirmation appears after a successful clipboard write.
+    it('InspectorPanel shows "Copied" confirmation after a successful clipboard write', async () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'copy-ok',
+        };
+        const writeText = jest.fn().mockResolvedValue(undefined);
+        const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText },
+            configurable: true,
+        });
+        try {
+            render(
+                <InspectorPanel message={message} threadId="t-1" onClose={() => {}} />,
+            );
+            fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            await screen.findByText(/copied/i);
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            } else {
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: undefined,
+                    configurable: true,
+                });
+            }
+        }
+    });
+
+    // 24 — AC 2b: "Copy failed" appears when the clipboard API is unavailable.
+    it('InspectorPanel shows "Copy failed" when navigator.clipboard is unavailable', async () => {
+        const message: HandoffMessage = {
+            timestamp: '2026-04-19T10:00:00Z',
+            from: 'claude',
+            to: 'roo',
+            text: 'copy-missing',
+        };
+        const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+        Object.defineProperty(navigator, 'clipboard', {
+            value: undefined,
+            configurable: true,
+        });
+        try {
+            render(
+                <InspectorPanel message={message} threadId="t-1" onClose={() => {}} />,
+            );
+            fireEvent.click(screen.getByRole('button', { name: /copy json/i }));
+            await screen.findByText(/copy failed/i);
+        } finally {
+            if (originalClipboard) {
+                Object.defineProperty(navigator, 'clipboard', originalClipboard);
+            }
+        }
+    });
+
+    // 25 — AC 3a: explicit selectedMessage={null} must NOT render the inspector.
+    //        Locks the "null is a valid controlled no-selection" semantic so a
+    //        refactor to `!!selectedMessage` would fail loud.
+    it('CodingTabContent treats explicit selectedMessage={null} as no-selection', () => {
+        const thread = makeThread({
+            id: 'nullsel',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'nope',
+                },
+            ],
+        });
+        render(<CodingTabContent threads={[thread]} selectedMessage={null} />);
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+    });
+
+    // 26 — AC 3b: flipping selectedMessage from null to a concrete value mounts the inspector.
+    it('CodingTabContent mounts the inspector when selectedMessage flips from null to a value', () => {
+        const thread = makeThread({
+            id: 'flip',
+            messages: [
+                {
+                    timestamp: '2026-04-19T10:00:00Z',
+                    from: 'claude',
+                    to: 'roo',
+                    text: 'flip-me',
+                },
+            ],
+        });
+        const { rerender } = render(
+            <CodingTabContent threads={[thread]} selectedMessage={null} />,
+        );
+        expect(screen.queryByLabelText(/close inspector/i)).not.toBeInTheDocument();
+        rerender(
+            <CodingTabContent
+                threads={[thread]}
+                selectedMessage={{ threadId: 'flip', message: thread.messages[0] }}
+            />,
+        );
+        expect(screen.getByLabelText(/close inspector/i)).toBeInTheDocument();
+    });
+});
