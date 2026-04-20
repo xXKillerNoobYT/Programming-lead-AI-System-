@@ -733,6 +733,23 @@ describe('Issue #159 §D.3.b polish — inspector a11y v2 (re-announce + verbose
         }
     });
 
+    // 31b — Issue #167 §D.3.d — RelayFooter renders only on in_progress
+    //         threads inside CodingTabContent, not on done/blocked/failed.
+    it('CodingTabContent renders the RelayFooter only on in_progress threads', () => {
+        const threads: HandoffThreadData[] = [
+            makeThread({ id: 'ip', status: 'in_progress', headline: 'Active leaf' }),
+            makeThread({ id: 'dn', status: 'done', headline: 'Closed leaf' }),
+            makeThread({ id: 'bl', status: 'blocked', headline: 'Blocked leaf' }),
+            makeThread({ id: 'fl', status: 'failed', headline: 'Failed leaf' }),
+        ];
+        render(<CodingTabContent threads={threads} />);
+        // Exactly one relay footer — the in_progress thread's. The other
+        // three threads (done / blocked / failed) must NOT render one.
+        const footers = screen.getAllByTestId(/^relay-footer-/);
+        expect(footers).toHaveLength(1);
+        expect(footers[0]).toHaveAttribute('data-testid', 'relay-footer-ip');
+    });
+
     // 31 — B2: when navigator.clipboard.writeText rejects (browser permission
     //         denied is the typical case), say so explicitly. Distinct error
     //         path from B1 — clipboard exists but the call failed.

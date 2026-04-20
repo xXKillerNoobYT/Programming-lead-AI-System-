@@ -60,6 +60,13 @@ interface CodingTabContentProps {
      */
     selectedMessage?: SelectedMessage | null;
     onSelectedMessageChange?: (next: SelectedMessage | null) => void;
+    /**
+     * Issue #167 §D.3.d — forwarded to every rendered HandoffThread. When
+     * a thread's RelayFooter submits, the thread calls this with its own
+     * id plus the user's text. When omitted (server-component caller),
+     * RelayFooter still renders on in_progress threads but submits no-op.
+     */
+    onRelaySend?: (threadId: string, text: string) => void;
 }
 
 function matchesFilters(thread: HandoffThreadData, filters: Filters): boolean {
@@ -87,6 +94,7 @@ export function CodingTabContent({
     live = false,
     selectedMessage,
     onSelectedMessageChange,
+    onRelaySend,
 }: CodingTabContentProps): ReactElement {
     const isFiltersControlled = filters !== undefined;
     const [internalFilters, setInternalFilters] = useState<Filters>(
@@ -157,6 +165,7 @@ export function CodingTabContent({
                                 key={thread.id}
                                 thread={thread}
                                 onMessageClick={handleMessageClick}
+                                onRelaySend={onRelaySend}
                             />
                         ))
                     )}

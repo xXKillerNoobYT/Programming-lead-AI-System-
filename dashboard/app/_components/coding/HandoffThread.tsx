@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { cn } from '../../../lib/utils';
 import { AgentBadge } from './AgentBadge';
 import { DiffBlock } from './DiffBlock';
+import { RelayFooter } from './RelayFooter';
 import type { HandoffMessage, HandoffThreadData, ThreadStatus } from './types';
 
 /**
@@ -13,6 +14,11 @@ import type { HandoffMessage, HandoffThreadData, ThreadStatus } from './types';
  * message line becomes a click-target that opens the inspector panel.
  * Issue #154 / Phase 3 §D.3.c — renders per-file `DiffBlock`s after the
  * message text when `message.diffs` is present.
+ * Issue #167 / Phase 3 §D.3.d — renders a `RelayFooter` at the bottom of
+ * the expanded card ONLY when `thread.status === 'in_progress'` (done,
+ * blocked, and failed threads never surface the composer). When the
+ * footer fires `onSend(text)` we forward it as `onRelaySend(thread.id,
+ * text)` so the parent can route it to the right agent.
  *
  * A single handoff thread card. Collapsed view: one-line summary with
  * headline + agent badge + status. Expanded view: summary + full ordered
@@ -46,6 +52,14 @@ interface HandoffThreadProps {
     expanded?: boolean;
     onToggle?: () => void;
     onMessageClick?: (threadId: string, message: HandoffMessage) => void;
+    /**
+     * Issue #167 §D.3.d — when provided, the RelayFooter (rendered only
+     * for in_progress threads) calls this with the thread id and the
+     * user's text on every Cmd/Ctrl+Enter or Send-button submit. When
+     * absent the footer is still rendered (so the operator sees the
+     * composer) but submits no-op locally.
+     */
+    onRelaySend?: (threadId: string, text: string) => void;
 }
 
 const STATUS_CLASSES: Record<ThreadStatus, string> = {
@@ -65,6 +79,7 @@ export function HandoffThread({
     expanded,
     onToggle,
     onMessageClick,
+    onRelaySend,
 }: HandoffThreadProps): ReactElement {
     const isControlled = expanded !== undefined;
     const [internalExpanded, setInternalExpanded] = useState<boolean>(
@@ -122,8 +137,8 @@ export function HandoffThread({
             </button>
 
             {isExpanded ? (
+                <div id={`handoff-thread-body-${thread.id}`}>
                 <ol
-                    id={`handoff-thread-body-${thread.id}`}
                     className="border-t border-gray-800 bg-gray-950/40 divide-y divide-gray-800"
                 >
                     {thread.messages.map((msg, idx) => {
@@ -206,6 +221,14 @@ export function HandoffThread({
                         );
                     })}
                 </ol>
+                {thread.status === 'in_progress' ? (
+                    <RelayFooter
+                        threadId={thread.id}
+                        agent={thread.agent}
+                        onSend={(text) => onRelaySend?.(thread.id, text)}
+                    />
+                ) : null}
+                </div>
             ) : null}
         </article>
     );
