@@ -69,7 +69,7 @@ export function CodingTabContent({
     const [internalFilters, setInternalFilters] = useState<Filters>(
         initialFilters ?? { ...EMPTY_FILTERS },
     );
-    const activeFilters: Filters = isControlled ? (filters as Filters) : internalFilters;
+    const activeFilters: Filters = isControlled ? filters : internalFilters;
 
     function handleFiltersChange(next: Filters): void {
         if (onFiltersChange) onFiltersChange(next);
@@ -85,9 +85,9 @@ export function CodingTabContent({
         // Using <section> (not <main>) because this component is rendered
         // INSIDE `MainPanes`'s <section role="region"> landmark. ARIA forbids
         // nesting <main> inside another landmark; there must be exactly one
-        // <main> per page (owned by the app shell / root layout). Code-quality
-        // reviewer flagged this on the skeleton PR — follow-up leaf will add
-        // a single top-level <main> in the shell and any remaining tabs.
+        // <main> per page. The single top-level <main> is owned by the
+        // project-page layout at app/projects/[projectId]/[tab]/layout.tsx
+        // (added in Issue #146 §1).
         <section
             className="h-full flex flex-col"
             aria-label="Coding AI Relay"
