@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-04-19T22-00-57-892Z",
+  "blocking": [
+    {
+      "name": "check:tests",
+      "tier": "blocking",
+      "status": 0,
+      "durationMs": 11682,
+      "stdout": "",
+      "stderr": " ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.\n We detected multiple lockfiles and selected the directory of C:\\Users\\weird\\.GitHub\\Programming-lead-AI-System-\\package-lock.json as the root directory.\n To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.\n   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.\n Detected additional lockfiles: \n   * C:\\Users\\weird\\.GitHub\\Programming-lead-AI-System-\\dashboard\\package-lock.json\n\n\nTest Suites: 11 passed, 11 total\nTests:       120 passed, 120 total\nSnapshots:   0 total\nTime:        8.87 s\nRan all test suites.\n"
+    },
+    {
+      "name": "check:types",
+      "tier": "blocking",
+      "status": 0,
+      "durationMs": 4917,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "check:coverage-threshold",
+      "tier": "blocking",
+      "status": 1,
+      "durationMs": 985,
+      "stdout": "",
+      "stderr": "coverage summary not found: C:\\Users\\weird\\.GitHub\\Programming-lead-AI-System-\\dashboard\\coverage\\coverage-summary.json\nRun `npm run test:coverage` first.\n"
+    }
+  ],
+  "flagged": [
+    {
+      "name": "check:lint",
+      "tier": "flagged",
+      "status": 1,
+      "durationMs": 1604,
+      "stdout": "? How would you like to configure ESLint? https://nextjs.org/docs/app/api-reference/config/eslint\n\u001b[?25l❯  Strict (recommended)\n   Base\n   Cancel",
+      "stderr": "`next lint` is deprecated and will be removed in Next.js 16.\nFor new projects, use create-next-app to choose your preferred linter.\nFor existing projects, migrate to the ESLint CLI:\nnpx @next/codemod@canary next-lint-to-eslint-cli .\n\n ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.\n We detected multiple lockfiles and selected the directory of C:\\Users\\weird\\.GitHub\\Programming-lead-AI-System-\\package-lock.json as the root directory.\n To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.\n   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.\n Detected additional lockfiles: \n   * C:\\Users\\weird\\.GitHub\\Programming-lead-AI-System-\\dashboard\\package-lock.json\n\n ⚠ If you set up ESLint yourself, we recommend adding the Next.js ESLint plugin. See https://nextjs.org/docs/app/api-reference/config/eslint#migrating-existing-config\n"
+    },
+    {
+      "name": "check:arch",
+      "tier": "flagged",
+      "status": 0,
+      "durationMs": 783,
+      "stdout": "[PASS] UI must not import backbone\n[PASS] backbone tests must not reference dashboard/ (UI cross-import)\n[PASS] no Docker strings in source (Docs/AI plans/decision-log/reports exempt)\n",
+      "stderr": ""
+    },
+    {
+      "name": "check:deps",
+      "tier": "flagged",
+      "status": 0,
+      "durationMs": 2042,
+      "stdout": "found 0 vulnerabilities\n",
+      "stderr": ""
+    }
+  ],
+  "passedBlocking": false
+}

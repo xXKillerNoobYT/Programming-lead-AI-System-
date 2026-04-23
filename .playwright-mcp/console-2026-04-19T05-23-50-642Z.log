@@ -1,0 +1,23 @@
+[   42672ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/projects/devlead-mcp/coding:0
+[   46271ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(pages-dir-browser)/./node_modules/react-dom/cjs/react-dom-client.development.js:28004
+[   46606ms] Error: Cannot find module './vendor-chunks/next.js'
+Require stack:
+- C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\.next\server\webpack-runtime.js
+- C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\.next\server\app\projects\[projectId]\[tab]\page.js
+- C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\node_modules\next\dist\server\require.js
+- C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\node_modules\next\dist\server\load-components.js
+- C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\node_modules\next\dist\build\utils.js
+- C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\node_modules\next\dist\server\dev\static-paths-worker.js
+- C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1421:15)
+    at <unknown> (file://C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\node_modules\next\dist\server\require-hook.js:57:36)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)
+    at Module._load (node:internal/modules/cjs/loader:1227:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1504:12)
+    at mod.require (file://C:\Users\weird\.GitHub\Programming-lead-AI-System-\dashboard\node_modules\next\dist\server\require-hook.js:68:28)
+    at require (node:internal/modules/helpers:152:16)
+[   46541ms] [LOG] [HMR] connected @ webpack-internal:///(pages-dir-browser)/./node_modules/next/dist/client/dev/hot-reloader/pages/websocket.js:45
+[   46659ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
