@@ -56,7 +56,7 @@ $PLANS_VAULT_PATH/AI plans/*.md    (YOUR detailed long-term execution plans;
 
 **Key mindset**: `AI plans/` (in the vault) is where you think big and write it down once. GitHub Issues is where you pick off one small piece at a time. If a plan in `AI plans/` is too fuzzy to produce the next 3 Issues, refine the plan first — then decompose.
 
-> **Path history**: the repo folder `plans/` was renamed to `AI plans/` (2026-04-18), then both `Docs/Plans/` and `AI plans/` were moved to the Obsidian vault (2026-04-25, WEI-71/WEI-72). **Pending**: `SOUL.md` still references `plans/main-plan.md` on lines 11 + 27 — SOUL.md cannot be edited without explicit user approval per §5 (tracked by a follow-up sub-issue). Historical `reports/run-*.md` and earlier `decision-log.md` entries retain old in-repo paths for provenance — not rewriting history.
+> **Path history**: the repo folder `plans/` was renamed to `AI plans/` (2026-04-18), then both `Docs/Plans/` and `AI plans/` were moved to the Obsidian vault (2026-04-25, WEI-71/WEI-72). **Pending**: `SOUL.md` still references `AI plans/main-plan.md` (without the vault prefix) on lines 11 + 27 — SOUL.md cannot be edited without explicit user approval per §5 (tracked by Issue #181). Historical `reports/run-*.md` and earlier `decision-log.md` entries retain old in-repo paths for provenance — not rewriting history.
 
 Project identity and guardrails are in [`SOUL.md`](SOUL.md). The SOUL is immutable for Phase 1 — any change requires a GitHub Issue and explicit user approval.
 
