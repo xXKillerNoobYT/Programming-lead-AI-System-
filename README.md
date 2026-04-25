@@ -12,10 +12,10 @@ A **pure intelligent orchestrator** that plans, delegates, reviews, and ships so
 ## How it works — at a glance
 
 ```
-Designer intent (Docs/Plans/*.md)
+Designer intent (Obsidian vault: $PLANS_VAULT_PATH/Docs/Plans/*.md)
            │
            ▼ decompose
-     AI plans/*.md           ← Claude Code's long-term working plans
+Vault: $PLANS_VAULT_PATH/AI plans/*.md  ← Claude Code's long-term working plans
            │
            ▼ pick one
    GitHub Issues (backlog)   ← the visible to-do list
@@ -56,8 +56,8 @@ No Docker, no containers, no Python venv. Pure local Node 20+.
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | **Start here** — autonomous-lead workflow, heartbeat rules, guardrails |
 | [`SOUL.md`](SOUL.md) | System identity & guardrails (locked) |
-| [`Docs/Plans/`](Docs/Plans/) | User's locked intent (Part 1..7) + [`Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md) (only writable file there) |
-| [`AI plans/`](AI%20plans/) | Claude Code's long-term detailed plans (main-plan, phase-3-plan, phase-4-plan, 5-area-planning-framework) |
+| `$PLANS_VAULT_PATH/Docs/Plans/` | User's locked intent (Part 1–8) + `Dev-Q&A.md` (only writable file there) — in Obsidian vault |
+| `$PLANS_VAULT_PATH/AI plans/` | Claude Code's long-term detailed plans — in Obsidian vault |
 | [`heartbeat.js`](heartbeat.js) | Product runtime — read-only tick logger (v1) |
 | [`dashboard/`](dashboard/) | Next.js 15 App Router UI (React 19 RC, Tailwind) |
 | [`lib/mcp-client.js`](lib/mcp-client.js) | MCP client layer |
@@ -72,6 +72,9 @@ No Docker, no containers, no Python venv. Pure local Node 20+.
   - bash/zsh: `export MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"`
   - PowerShell: `$env:MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"`
 - `.mcp.json` reads this value for the `mempalace` server `--palace` argument. If unset, MemPalace startup will fail.
+- **Planning docs vault**: set `PLANS_VAULT_PATH` to the Obsidian vault project folder (default: `C:\Users\weird\Obsidain\AI CHat & shard Memory\01_projects\Programming-Lead-AI-System`). Plan files (`Docs/Plans/`, `AI plans/`) were moved from this repo to the vault per WEI-71 / WEI-72.
+  - bash/zsh: `export PLANS_VAULT_PATH="/c/Users/weird/Obsidain/AI CHat & shard Memory/01_projects/Programming-Lead-AI-System"`
+  - PowerShell: `$env:PLANS_VAULT_PATH="C:\Users\weird\Obsidain\AI CHat & shard Memory\01_projects\Programming-Lead-AI-System"`
 
 ## Architecture
 
@@ -86,7 +89,7 @@ See [architecture.md](architecture.md). High-level:
 
 ## Contributing
 
-This repo is authored autonomously by Claude Code per [`CLAUDE.md`](CLAUDE.md). Users answer design questions via [`Docs/Plans/Dev-Q&A.md`](Docs/Plans/Dev-Q&A.md) **or** via companion GitHub Issues labeled `type:question` + `status:needs-user`.
+This repo is authored autonomously by Claude Code per [`CLAUDE.md`](CLAUDE.md). Users answer design questions via `$PLANS_VAULT_PATH/Docs/Plans/Dev-Q&A.md` (in the Obsidian vault) **or** via companion GitHub Issues labeled `type:question` + `status:needs-user`.
 
 ## License
 

@@ -163,8 +163,6 @@ function checkNoDockerStrings(repoRoot) {
     const explicitFiles = [path.join(repoRoot, 'heartbeat.js')];
 
     const exemptPrefixes = [
-        path.join(repoRoot, 'Docs') + path.sep,
-        path.join(repoRoot, 'AI plans') + path.sep,
         path.join(repoRoot, 'reports') + path.sep,
     ];
     const selfExempt = selfExemptFiles(repoRoot);
@@ -188,7 +186,7 @@ function checkNoDockerStrings(repoRoot) {
     for (const f of explicitFiles) checkPath(f);
 
     return {
-        name: 'no Docker strings in source (Docs/AI plans/decision-log/reports exempt)',
+        name: 'no Docker strings in source (decision-log/reports exempt)',
         passed: violations.length === 0,
         violations,
     };
@@ -201,7 +199,7 @@ const INVARIANTS = [
         check: checkBackboneTestsNoDashboard,
     },
     {
-        name: 'no Docker strings in source (Docs/AI plans/decision-log/reports exempt)',
+        name: 'no Docker strings in source (decision-log/reports exempt)',
         check: checkNoDockerStrings,
     },
 ];
@@ -217,7 +215,7 @@ function printHelp() {
         'Three invariants enforced:',
         '  1. UI must not import backbone (heartbeat.js / lib/ / root tests/)',
         '  2. Root tests must not reference dashboard/ paths',
-        '  3. No Docker strings in source (Docs/, AI plans/, decision-log.md, reports/ exempt)',
+        '  3. No Docker strings in source (decision-log.md, reports/ exempt)',
         '',
         'Usage:',
         '  node scripts/check-arch.js',

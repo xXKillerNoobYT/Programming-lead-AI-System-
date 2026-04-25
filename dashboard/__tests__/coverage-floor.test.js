@@ -1,7 +1,7 @@
 /**
  * Issue #52 — Phase 3 §A.4: coverage-threshold enforcement.
  *
- * Per `AI plans/phase-3-plan.md` §A.4: "write last-green coverage to
+ * Per vault `AI plans/phase-3-plan.md` §A.4: "write last-green coverage to
  * reports/coverage-floor.json on green; check:coverage-threshold reads
  * it and fails if the current run drops below it by > 1 pp."
  *

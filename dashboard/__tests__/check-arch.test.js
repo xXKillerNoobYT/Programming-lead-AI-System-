@@ -9,7 +9,7 @@
  *      Nothing under root tests/ references dashboard/ paths.
  *   3. No Docker strings sneaking back
  *      No literal "docker-compose", "Dockerfile", or "docker run" under
- *      dashboard/, heartbeat.js, lib/, or root tests/. Docs/, AI plans/,
+ *      dashboard/, heartbeat.js, lib/, or root tests/.
  *      decision-log.md, reports/ are exempt (historical mentions OK).
  */
 
@@ -164,20 +164,10 @@ describe('Issue #54 §A.5 — invariant 3: no Docker strings in source', () => {
         }
     });
 
-    it('exempts Docs/, AI plans/, decision-log.md, reports/ from the Docker check', () => {
+    it('exempts decision-log.md, reports/ from the Docker check', () => {
         const sandbox = mkSandbox();
         try {
-            mkdirSync(path.join(sandbox, 'Docs'), { recursive: true });
-            mkdirSync(path.join(sandbox, 'AI plans'), { recursive: true });
             mkdirSync(path.join(sandbox, 'reports'), { recursive: true });
-            writeFileSync(
-                path.join(sandbox, 'Docs', 'note.md'),
-                'historical: docker-compose was removed pre-D-005',
-            );
-            writeFileSync(
-                path.join(sandbox, 'AI plans', 'old.md'),
-                'docker run is mentioned here for context',
-            );
             writeFileSync(
                 path.join(sandbox, 'decision-log.md'),
                 '| D-X | docker-compose deletion |',
