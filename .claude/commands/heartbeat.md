@@ -10,12 +10,12 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 
 1. **Orient (Step 1)** — read state in parallel:
    - `git status` and `git log --oneline -10`
-   - `AI plans/main-plan.md` for current phase
+   - `$PLANS_VAULT_PATH/AI plans/main-plan.md` for current phase
    - `gh issue list --state open --limit 20`
    - the most recent `reports/run-*-summary.md` for continuity
    - the last ~5 entries in `decision-log.md`
    - `memory.md` for durable observations
-   - `Docs/Plans/Dev-Q&A.md` for new user answers (CLAUDE.md §4b)
+   - `$PLANS_VAULT_PATH/Docs/Plans/Dev-Q&A.md` for new user answers (CLAUDE.md §4b)
 
 2. **Pick ONE atomic task (Step 2, softened oldest-first per D-20260417-014)** in this priority order:
    1. an in-progress Issue — continue it
@@ -23,7 +23,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
    3. the oldest open `status:backlog` Issue, **unless** a newer Issue is a blocker or advances the core backbone while backlog is all housekeeping
    4. if plans are exhausted, summarize and stop
 
-3. **Keep backlog ≥ 3 (Step 2b)** — if fewer than 3 `status:backlog` Issues remain, decompose `AI plans/main-plan.md` into new Issues (use `gh issue edit --add-parent` / sub-issues where applicable, per D-20260417-018).
+3. **Keep backlog ≥ 3 (Step 2b)** — if fewer than 3 `status:backlog` Issues remain, decompose `$PLANS_VAULT_PATH/AI plans/main-plan.md` into new Issues (use `gh issue edit --add-parent` / sub-issues where applicable, per D-20260417-018).
 
 4. **Consult prior decisions (Step 3)** — search `decision-log.md` for relevant `D-YYYYMMDD-###` entries; reuse them rather than re-asking.
 
@@ -40,7 +40,7 @@ Execute **one tick** of the Polsia-style heartbeat loop as the autonomous progra
 10. **Close Issue(s)** — per CLAUDE.md §6 "Run-complete ↔ Issue-close pairing": every decision-log entry marking a Run complete MUST close the corresponding GH Issue(s) via `gh issue close` with a comment citing the Decision ID + run report path.
 
 ## Hard stops (CLAUDE.md §5 — NEVER without explicit user approval)
-Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip hooks · modify `Docs/Plans/*` (except `Dev-Q&A.md`) · modify `SOUL.md` · publish to external services · close GH Issues you did not resolve · add Docker / containers / Python venvs · chat-platform messaging.
+Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip hooks · modify vault `Docs/Plans/*` (except `Dev-Q&A.md`) · modify `SOUL.md` · publish to external services · close GH Issues you did not resolve · add Docker / containers / Python venvs · chat-platform messaging.
 
 ## One tick, one task
 Do not start multiple Issues in a single tick. If the chosen Issue is too large, open child sub-Issues (`gh api graphql` `addSubIssue` mutation, per D-20260417-018) and pick a leaf. Finish → close → report → commit, then end the tick.

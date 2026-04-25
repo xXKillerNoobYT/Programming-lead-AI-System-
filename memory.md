@@ -9,4 +9,4 @@
 ## Usage
 Lead queries on every heartbeat for context grounding.
 
-See [AI plans/main-plan.md](AI%20plans/main-plan.md) for full integration.
+See `$PLANS_VAULT_PATH/AI plans/main-plan.md` for full integration (plan files are in the Obsidian vault, not this repo).

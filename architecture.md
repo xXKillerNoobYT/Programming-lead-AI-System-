@@ -51,7 +51,7 @@ report instead of crashing the loop.
 - Hourly Grok escalation
 
 Each of these is a future atomic Issue off the core-backbone plan. See
-`AI plans/main-plan.md` for phase-level grouping and GitHub Issues for the
+`$PLANS_VAULT_PATH/AI plans/main-plan.md` for phase-level grouping and GitHub Issues for the
 current ready-to-go queue.
 
 ---
@@ -89,8 +89,8 @@ graph TD
 - **State**: Shared DB + cloud storage in Phase 3+; local filesystem reports
   for v0.
 - **UI**: Three-tab Next.js dashboard for transparent monitoring (see
-  `Docs/Plans/Part 6 UI Master Plan.md`; current prototype is a wireframe
+  `Part 6 UI Master Plan.md` in the Obsidian vault; current prototype is a wireframe
   tracked in epic Issue #19).
 
-Details in [`AI plans/main-plan.md`](AI%20plans/main-plan.md) and
-[`Docs/Plans/`](Docs/Plans/) (Parts 1-6).
+Details in the Obsidian vault: `$PLANS_VAULT_PATH/AI plans/main-plan.md` and
+`$PLANS_VAULT_PATH/Docs/Plans/` (Parts 1–8). See CLAUDE.md §1a for vault location.

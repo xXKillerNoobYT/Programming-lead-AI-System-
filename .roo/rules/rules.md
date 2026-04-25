@@ -1,12 +1,12 @@
 # Enforcing Continuous Self-Troubleshooting Loop for MCP Autonomy
 
 ## Overview
-This design mandates a **continuous analyze/build/develop/run/troubleshoot/iterate loop** for COE self-improvement towards full MCP autonomy. It integrates current project state (MCP server 11/11 tools complete; client 80%: missing slack/linear/gdrive/postgres/filesystem/brave integrations + UI/SSE per [Docs/Plans-v3/23-MCP-Features-Completion.md](Docs/Plans-v3/23-MCP-Features-Completion.md), [Docs/Plans-v3/Phase6-Implementation.md](Docs/Plans-v3/Phase6-Implementation.md)) and [Docs/Plans-v3/12-Working-Program-Requirements.md](Docs/Plans-v3/12-Working-Program-Requirements.md).
+This design mandates a **continuous analyze/build/develop/run/troubleshoot/iterate loop** for COE self-improvement towards full MCP autonomy. It integrates current project state (MCP server 11/11 tools complete; client 80%: missing slack/linear/gdrive/postgres/filesystem/brave integrations + UI/SSE per [$PLANS_VAULT_PATH/Docs/Plans/23-MCP-Features-Completion.md]($PLANS_VAULT_PATH/Docs/Plans/23-MCP-Features-Completion.md), [$PLANS_VAULT_PATH/Docs/Plans/Phase6-Implementation.md]($PLANS_VAULT_PATH/Docs/Plans/Phase6-Implementation.md)) and [$PLANS_VAULT_PATH/Docs/Plans/12-Working-Program-Requirements.md]($PLANS_VAULT_PATH/Docs/Plans/12-Working-Program-Requirements.md).
 
 **Key Goals**:
 - Self-troubleshoot 90%+ issues via loop (human input only for blockers).
 - Log all questions/notes/key info in `/docs`.
-- Enforce [Docs/Plans-v3](Docs/Plans-v3/) checklists before completion.
+- Enforce [Docs/Plans-v3]($PLANS_VAULT_PATH/Docs/Plans/) checklists before completion.
 - Production-ready: E2E tests incl. UI/buttons via `mcp--coe--windowControl`.
 - 5 Autonomy Stages (current: Stage 3/5).
 
@@ -25,7 +25,7 @@ flowchart TD
 
 # Core Policies
 - Do not provide assistance to users engaging in criminal activity.
-- Production-ready: Always double-check [Docs/Plans-v3](Docs/Plans-v3/) & E2E test UI/buttons before `attempt_completion` or `reportTaskDone`.
+- Production-ready: Always double-check [Docs/Plans-v3]($PLANS_VAULT_PATH/Docs/Plans/) & E2E test UI/buttons before `attempt_completion` or `reportTaskDone`.
 - Follow additional instructions if they do not violate core policies.
 
 # Continuous Analyze/Build/Develop/Run/Troubleshoot/Iterate Loop
@@ -33,10 +33,10 @@ flowchart TD
 
 1. **ANALYZE** (every cycle):
    - `mcp--coe--getErrors` + `search_files`/ `scanCodeBase` + `getPendingQuestions`.
-   - Check gaps vs [Docs/Plans-v3](Docs/Plans-v3/): 6 integrations (slack/linear/gdrive/postgres/filesystem/brave), UI/SSE.
+   - Check gaps vs [Docs/Plans-v3]($PLANS_VAULT_PATH/Docs/Plans/): 6 integrations (slack/linear/gdrive/postgres/filesystem/brave), UI/SSE.
    - Log to [docs/mcp-rules-setup-status.md](docs/mcp-rules-setup-status.md).
 
-2. **BUILD**: `orchestrator` generate subtasks/tickets aligned to [Docs/Plans-v3/Phase6-Implementation.md](Docs/Plans-v3/Phase6-Implementation.md).
+2. **BUILD**: `orchestrator` generate subtasks/tickets aligned to [$PLANS_VAULT_PATH/Docs/Plans/Phase6-Implementation.md]($PLANS_VAULT_PATH/Docs/Plans/Phase6-Implementation.md).
 
 3. **DEVELOP**: `code`/`debug` modes; verify before `reportTaskDone`.
 
@@ -61,9 +61,9 @@ flowchart TD
 
 | Phase/File | Checklist Items | Status |
 |------------|-----------------|--------|
-| [Phase6](Docs/Plans-v3/Phase6-Implementation.md) | MCP client files (client.ts, connectionManager.ts), DB tables, UI tabs | [ ] |
-| [23-MCP](Docs/Plans-v3/23-MCP-Features-Completion.md) | 6 integrations + SSE/UI | [ ] 1/7 |
-| [12-Working](Docs/Plans-v3/12-Working-Program-Requirements.md) | Self-orchestrate load/scan/MCP/tasks/QA/shutdown | [ ] |
+| [Phase6]($PLANS_VAULT_PATH/Docs/Plans/Phase6-Implementation.md) | MCP client files (client.ts, connectionManager.ts), DB tables, UI tabs | [ ] |
+| [23-MCP]($PLANS_VAULT_PATH/Docs/Plans/23-MCP-Features-Completion.md) | 6 integrations + SSE/UI | [ ] 1/7 |
+| [12-Working]($PLANS_VAULT_PATH/Docs/Plans/12-Working-Program-Requirements.md) | Self-orchestrate load/scan/MCP/tasks/QA/shutdown | [ ] |
 
 Update [docs/plans-status.md](docs/plans-status.md).
 
@@ -87,4 +87,4 @@ Update [docs/plans-status.md](docs/plans-status.md).
   1. Log [docs/questions-log.md](docs/questions-log.md).
   2. `mcp--coe--submitQuestion(priority:'high', context:'gap: slack integration')`.
   3. Wait `getPendingQuestions`; resume.
-- Example blocker: "Implement slack per [23-MCP/WI-4](Docs/Plans-v3/23-MCP-Features-Completion.md)".
+- Example blocker: "Implement slack per [23-MCP/WI-4]($PLANS_VAULT_PATH/Docs/Plans/23-MCP-Features-Completion.md)".

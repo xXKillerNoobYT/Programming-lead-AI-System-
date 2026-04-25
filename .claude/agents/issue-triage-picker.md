@@ -30,7 +30,7 @@ Apply CLAUDE.md §3 Step 2 (as amended by D-014 and D-018) **exactly**:
    - Default: oldest `status:backlog` Issue by `createdAt` ascending
    - Deviate when (a) user explicitly redirects, (b) a newer Issue is an active blocker for older work, OR (c) a newer Issue directly advances the **core backbone** (`heartbeat.js`, `lib/mcp-client.js`, MCP orchestrator, branch/agent management) while the older queue is entirely housekeeping/meta-work — the end-goal overrides age
    - If you deviate, name the condition explicitly in your output
-4. **Decompose from `AI plans/*.md`** — if the backlog is empty, read `AI plans/main-plan.md` (or the current phase plan) and write the next atomic Issue
+4. **Decompose from vault plans** — if the backlog is empty, read `$PLANS_VAULT_PATH/AI plans/main-plan.md` (or the current phase plan) and write the next atomic Issue
 5. **Plans exhausted** — summarise progress, recommend opening an Issue requesting user direction, stop
 
 ### Leaf vs. oldest
