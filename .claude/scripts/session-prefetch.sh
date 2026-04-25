@@ -87,10 +87,11 @@ DASH_INSTALL_LOG="$(prefetch_install '[dashboard/]' "$REPO_ROOT/dashboard" --leg
   echo '```'
   echo
   echo "## Dev-Q&A.md — Open Questions"
-  if [ -f "$REPO_ROOT/Docs/Plans/Dev-Q&A.md" ]; then
-    (cd "$REPO_ROOT" && awk '/^## Open Questions/,/^---/' 'Docs/Plans/Dev-Q&A.md' 2>/dev/null | head -80)
+  VAULT_PATH="${PLANS_VAULT_PATH:-/c/Users/weird/Obsidain/AI CHat & shard Memory/01_projects/Programming-Lead-AI-System}"
+  if [ -f "$VAULT_PATH/Docs/Plans/Dev-Q&A.md" ]; then
+    awk '/^## Open Questions/,/^---/' "$VAULT_PATH/Docs/Plans/Dev-Q&A.md" 2>/dev/null | head -80
   else
-    echo "_(Docs/Plans/Dev-Q&A.md not found)_"
+    echo "_($VAULT_PATH/Docs/Plans/Dev-Q&A.md not found)_"
   fi
 } > "$OUT" 2>&1
 
