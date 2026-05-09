@@ -16,7 +16,7 @@ A code-bearing change reaches production only by clearing all four (1–3 for me
 | 3 | **Release gate** | R6 DevOps / Release | `release-gate:cut tag=<vX.Y.Z> ci=<run-url>` (in release commit/tag message) | R6 may hold any tag; cleared by R6 or CTO |
 | 4 | **Security gate** | R5 Security / Reliability | `sec-gate:approved sev=<none\|3> …` or `sec-veto:hold sev=<1\|2> finding=<id> evidence=<link>` (in PR review body) + `sec-gate:cleared tag=…` on release | R5 standing veto on Sev≥2; cleared by R5 re-review or CTO+CEO joint override (Sev2 only — Sev1 fix-forward only). See `docs/specs/r5-security-veto-protocol.md`. |
 
-### Why three independent gates (not a chain)
+### Why four independent gates (not a chain)
 
 - **Spec gate** asks "is this the right change?" — R3 authored the spec, R2 mechanically checks the PR matches.
 - **QA gate** asks "does it break under hostile use?" — independent of spec compliance; a spec-correct PR can still ship a vulnerability.
@@ -38,10 +38,12 @@ When WEI-611's spec-gate bot (and its R5 sibling) lands, items 1–2 and 4 becom
 
 ## Cross-gate escalation
 
-Conflicts between gate-holders go to the CTO. The CTO writes a decision-log entry (`D-YYYYMMDD-###`) with:
+Conflicts between gate-holders 1–3 go to the CTO. The CTO writes a decision-log entry (`D-YYYYMMDD-###`) with:
 - Which gates conflicted.
 - Which gate prevails for this case.
 - Which precedent (if any) is established.
+
+Conflicts involving gate 4 (R5 security) follow `docs/specs/r5-security-veto-protocol.md`: Sev1 findings are fix-forward only (no override path); Sev2 findings can be overridden only by a CTO+CEO joint decision-log entry naming a compensating control; Sev3 findings are advisory and do not block merge.
 
 Repeated overrides of the same gate are themselves a Sev2 process bug — the offended gate-holder files an Issue against the org structure.
 
