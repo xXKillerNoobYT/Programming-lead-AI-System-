@@ -51,7 +51,7 @@ Independence rule: R6 never reports to R2 or R4. Three parallel gates: spec (R2)
 
 - Code review (R2 / Reviewer specialist).
 - QA sign-off (R4).
-- Security findings (R5 — not yet activated; R6 forwards security-flavored CI failures to CTO until R5 lands).
+- Security findings (R5 — **active per WEI-716** under `docs/specs/r5-security-veto-protocol.md`; R6 forwards security-flavored CI failures to R5, not CTO). Forwarding contract: when a security-flavored failure class is detected (scanner names matching `gitleaks|trufflehog|snyk|npm-audit|codeql|semgrep|dep-scan|sast|secret-scan`, or any CI job emitting a CVSS ≥ 7.0 finding), R6 (a) tags the originating Issue with `area:security`, (b) attaches the CI run URL + log excerpt as evidence, (c) wakes R5 via assignment/comment. R6 does **not** classify Sev — that authority is R5's per protocol §2. R6 does **not** auto-clear the release gate while a `sec-veto:hold` is live; release-tag attempts in that state hard-fail per protocol §4 (`sec-gate:cleared` restamp required).
 
 ## Reporting
 
