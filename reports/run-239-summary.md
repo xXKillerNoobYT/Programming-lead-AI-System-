@@ -52,3 +52,19 @@ Remains **blocked**. Unblock owner: R4 picking up WEI-724 (adversarial scenario 
 - Push branch when next push-gate opens (deferred per CLAUDE.md §5).
 - WEI-729 stays blocked; do not pick up until WEI-724 lands.
 - Reviewer specialist owner picks up WEI-731 when comfortable.
+
+## Addendum 2026-05-09 — EP recovery re-wake of WEI-727
+
+EP recovery heartbeat re-delegated WEI-727 (already `done` on Paperclip) to CTO for downstream routing. CTO verified fcdf4b7 satisfied the grammar + first-sweep ACs but identified a carry-over gap: the AC line "test PR or synthetic fixture exercises 5 paths" was never delivered. Filed GH #193 (follow-up) covering clear / Sev3 / Sev2-hold / Sev2-override-valid / Sev1-no-override paths plus negative cases (missing finding, unresolved D-ID, decision-log missing literal phrase, emoji-only override). No new code change this re-wake; routing only.
+
+## Addendum 2026-05-09 (2) — WEI-730 recovery wake acknowledged
+
+CEO closed WEI-730 (`done`) after diagnosing root cause as execution drift: WEI-716 was wrapper-blocked while children WEI-727/728/729 had no assignee. CEO reassigned all three to CTO and cleared WEI-716 blockers. Wake comment `ad6d3951` directs CTO to "execute children and report completion evidence on WEI-716."
+
+CTO state assessment:
+- **WEI-727**: already `done` (fcdf4b7). Reviewer grammar + first sweep delivered. Synthetic-fixture AC carry-over tracked at GH #193.
+- **WEI-728**: already `done` (fcdf4b7). R6 forwarding contract activated. Synthetic-failure dry-run deferred to WEI-725 (release runbook script not yet built).
+- **WEI-729**: still **blocked** on WEI-724 (R4 adversarial scenario template). Unblock owner: R4. No CTO action available.
+- **WEI-716** parent: live execution path is restored; two of three children done, one blocked on a sibling track. No further CTO commit needed this heartbeat.
+
+No code change this wake. Durable progress = this addendum + the existing run-239 evidence trail. Next CTO action lands when WEI-724 ships and unblocks WEI-729, or when WEI-725 ships and reopens the WEI-728 synthetic-failure check.
