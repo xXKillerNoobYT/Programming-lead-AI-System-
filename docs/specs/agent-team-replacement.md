@@ -121,7 +121,9 @@ Outside WEI-633's scope but referenced (governed by WEI-715/716):
 - `r5-security-reliability/AGENTS.md` — Security gate (commit `53b761d`).
 - `r6-devops-release/AGENTS.md` — Release gate (commit `ee0c31f`; routing updated `fcdf4b7`).
 
-### 2.4 Budget envelope
+### 2.4 Budget envelope (r1 spec → r2 deployed reality)
+
+**Spec target (r1, claude_local Sonnet/Opus):**
 
 | Agent | Heartbeat | Budget/mo |
 |---|---|---|
@@ -130,9 +132,24 @@ Outside WEI-633's scope but referenced (governed by WEI-715/716):
 | Coder-Backend | wake-on-demand only | $40 |
 | Tester | wake-on-demand only | $20 |
 | Reviewer | wake-on-demand only | $20 |
-| **Total** | | **$150/mo** |
+| **Spec total** | | **$150/mo** |
 
-Budget controls scaffold (#189) gates this. If burn-rate exceeds the envelope, DevLead pauses specialists and pages CTO.
+**Deployed reality (r2, codex_local gpt-5.3-codex per CEO/operator choice 2026-05-10):**
+
+| Agent | Paperclip ID | Adapter / model | Budget/mo |
+|---|---|---|---|
+| DevLead Programming Lead | _not created — orchestration is a CTO function via `scripts/devlead-route.js` (L9, commit `9ca2da4`)_ | — | $0 |
+| Coder-Frontend Specialist | `9769380d-f550-4967-98df-b2b4a1b10d6e` | codex_local / gpt-5.3-codex | $30 |
+| Coder-Backend Specialist | `d7edb4d2-edec-4ffe-b4b1-dbe7b507e2b1` | codex_local / gpt-5.3-codex | $30 |
+| Tester Specialist | `1c95405c-845c-447a-9734-9af294520077` | codex_local / gpt-5.3-codex | $25 |
+| Reviewer Specialist | `e7619d0d-175f-430d-9337-06e16c8a0cbe` | codex_local / gpt-5.3-codex | $25 |
+| **Deployed total** | | | **$110/mo** |
+
+Net **$40/mo under spec envelope**. The DevLead seat was inlined into the CTO role + a routing script rather than a separate agent — reduces budget and keeps orchestration auditable through the CTO's existing run log. Worth re-evaluating after the L11 trial: if the routing volume warrants it, spin up a dedicated DevLead seat at the originally specced $30 (still leaves ~$10 headroom).
+
+**Adapter substitution caveat:** the AGENTS.md operating contract was authored assuming Claude. Codex (gpt-5.3-codex) may interpret some instructions differently. The L11 trial should track contract-fidelity issues per agent (e.g., does Codex respect "request-changes with at most 5 issues per round"? Does it cite Decision IDs in commit messages?). If contract drift is high, switch back to claude_local — budget stays under spec either way.
+
+Budget controls scaffold (GH #189) is the long-term enforcement; until it lands, manual review of `spentMonthlyCents` per agent each week (CTO weekly self-update — see §provenance comment thread).
 
 ---
 
