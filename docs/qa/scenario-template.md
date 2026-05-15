@@ -46,6 +46,59 @@ Attempts to access or modify data without proper authorization context.
 - Cross-tab session confusion (logged-in tab A vs. logged-out tab B)
 - Replaying stale session data after logout
 
+## 3a. Injection & Execution Payloads (Sev1–Sev2)
+
+> _Added per R5 review on [WEI-724](/WEI/issues/WEI-724) — gaps in adversarial coverage for security-severity classes._
+
+Targeted payloads that probe for code execution, server-side request forgery, path traversal, and injection beyond the generic hostile-input checks in §2.
+
+- **Command injection (Sev1)**: shell metacharacters in any user-controlled string that reaches `exec`, `spawn`, `execSync`, or similar (`; rm -rf /`, `` `id` ``, `$(whoami)`, `| cat /etc/passwd`)
+- **RCE / code execution (Sev1)**: payloads targeting `eval`, `Function()`, `vm.runInNewContext`, template engines, or deserialization (`__proto__` pollution, `constructor.constructor`)
+- **SSRF (Sev1)**: user-supplied URLs or hostnames that resolve to internal services (`http://169.254.169.254/`, `http://localhost:3000/admin`, `file:///etc/passwd`, DNS-rebind hostnames)
+- **Path traversal (Sev1)**: relative paths escaping intended directories (`../../etc/passwd`, `..%2f..%2f`, null-byte injection `file.txt%00.png`, UNC paths on Windows `\\server\share`)
+- **Authenticated injection (Sev2)**: SQL, NoSQL, LDAP, or GraphQL injection from an authenticated session — tests that auth context does not exempt input from sanitization
+- **Authorization-boundary containment (Sev2)**: horizontal privilege escalation (user A accessing user B's data), vertical escalation (non-admin reaching admin endpoints), cross-tenant data leakage
+
+## 3b. Destructive Operations Without Confirmation (Sev1)
+
+Operations that destroy, overwrite, or irreversibly mutate state must require an explicit confirmation gate.
+
+- **Delete without confirm**: triggering delete endpoints/buttons with no confirmation dialog or undo window
+- **Force-push / hard-reset without gate**: programmatic `git push --force`, `git reset --hard`, `rm -rf` on user data without approval prompt
+- **Bulk mutation without preview**: batch-update or batch-delete APIs that accept unbounded input with no dry-run or confirmation step
+- **Irreversible state transition**: moving an entity to a terminal state (closed, archived, purged) with no reversal path and no confirmation
+
+## 3c. Dependency CVE Coverage (Sev2–Sev3)
+
+Verify that known-vulnerable dependencies do not ship in the changed surface.
+
+- **Critical/high direct dependency CVE (Sev2)**: `npm audit --audit-level=high` flags zero critical/high findings in direct dependencies for the changed package
+- **Transitive dependency CVE (Sev2)**: `npm audit` transitive critical/high findings have mitigations documented or pinned overrides in place
+- **Medium-tier dependency CVE tracking (Sev3)**: medium-severity findings are catalogued in a tracking issue or suppressed with documented rationale — not silently ignored
+
+## 3d. Secret & Credential Leakage (Sev1)
+
+> _Added per R5 re-review on [WEI-724](/WEI/issues/WEI-724) / [WEI-729](/WEI/issues/WEI-729) — explicit Sev1 coverage for secrets appearing in any output or artifact._
+
+Verify that credentials, API keys, tokens, session cookies, private config values, and user secrets do not leak through any output surface. For each changed surface, search all relevant outputs and artifacts for full or partial secret values.
+
+- **UI rendering**: component output, page source, DOM attributes, `data-*` fields, tooltips, placeholder text, debug panels, or any visible text that contains or echoes a secret value
+- **API responses**: JSON/HTML response bodies, response headers (e.g., `Set-Cookie` with secrets in query strings, `Location` redirects embedding tokens), GraphQL error extensions
+- **Logs and telemetry**: application logs (`console.log`, structured log output, heartbeat logs), telemetry/analytics payloads, performance traces, and crash reporters — check for secrets in interpolated strings, request/response dumps, and error context objects
+- **Reports and screenshots**: run reports, QA adversary reports, audit JSON, CI artifacts, and any screenshots or screen recordings attached to issues — redact or omit secret values before capture
+- **Error messages**: stack traces, validation errors, and user-facing error text that may interpolate config values, connection strings, internal paths with embedded credentials, or token fragments
+- **Local/session storage**: `localStorage`, `sessionStorage`, IndexedDB, cookies — secrets must not be persisted in browser-accessible storage unless encrypted or scoped to a secure, httpOnly cookie
+- **Persisted artifacts**: committed files (`.env`, config with inline secrets, seed data), generated reports, audit logs on disk, database rows, and any artifact that survives the session — verify no plaintext secret values are written
+
+## 3e. Defense-in-Depth & Observability (Sev3)
+
+Hardening layers and audit evidence that reduce blast radius even when primary controls hold.
+
+- **Security headers**: responses include `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Strict-Transport-Security`, `X-Frame-Options` (or frame-ancestors CSP) where applicable
+- **Observability / audit trail**: security-relevant actions (login, permission change, data deletion, failed auth) emit structured log entries with actor, action, target, and timestamp
+- **Error-message information leakage**: error responses do not expose stack traces, internal paths, dependency versions, or database schema details to unauthenticated callers
+- **Rate limiting / abuse prevention**: endpoints accepting unauthenticated input enforce rate limits or CAPTCHA to bound automated abuse
+
 ## 4. Race Conditions
 
 Concurrent or overlapping actions that may produce inconsistent state.
@@ -76,7 +129,7 @@ Each executed scenario is recorded as:
 ```markdown
 ### QA-YYYYMMDD-NNN — Short title
 
-- **Category**: Inputs | Hostile inputs | Auth bypass | Race conditions | Storage corruption
+- **Category**: Inputs | Hostile inputs | Auth bypass | Injection & execution | Destructive ops | Secret leakage | Dependency CVE | Defense-in-depth | Race conditions | Storage corruption
 - **Reproducer**:
   1. Step one
   2. Step two
