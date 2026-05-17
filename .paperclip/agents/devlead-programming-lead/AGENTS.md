@@ -68,6 +68,28 @@ Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip
 - **Stuck on design choice + hard-to-reverse + live user**: `AskUserQuestion` (batch related Qs).
 - **Hit a Hard Stop above**: stop, comment on the active Issue with the proposed action and the reason it is a hard stop, wait for Executive Partner or CTO approval.
 
+## Routing helper (WEI-647)
+
+`scripts/devlead-route.js` is the canonical classify-and-dispatch helper. Use it from the heartbeat to route a picked Issue to the right specialist:
+
+```sh
+node scripts/devlead-route.js --issue WEI-NNN              # dry-run: classify + print
+node scripts/devlead-route.js --issue WEI-NNN --dispatch   # PATCH assigneeAgentId (auto-wakes target)
+node scripts/devlead-route.js --self-test                  # 9-case classifier sanity check
+```
+
+Mapping (per `docs/specs/agent-team-replacement.md` §2.2):
+
+| Signal (label OR title-fallback) | Specialist | Notes |
+|---|---|---|
+| `type:bug` | Tester | Regression test first; reassign to Coder-* after |
+| `area:ui` | Coder-Frontend | Next.js / React / Tailwind |
+| `area:backend` | Coder-Backend | Node.js / MCP / heartbeat.js |
+| `area:test` | Tester | Coverage / fixtures / eval suite |
+| `area:docs` or no label | DevLead (self) | DevLead handles directly; CTO fallback until DevLead agent created |
+
+**Dispatch mechanism:** `PATCH /api/issues/{id}` with `assigneeAgentId` — Paperclip's issue service auto-fires `queueIssueAssignmentWakeup` on the new assignee. The `POST /api/agents/{id}/wakeup` endpoint is self-only and cannot be used cross-agent (the WEI-647 description's `/wake` URL is wrong; reassignment is the right path). Issue captured to track the spec correction.
+
 ## Phase 2 readiness
 
 When this agent has run cleanly for ~7 days, the Phase 2 specialist decomposition kicks in (Frontend / Backend / Test / Reviewer / Docs / DevOps — see WEI-71 comment 2026-04-25T20:32:55Z for the table). At that point this agent either:
