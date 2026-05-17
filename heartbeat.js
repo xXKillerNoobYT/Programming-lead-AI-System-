@@ -64,7 +64,14 @@ function parseIssueCounts(ghJson) {
     let backlog = 0;
     let inProgress = 0;
     for (const issue of issues) {
-        const names = (issue.labels || []).map((l) => l.name);
+        const labels = Array.isArray(issue.labels) ? issue.labels : [];
+        const names = labels
+            .map((label) => {
+                if (typeof label === 'string') return label;
+                if (label && typeof label.name === 'string') return label.name;
+                return null;
+            })
+            .filter(Boolean);
         if (names.includes('status:in-progress')) inProgress += 1;
         else if (names.includes('status:backlog')) backlog += 1;
     }
