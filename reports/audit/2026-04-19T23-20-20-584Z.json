@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-04-19T23:20:20.584Z",
+  "writer": {
+    "name": "heartbeat.js",
+    "version": "v1"
+  },
+  "state": {
+    "timestamp": "2026-04-19T23:20:20.584Z",
+    "git": {
+      "branch": "issue-139/retry-backoff",
+      "sha": "bff57e1"
+    },
+    "issues": {
+      "backlog": 32,
+      "inProgress": 2,
+      "total": 35,
+      "parseError": false
+    },
+    "latestRun": {
+      "filename": "run-209-summary.md",
+      "headline": "Run 209 — Session closeout: compaction-recovery + PR #94/#95 supersession mis-close captured"
+    },
+    "recentDecisions": [
+      "D-20260419-038",
+      "D-20260419-037",
+      "D-20260419-036"
+    ],
+    "mcpStatus": {
+      "connected": [],
+      "failed": [],
+      "skipped": []
+    },
+    "mcpObservations": {},
+    "cohesionGate": null
+  },
+  "filesTouched": [
+    "C:\\Users\\weird\\.GitHub\\Programming-lead-AI-System-\\reports\\heartbeat-tick-2026-04-19T23-20-20-584Z.md"
+  ]
+}

@@ -1,17 +1,17 @@
 ---
 name: post-dev-qa
-description: Post a new design question to Docs/Plans/Dev-Q&A.md when a design decision blocks work but the heartbeat can keep moving on other Issues. Use whenever a heartbeat hits a blocking design decision that cannot be safely auto-resolved and no live user session is active. Writes a correctly-formatted Q-YYYYMMDD-### block into the "Open Questions" section and updates the run report.
+description: Post a new design question to $PLANS_VAULT_PATH/Docs/Plans/Dev-Q&A.md when a design decision blocks work but the heartbeat can keep moving on other Issues. Use whenever a heartbeat hits a blocking design decision that cannot be safely auto-resolved and no live user session is active. Writes a correctly-formatted Q-YYYYMMDD-### block into the "Open Questions" section and updates the run report.
 ---
 
 # post-dev-qa
 
-Post an async design question to `Docs/Plans/Dev-Q&A.md` per CLAUDE.md §4b.
+Post an async design question to `$PLANS_VAULT_PATH/Docs/Plans/Dev-Q&A.md` per CLAUDE.md §4b.
 
 ## When to use
 
 Use when ALL of the following are true:
 - A design decision is blocking at least one Issue
-- The answer is not in `Docs/Plans/Part *.md`, `decision-log.md`, `architecture.md`, `memory.md`, or the code
+- The answer is not in the vault's `Docs/Plans/Part *.md`, `decision-log.md`, `architecture.md`, `memory.md`, or the code
 - Two or more reasonable defaults exist AND the choice is hard to reverse
 - No live user session is available right now (if one is, prefer `AskUserQuestion` per CLAUDE.md §4a)
 
@@ -22,7 +22,7 @@ Do NOT use for:
 
 ## How to use
 
-1. **Pick the next Q-ID.** Read `Docs/Plans/Dev-Q&A.md`. Scan all existing `Q-YYYYMMDD-###` headers; pick the next free `###` for today's date. Reset to 001 each new day. Q-IDs are independent of D-IDs — don't try to align.
+1. **Pick the next Q-ID.** Read `$PLANS_VAULT_PATH/Docs/Plans/Dev-Q&A.md`. Scan all existing `Q-YYYYMMDD-###` headers; pick the next free `###` for today's date. Reset to 001 each new day. Q-IDs are independent of D-IDs — don't try to align.
 
 2. **Write the entry** at the bottom of the "Open Questions" section, using this exact template:
 
