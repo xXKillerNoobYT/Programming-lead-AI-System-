@@ -20,7 +20,10 @@ describe('Issue #24 leaf — TopBar (48px) with 6 stubs', () => {
 
     it('renders the heartbeat indicator', () => {
         render(<TopBar projectId="devlead-mcp" tab="coding" />);
-        expect(screen.getByLabelText('heartbeat status')).toBeInTheDocument();
+        const status = screen.getByLabelText('heartbeat status');
+        expect(status).toBeInTheDocument();
+        expect(status).toHaveAttribute('aria-live', 'polite');
+        expect(status).toHaveTextContent('Heartbeat idle');
     });
 
     it('renders the pause button', () => {
