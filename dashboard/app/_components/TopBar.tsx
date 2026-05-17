@@ -28,11 +28,12 @@ export function TopBar({ projectId, tab }: TopBarProps): ReactElement {
             <div className="ml-auto flex items-center gap-1">
                 <span
                     aria-label="heartbeat status"
+                    aria-live="polite"
                     title="heartbeat idle (stub)"
                     className="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-900"
                 >
                     <span className="w-2 h-2 rounded-full bg-green-500" aria-hidden />
-                    <span className="text-xs text-gray-400">idle</span>
+                    <span className="text-xs text-gray-400">Heartbeat idle</span>
                 </span>
 
                 <button
