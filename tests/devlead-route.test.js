@@ -45,6 +45,17 @@ test('title-encoded area:ui classifies when labels[] empty', () => {
   assert.equal(r.specialist, 'Coder-Frontend');
 });
 
+test('title-encoded area:backend classifies when labels[] empty', () => {
+  const r = classify({ labels: [], title: 'area:backend — MCP route cleanup' });
+  assert.equal(r.specialist, 'Coder-Backend');
+});
+
+test('title-encoded type:bug keeps regression-test priority when labels[] empty', () => {
+  const r = classify({ labels: [], title: 'type:bug area:backend — heartbeat crash' });
+  assert.equal(r.specialist, 'Tester');
+  assert.match(r.reason, /regression test/);
+});
+
 test('description prose alone does NOT classify (avoids self-match on docs)', () => {
   // An issue that describes the routing table in its body must not classify itself.
   const r = classify({ labels: [], title: 'L9: orchestrator routing', description: 'Mapping: area:ui -> Coder-Frontend; type:bug -> Tester' });
