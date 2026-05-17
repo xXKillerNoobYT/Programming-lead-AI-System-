@@ -82,6 +82,25 @@ describe('parseIssueCounts', () => {
         const c = parseIssueCounts('[]');
         assert.deepEqual(c, { backlog: 0, inProgress: 0, total: 0, parseError: false });
     });
+
+    test('handles string label entries without throwing', () => {
+        const json = JSON.stringify([
+            { number: 1, labels: ['status:backlog'] },
+            { number: 2, labels: ['status:in-progress'] },
+        ]);
+        const c = parseIssueCounts(json);
+        assert.deepEqual(c, { backlog: 1, inProgress: 1, total: 2, parseError: false });
+    });
+
+    test('ignores malformed labels without failing the whole parse', () => {
+        const json = JSON.stringify([
+            { number: 1, labels: null },
+            { number: 2, labels: [{ name: 'status:backlog' }, {}, { name: 42 }] },
+            { number: 3, labels: 'status:in-progress' },
+        ]);
+        const c = parseIssueCounts(json);
+        assert.deepEqual(c, { backlog: 1, inProgress: 0, total: 3, parseError: false });
+    });
 });
 
 describe('findLatestRunReport', () => {
