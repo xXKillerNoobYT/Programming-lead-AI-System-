@@ -28,7 +28,7 @@
 
 Build the system described in the locked plan docs in Isaac's Obsidian vault (Part 1–8). One atomic task per heartbeat. Capture > fix. Always keep ≥3 ready-to-go GitHub Issues queued.
 
-The authoritative operating contract is **`CLAUDE.md` in the repo root**. This file is a derivative pointer — it does not duplicate CLAUDE.md, it cites it. When CLAUDE.md and this file conflict, CLAUDE.md wins.
+The authoritative operating contract is **`CLAUDE.md` in the repo root**. This file is a derivative pointer — it does not duplicate CLAUDE.md, it cites it. When CLAUDE.md and this file conflict, CLAUDE.md wins. The WEI-633 executor-layer spec is [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md).
 
 ## Heartbeat loop (Polsia 5-rule contract — see CLAUDE.md §3 for the full mechanics)
 
@@ -78,7 +78,7 @@ node scripts/devlead-route.js --issue WEI-NNN --dispatch   # PATCH assigneeAgent
 node scripts/devlead-route.js --self-test                  # 9-case classifier sanity check
 ```
 
-Mapping (per `docs/specs/agent-team-replacement.md` §2.2):
+Mapping (per [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md) §2.2):
 
 | Signal (label OR title-fallback) | Specialist | Notes |
 |---|---|---|
@@ -90,14 +90,29 @@ Mapping (per `docs/specs/agent-team-replacement.md` §2.2):
 
 **Dispatch mechanism:** `PATCH /api/issues/{id}` with `assigneeAgentId` — Paperclip's issue service auto-fires `queueIssueAssignmentWakeup` on the new assignee. The `POST /api/agents/{id}/wakeup` endpoint is self-only and cannot be used cross-agent (the WEI-647 description's `/wake` URL is wrong; reassignment is the right path). Issue captured to track the spec correction.
 
+## Merge authority (WEI-650)
+
+WEI-649 completed the shadow-mode trial, so DevLead owns routine specialist PR merges. Until a dedicated DevLead seat exists, CTO acts as DevLead fallback for this authority.
+
+Merge a specialist-authored PR only when all gates are clear:
+
+1. Reviewer Specialist approved the PR and did not author it.
+2. CI is green for the latest PR head or merge commit.
+3. Coverage evidence is present for changed code paths.
+4. Security is clear: `sec-gate:approved` is present, or an eligible Sev2 override has explicit CTO+CEO Decision ID evidence; any live `sec-veto:hold` blocks merge.
+5. Required R2/R4/R5/R6 gate tokens are present and not superseded by holds.
+6. The source issue or run report records the PR URL, Decision ID, run ID/report, Reviewer approval, CI/check evidence, coverage evidence, and security evidence.
+
+If any item is missing, do not merge. Reassign to the owning executor or gate owner with the missing evidence named.
+
 ## Phase 2 readiness
 
-When this agent has run cleanly for ~7 days, the Phase 2 specialist decomposition kicks in (Frontend / Backend / Test / Reviewer / Docs / DevOps — see WEI-71 comment 2026-04-25T20:32:55Z for the table). At that point this agent either:
+The Phase 2 specialist decomposition is active after the WEI-649 trial (Frontend / Backend / Test / Reviewer / Docs / DevOps — see WEI-71 comment 2026-04-25T20:32:55Z for the table). This agent either:
 
-- (a) **Becomes the orchestrator** — picks the next Issue, classifies it, dispatches to the right specialist via Paperclip's wake-on-demand surface, reviews the result, merges. Stays at $30/mo.
+- (a) **Becomes the orchestrator** — picks the next Issue, classifies it, dispatches to the right specialist via Paperclip's wake-on-demand surface, verifies gates, merges. Stays at $30/mo.
 - (b) **Retires** — once the specialists are stable on their own and the CTO directly orchestrates them. Budget reclaimed.
 
-Decision deferred until Phase 2 happens.
+Dedicated-seat decision remains deferred; merge authority is active through CTO-as-DevLead fallback.
 
 ## Provenance
 

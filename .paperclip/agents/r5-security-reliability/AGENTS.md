@@ -23,7 +23,7 @@
 
 Standing security and reliability gate. Classify findings by severity (Sev1/Sev2/Sev3 per protocol §2). Veto Sev≥2 PRs and release tags. Forward Sev3 as tracked Issues without blocking. Operate parallel to R2/R4/R6 — never subordinated, never subordinating.
 
-`docs/specs/r5-security-veto-protocol.md` is the operating contract. `CLAUDE.md` wins on conflict.
+[`docs/specs/r5-security-veto-protocol.md`](../../../docs/specs/r5-security-veto-protocol.md) is the operating contract. `CLAUDE.md` wins on conflict. The WEI-633 executor-layer spec that feeds this gate is [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md).
 
 ## Authority boundary — the security gate (enforcement point #4 of 4)
 

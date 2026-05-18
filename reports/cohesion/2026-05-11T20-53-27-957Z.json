@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-05-11T20-53-27-957Z",
+  "blocking": [
+    {
+      "name": "check:tests",
+      "tier": "blocking",
+      "status": 0,
+      "durationMs": 40004,
+      "stdout": "",
+      "stderr": " ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.\n We detected multiple lockfiles and selected the directory of C:\\Users\\weird\\GitHub\\Programming-lead-AI-System-\\package-lock.json as the root directory.\n To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.\n   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.\n Detected additional lockfiles: \n   * C:\\Users\\weird\\GitHub\\Programming-lead-AI-System-\\dashboard\\package-lock.json\n\n\nTest Suites: 15 passed, 15 total\nTests:       181 passed, 181 total\nSnapshots:   0 total\nTime:        27.094 s\nRan all test suites.\n"
+    },
+    {
+      "name": "check:types",
+      "tier": "blocking",
+      "status": 0,
+      "durationMs": 11908,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "check:coverage-threshold",
+      "tier": "blocking",
+      "status": 1,
+      "durationMs": 1194,
+      "stdout": "",
+      "stderr": "coverage summary not found: C:\\Users\\weird\\GitHub\\Programming-lead-AI-System-\\dashboard\\coverage\\coverage-summary.json\nRun `npm run test:coverage` first.\n"
+    }
+  ],
+  "flagged": [
+    {
+      "name": "check:lint",
+      "tier": "flagged",
+      "status": 1,
+      "durationMs": 4413,
+      "stdout": "? How would you like to configure ESLint? https://nextjs.org/docs/app/api-reference/config/eslint\n\u001b[?25l❯  Strict (recommended)\n   Base\n   Cancel",
+      "stderr": "`next lint` is deprecated and will be removed in Next.js 16.\nFor new projects, use create-next-app to choose your preferred linter.\nFor existing projects, migrate to the ESLint CLI:\nnpx @next/codemod@canary next-lint-to-eslint-cli .\n\n ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.\n We detected multiple lockfiles and selected the directory of C:\\Users\\weird\\GitHub\\Programming-lead-AI-System-\\package-lock.json as the root directory.\n To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.\n   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.\n Detected additional lockfiles: \n   * C:\\Users\\weird\\GitHub\\Programming-lead-AI-System-\\dashboard\\package-lock.json\n\n ⚠ If you set up ESLint yourself, we recommend adding the Next.js ESLint plugin. See https://nextjs.org/docs/app/api-reference/config/eslint#migrating-existing-config\n"
+    },
+    {
+      "name": "check:arch",
+      "tier": "flagged",
+      "status": 0,
+      "durationMs": 1338,
+      "stdout": "[PASS] UI must not import backbone\n[PASS] backbone tests must not reference dashboard/ (UI cross-import)\n[PASS] no Docker strings in source (decision-log/reports exempt)\n",
+      "stderr": ""
+    },
+    {
+      "name": "check:deps",
+      "tier": "flagged",
+      "status": 1,
+      "durationMs": 8790,
+      "stdout": "# npm audit report\n\nnext  9.3.4-canary.0 - 16.3.0-canary.5\nSeverity: high\nNext.js Vulnerable to Denial of Service with Server Components - https://github.com/advisories/GHSA-8h8q-6873-q5fj\nNext.js vulnerable to cross-site scripting in App Router applications using CSP nonces - https://github.com/advisories/GHSA-ffhc-5mcf-pf4q\nNext.js vulnerable to cache poisoning via collisions in React Server Component cache-busting - https://github.com/advisories/GHSA-vfv6-92ff-j949\nNext.js has cross-site scripting in beforeInteractive scripts with untrusted input - https://github.com/advisories/GHSA-gx5p-jg67-6x7h\nNext.js vulnerable to Denial of Service via connection exhaustion in applications using Cache Components - https://github.com/advisories/GHSA-mg66-mrh9-m8jx\nNext.js has a Denial of Service in the Image Optimization API - https://github.com/advisories/GHSA-h64f-5h5j-jqjh\nNext.js vulnerable to server-side request forgery in applications using WebSocket upgrades - https://github.com/advisories/GHSA-c4j6-fc7j-m34r\nNext.js has a Middleware / Proxy bypass through dynamic route parameter injection - https://github.com/advisories/GHSA-492v-c6pp-mqqv\nNext.js vulnerable to cache poisoning in React Server Component responses - https://github.com/advisories/GHSA-wfc6-r584-vfw7\nNext.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes - https://github.com/advisories/GHSA-267c-6grr-h53f\nNext.js has a Middleware / Proxy bypass in Pages Router applications using i18n - https://github.com/advisories/GHSA-36qx-fr4f-26g5\nNext.js's Middleware / Proxy redirects can be cache-poisoned - https://github.com/advisories/GHSA-3g8h-86w9-wvmq\nNext.js has a Middleware / Proxy bypass in App Router applications via segment-prefetch routes - Incomplete Fix Follow-Up - https://github.com/advisories/GHSA-26hh-7cqf-hhc6\nDepends on vulnerable versions of postcss\nfix available via `npm audit fix --force`\nWill install next@15.5.18, which is outside the stated dependency range\nnode_modules/next\n\npostcss  <8.5.10\nSeverity: moderate\nPostCSS has XSS via Unescaped </style> in its CSS Stringify Output - https://github.com/advisories/GHSA-qx2v-qp2m-jg93\nfix available via `npm audit fix --force`\nWill install next@15.5.18, which is outside the stated dependency range\nnode_modules/next/node_modules/postcss\n\n2 vulnerabilities (1 moderate, 1 high)\n\nTo address all issues, run:\n  npm audit fix --force\n",
+      "stderr": ""
+    }
+  ],
+  "passedBlocking": false
+}

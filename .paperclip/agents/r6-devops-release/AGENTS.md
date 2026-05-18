@@ -23,7 +23,7 @@
 
 Own CI, branch hygiene, release cuts, instruction-file/main-canonical sync (CLAUDE.md §6), and the agent harness's operational health. Charter: WEI-576 comment `9e1d0941` §"Charter — R6 DevOps / Release".
 
-`CLAUDE.md` wins on conflict.
+`CLAUDE.md` wins on conflict. The WEI-633 executor-layer spec that feeds this gate is [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md).
 
 ## Authority boundary — the release gate (enforcement point #3 of 3)
 

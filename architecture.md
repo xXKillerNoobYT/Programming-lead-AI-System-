@@ -54,6 +54,10 @@ Each of these is a future atomic Issue off the core-backbone plan. See
 `$PLANS_VAULT_PATH/AI plans/main-plan.md` for phase-level grouping and GitHub Issues for the
 current ready-to-go queue.
 
+### Builder-team transition
+
+WEI-633 adds a Paperclip coding-team layer around this repo's builder workflow. The spec is [`docs/specs/agent-team-replacement.md`](docs/specs/agent-team-replacement.md): CTO/DevLead classifies issues, dispatches Coder-Frontend, Coder-Backend, Tester, or Reviewer by reassigning `assigneeAgentId`, and preserves the R2/R4/R5/R6 gate model before merge or release. After WEI-649, DevLead is the routine merge authority for specialist PRs only when Reviewer approval, green CI, coverage evidence, clear security status, and valid gate tokens are present. This is a builder-side workflow change; it does not replace the product runtime diagram below.
+
 ---
 
 ## Target high-level diagram (future state)

@@ -14,6 +14,10 @@
 - If `SOUL.md` and this role description conflict, this file wins for the builder's behavior; `SOUL.md` still governs the product's runtime behavior.
 - Prove the user right: fewer bugs, more finished tasks per heartbeat, cleaner commits than Roo was producing.
 
+### 0a. Team-of-agents transition
+
+WEI-633 defines the replacement path from a single Claude Code builder loop to a Paperclip team of coding agents. The current operating contract is [`docs/specs/agent-team-replacement.md`](docs/specs/agent-team-replacement.md): DevLead/CTO classifies issues, dispatches specialists by reassigning `assigneeAgentId`, and keeps the R2/R4/R5/R6 gate model intact. After the WEI-649 trial, DevLead/CTO-as-DevLead may merge specialist-authored PRs without a human in the loop only after Reviewer approval, green CI, coverage evidence, clear security status, valid gate tokens, and a recorded Decision ID + run report. Claude Code remains the emergency fallback executor under the rollback plan, not the routine merge authority for gated specialist PRs.
+
 ---
 
 ## 1. North Star

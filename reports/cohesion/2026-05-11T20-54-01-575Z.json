@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-05-11T20-54-01-575Z",
+  "blocking": [
+    {
+      "name": "check:tests",
+      "tier": "blocking",
+      "status": 1,
+      "durationMs": 391,
+      "stdout": "",
+      "stderr": "'npm' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+    },
+    {
+      "name": "check:types",
+      "tier": "blocking",
+      "status": 1,
+      "durationMs": 274,
+      "stdout": "",
+      "stderr": "'npm' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+    },
+    {
+      "name": "check:coverage-threshold",
+      "tier": "blocking",
+      "status": 1,
+      "durationMs": 293,
+      "stdout": "",
+      "stderr": "'npm' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+    }
+  ],
+  "flagged": [
+    {
+      "name": "check:lint",
+      "tier": "flagged",
+      "status": 1,
+      "durationMs": 366,
+      "stdout": "",
+      "stderr": "'npm' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+    },
+    {
+      "name": "check:arch",
+      "tier": "flagged",
+      "status": 1,
+      "durationMs": 324,
+      "stdout": "",
+      "stderr": "'npm' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+    },
+    {
+      "name": "check:deps",
+      "tier": "flagged",
+      "status": 1,
+      "durationMs": 247,
+      "stdout": "",
+      "stderr": "'npm' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+    }
+  ],
+  "passedBlocking": false
+}

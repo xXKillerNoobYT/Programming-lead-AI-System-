@@ -2,7 +2,9 @@
 
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
-const { existsSync, readFileSync, readdirSync, writeFileSync, unlinkSync } = require('node:fs');
+const { existsSync, readFileSync, readdirSync, writeFileSync, unlinkSync, rmSync, mkdtempSync } = require('node:fs');
+const { spawnSync } = require('node:child_process');
+const { tmpdir } = require('node:os');
 const path = require('node:path');
 
 const {
@@ -12,7 +14,13 @@ const {
     summariseRunReport,
     extractRecentDecisions,
     formatTickReport,
+    parseIssueListForDelegation,
+    runFirstDelegationStep,
+    runFirstDelegationStepWithCooldown,
+    envFlagEnabled,
+    parseHeartbeatOptions,
     runShell,
+    collectMcpObservations,
     tick,
 } = require('../heartbeat.js');
 
@@ -189,6 +197,17 @@ describe('runShell (safeSpawn migration, Issue #129)', () => {
         });
     });
 
+    test('handles missing gh executable (ENOENT) as empty output, not a throw', () => {
+        const fakeSpawn = (cmd) => {
+            assert.equal(cmd, 'gh');
+            return { status: null, stdout: '', stderr: '', error: new Error('spawn gh ENOENT') };
+        };
+        assert.doesNotThrow(() => {
+            const out = runShell('gh', ['issue', 'list'], { _spawnImpl: fakeSpawn });
+            assert.equal(out, '');
+        });
+    });
+
     test('forwards cmd and args unchanged to the spawn implementation', () => {
         let seen = null;
         const fakeSpawn = (cmd, args) => {
@@ -237,6 +256,215 @@ describe('formatTickReport', () => {
     test('handles empty recent-decisions list', () => {
         const out = formatTickReport({ ...baseState, recentDecisions: [] });
         assert.match(out, /\(none found\)/);
+    });
+
+    test('surfaces mempalace observation errors (vault unreachable path)', () => {
+        const out = formatTickReport({
+            ...baseState,
+            mcpStatus: { connected: ['mempalace'], failed: [], skipped: [] },
+            mcpObservations: {
+                'mempalace.search(recent)': {
+                    error: 'vault unreachable: ECONNREFUSED 127.0.0.1:7777',
+                },
+            },
+        });
+        assert.match(out, /### MCP Observations/);
+        assert.match(out, /mempalace\.search\(recent\)/);
+        assert.match(out, /vault unreachable: ECONNREFUSED/);
+    });
+
+    test('renders delegation status when first step is enabled', () => {
+        const out = formatTickReport({
+            ...baseState,
+            delegation: { status: 'posted', detail: 'comment added to #712' },
+        });
+        assert.match(out, /## Delegation/);
+        assert.match(out, /posted — comment added to #712/);
+    });
+});
+
+describe('collectMcpObservations — failure-mode hardening', () => {
+    test('returns a safe error payload when mempalace tool call fails', async () => {
+        const clientsByName = {
+            mempalace: {
+                status: 'connected',
+                tools: [{ name: 'mempalace_search' }],
+                client: {
+                    callTool: async () => {
+                        throw new Error('vault unreachable: ECONNREFUSED 127.0.0.1:7777');
+                    },
+                },
+            },
+        };
+
+        const observations = await collectMcpObservations(clientsByName);
+
+        assert.deepEqual(observations, {
+            'mempalace.search(recent)': {
+                error: 'vault unreachable: ECONNREFUSED 127.0.0.1:7777',
+            },
+        });
+    });
+
+    test('skips mempalace observation when server is absent or not connected', async () => {
+        assert.deepEqual(await collectMcpObservations({}), {});
+        assert.deepEqual(
+            await collectMcpObservations({ mempalace: { status: 'failed', error: 'offline' } }),
+            {},
+        );
+    });
+});
+
+describe('main — failure-mode startup hardening', () => {
+    test('starts and writes a tick report when MCP config is malformed', () => {
+        const dir = mkdtempSync(path.join(tmpdir(), 'heartbeat-bad-mcp-'));
+        const badMcpPath = path.join(dir, 'bad.mcp.json');
+        const reportsDir = path.join(dir, 'reports');
+        const decisionLogPath = path.join(dir, 'decision-log.md');
+        const pauseLockPath = path.join(dir, '.heartbeat-paused');
+        writeFileSync(badMcpPath, '{ not json }', 'utf8');
+
+        try {
+            const result = spawnSync(process.execPath, ['heartbeat.js'], {
+                cwd: REPO_ROOT,
+                encoding: 'utf8',
+                timeout: 10_000,
+                env: {
+                    ...process.env,
+                    PATH: '',
+                    Path: '',
+                    MCP_CONFIG_PATH: badMcpPath,
+                    REPORTS_DIR: reportsDir,
+                    DECISION_LOG_PATH: decisionLogPath,
+                    HEARTBEAT_PAUSE_LOCK_PATH: pauseLockPath,
+                },
+            });
+
+            assert.equal(result.status, 0, result.stderr);
+            assert.match(result.stdout, /connecting MCP servers/);
+            assert.match(result.stdout, /wrote /);
+
+            const reports = readdirSync(reportsDir).filter((name) => name.startsWith('heartbeat-tick-'));
+            assert.equal(reports.length, 1);
+            const report = readFileSync(path.join(reportsDir, reports[0]), 'utf8');
+            assert.match(report, /No MCP servers declared in `.mcp\.json`/);
+        } finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
+    });
+});
+
+describe('delegation helper — first implementation slice', () => {
+    test('envFlagEnabled accepts explicit truthy values only', () => {
+        assert.equal(envFlagEnabled('1'), true);
+        assert.equal(envFlagEnabled('true'), true);
+        assert.equal(envFlagEnabled('YES'), true);
+        assert.equal(envFlagEnabled('on'), true);
+        assert.equal(envFlagEnabled('0'), false);
+        assert.equal(envFlagEnabled('false'), false);
+        assert.equal(envFlagEnabled(undefined), false);
+    });
+
+    test('parseHeartbeatOptions keeps first delegation step opt-in', () => {
+        assert.deepEqual(parseHeartbeatOptions([], {}), { enableFirstDelegationStep: false });
+        assert.deepEqual(
+            parseHeartbeatOptions(['--delegate-first-step'], {}),
+            { enableFirstDelegationStep: true },
+        );
+        assert.deepEqual(
+            parseHeartbeatOptions([], { HEARTBEAT_ENABLE_FIRST_DELEGATION_STEP: '1' }),
+            { enableFirstDelegationStep: true },
+        );
+    });
+
+    test('parseIssueListForDelegation returns empty list on malformed JSON', () => {
+        assert.deepEqual(parseIssueListForDelegation('not json'), []);
+    });
+
+    test('runFirstDelegationStep posts to first in-progress issue', () => {
+        const calls = [];
+        const fakeShell = (cmd, args) => {
+            calls.push([cmd, args]);
+            if (args[0] === 'issue' && args[1] === 'list') {
+                return JSON.stringify([{ number: 712, title: 'heartbeat.js: first delegation step' }]);
+            }
+            if (args[0] === 'issue' && args[1] === 'comment') {
+                return 'https://github.com/org/repo/issues/712#issuecomment-1';
+            }
+            return '';
+        };
+        const result = runFirstDelegationStep({ runShellImpl: fakeShell, timestamp: '2026-05-10T00:55:06.124Z' });
+        assert.equal(result.status, 'posted');
+        assert.match(result.detail, /#712/);
+        assert.equal(calls.length, 2);
+        assert.equal(calls[1][1][0], 'issue');
+        assert.equal(calls[1][1][1], 'comment');
+        assert.equal(calls[1][1][2], '712');
+    });
+
+    test('runFirstDelegationStep skips when no in-progress issue is available', () => {
+        const fakeShell = () => '[]';
+        const result = runFirstDelegationStep({ runShellImpl: fakeShell, timestamp: '2026-05-10T00:55:06.124Z' });
+        assert.equal(result.status, 'skipped');
+        assert.match(result.detail, /no in-progress issue/);
+    });
+
+    test('runFirstDelegationStepWithCooldown skips duplicate ping inside cooldown window', () => {
+        const statePath = path.join(REPO_ROOT, 'reports', 'tmp-delegation-state-test.json');
+        try { rmSync(statePath, { force: true }); } catch {}
+        writeFileSync(statePath, JSON.stringify({ '712': '2026-05-10T00:50:00.000Z' }), 'utf8');
+
+        const calls = [];
+        const fakeShell = (cmd, args) => {
+            calls.push([cmd, args]);
+            if (args[0] === 'issue' && args[1] === 'list') {
+                return JSON.stringify([{ number: 712, title: 'heartbeat.js: first delegation step' }]);
+            }
+            if (args[0] === 'issue' && args[1] === 'comment') {
+                return 'should-not-run';
+            }
+            return '';
+        };
+        const result = runFirstDelegationStepWithCooldown({
+            runShellImpl: fakeShell,
+            timestamp: '2026-05-10T01:00:00.000Z',
+            statePath,
+            cooldownMs: 2 * 60 * 60 * 1000,
+        });
+        assert.equal(result.status, 'skipped');
+        assert.match(result.detail, /cooldown active/);
+        assert.equal(calls.length, 1);
+        try { rmSync(statePath, { force: true }); } catch {}
+    });
+
+    test('runFirstDelegationStepWithCooldown posts and persists timestamp when outside cooldown window', () => {
+        const statePath = path.join(REPO_ROOT, 'reports', 'tmp-delegation-state-test.json');
+        try { rmSync(statePath, { force: true }); } catch {}
+        writeFileSync(statePath, JSON.stringify({ '712': '2026-05-10T00:00:00.000Z' }), 'utf8');
+
+        const calls = [];
+        const fakeShell = (cmd, args) => {
+            calls.push([cmd, args]);
+            if (args[0] === 'issue' && args[1] === 'list') {
+                return JSON.stringify([{ number: 712, title: 'heartbeat.js: first delegation step' }]);
+            }
+            if (args[0] === 'issue' && args[1] === 'comment') {
+                return 'https://github.com/org/repo/issues/712#issuecomment-2';
+            }
+            return '';
+        };
+        const result = runFirstDelegationStepWithCooldown({
+            runShellImpl: fakeShell,
+            timestamp: '2026-05-10T06:30:00.000Z',
+            statePath,
+            cooldownMs: 2 * 60 * 60 * 1000,
+        });
+        assert.equal(result.status, 'posted');
+        assert.equal(calls.length, 2);
+
+        const persisted = JSON.parse(readFileSync(statePath, 'utf8'));
+        assert.equal(persisted['712'], '2026-05-10T06:30:00.000Z');
+        try { rmSync(statePath, { force: true }); } catch {}
     });
 });
 
@@ -302,6 +530,75 @@ describe('tick — §C.3 pause-lock (Issue #135)', () => {
         assert.ok(!result.paused, 'paused flag should be falsy on normal tick');
         assert.ok(result.path, 'normal tick must return a report path');
         assert.ok(existsSync(result.path), 'normal tick must write the report');
+    });
+});
+
+describe('tick — first delegation step integration', () => {
+    test('invokes first-delegation cooldown flow when enabled and no prior state exists', async () => {
+        const calls = [];
+        const statePath = path.join(REPO_ROOT, 'reports', 'tmp-tick-delegation-state.json');
+        const fakeShell = (cmd, args) => {
+            calls.push([cmd, args]);
+            if (cmd === 'git' && args[0] === 'branch') return 'main';
+            if (cmd === 'git' && args[0] === 'rev-parse') return 'abc1234';
+            if (args[0] === 'issue' && args[1] === 'list') {
+                if (args.includes('--label')) {
+                    return JSON.stringify([{ number: 712, title: 'Heartbeat seed' }]);
+                }
+                return JSON.stringify([
+                    { number: 712, labels: [{ name: 'status:in-progress' }], state: 'OPEN' },
+                ]);
+            }
+            if (args[0] === 'issue' && args[1] === 'comment') return 'https://github.com/org/repo/issues/712#issuecomment-1';
+            return '';
+        };
+
+        try { writeFileSync(statePath, '{}', 'utf8'); } catch {}
+        const result = await tick({}, {
+            skipCohesionGate: true,
+            enableFirstDelegationStep: true,
+            runShellImpl: fakeShell,
+            delegationStatePath: statePath,
+            delegationCooldownMs: 60 * 60 * 1000,
+        });
+
+        assert.equal(result.state.delegation.status, 'posted');
+        assert.equal(calls[0][0], 'git');
+        assert.equal(calls[1][0], 'git');
+        assert.equal(calls.filter((c) => c[0] === 'gh' && c[1][1] === 'comment').length, 1);
+        const persisted = readFileSync(statePath, 'utf8');
+        assert.ok(persisted.includes('"712"'));
+        try { rmSync(statePath, { force: true }); } catch {}
+    });
+
+    test('suppresses delegation comment when cooldown is active for the selected issue', async () => {
+        const statePath = path.join(REPO_ROOT, 'reports', 'tmp-tick-delegation-state.json');
+        const statePayload = { 712: new Date().toISOString() };
+        const calls = [];
+        const fakeShell = (cmd, args) => {
+            calls.push([cmd, args]);
+            if (cmd === 'git' && args[0] === 'branch') return 'main';
+            if (cmd === 'git' && args[0] === 'rev-parse') return 'abc1234';
+            if (args[0] === 'issue' && args[1] === 'list') {
+                return JSON.stringify([{ number: 712, title: 'Heartbeat seed' }]);
+            }
+            return '';
+        };
+        writeFileSync(statePath, JSON.stringify(statePayload), 'utf8');
+
+        const result = await tick({}, {
+            skipCohesionGate: true,
+            enableFirstDelegationStep: true,
+            runShellImpl: fakeShell,
+            delegationStatePath: statePath,
+            delegationCooldownMs: 6 * 60 * 60 * 1000,
+        });
+
+        assert.equal(result.state.delegation.status, 'skipped');
+        assert.equal(result.state.delegation.detail.includes('cooldown active'), true);
+        const commentCalls = calls.filter((c) => c[0] === 'gh' && c[1][1] === 'comment');
+        assert.equal(commentCalls.length, 0);
+        try { rmSync(statePath, { force: true }); } catch {}
     });
 });
 

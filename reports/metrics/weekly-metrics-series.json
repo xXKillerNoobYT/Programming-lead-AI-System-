@@ -1,0 +1,322 @@
+[
+  {
+    "generatedAt": "2026-05-11T20:57:42.187Z",
+    "window": {
+      "start": "2026-05-04T20:57:42.187Z",
+      "end": "2026-05-11T20:57:42.187Z"
+    },
+    "metrics": {
+      "throughput": {
+        "closedIssues": 184,
+        "weightedBySize": 184
+      },
+      "reopenRate": {
+        "reopenedWithin14d": 4,
+        "closedIssues": 184,
+        "rate": 0.021739130434782608
+      },
+      "escapedDefects": {
+        "count": 4
+      },
+      "cycleTime": {
+        "S": {
+          "medianDays": 0.004747575231481482,
+          "sample": 184
+        }
+      },
+      "specChurn": {
+        "churnedSpecs": 2,
+        "frozenSpecs": 24,
+        "rate": 0.08333333333333333
+      },
+      "gateSkipRate": {
+        "skippedIssues": 0,
+        "closedIssues": 184,
+        "rate": 0
+      },
+      "auditFindings": {
+        "p0p1": 1,
+        "auditedIssues": 22
+      },
+      "wipPerAgent": {
+        "1ffebb9a-4675-4b39-a191-a44b2fba9af2": 1,
+        "328fddb9-26b4-4475-9ed3-6265d23e7816": 4,
+        "f38b9cdc-7c27-42a3-a348-f982269a8af1": 1,
+        "unassigned": 1
+      }
+    }
+  },
+  {
+    "generatedAt": "2026-05-12T08:08:35.317Z",
+    "window": {
+      "start": "2026-05-05T08:08:35.317Z",
+      "end": "2026-05-12T08:08:35.317Z"
+    },
+    "metrics": {
+      "throughput": {
+        "closedIssues": 184,
+        "weightedBySize": 184
+      },
+      "reopenRate": {
+        "reopenedWithin14d": 4,
+        "closedIssues": 184,
+        "rate": 0.021739130434782608
+      },
+      "escapedDefects": {
+        "count": 4
+      },
+      "cycleTime": {
+        "S": {
+          "medianDays": 0.004747575231481482,
+          "sample": 184
+        }
+      },
+      "specChurn": {
+        "churnedSpecs": 2,
+        "frozenSpecs": 21,
+        "rate": 0.09523809523809523
+      },
+      "gateSkipRate": {
+        "skippedIssues": 0,
+        "closedIssues": 184,
+        "rate": 0
+      },
+      "auditFindings": {
+        "p0p1": 1,
+        "auditedIssues": 23
+      },
+      "wipPerAgent": {
+        "unassigned": 1,
+        "328fddb9-26b4-4475-9ed3-6265d23e7816": 1
+      }
+    }
+  },
+  {
+    "generatedAt": "2026-05-13T08:07:19.658Z",
+    "window": {
+      "start": "2026-05-06T08:07:19.658Z",
+      "end": "2026-05-13T08:07:19.658Z"
+    },
+    "metrics": {
+      "throughput": {
+        "closedIssues": 184,
+        "weightedBySize": 184
+      },
+      "reopenRate": {
+        "reopenedWithin14d": 4,
+        "closedIssues": 184,
+        "rate": 0.021739130434782608
+      },
+      "escapedDefects": {
+        "count": 4
+      },
+      "cycleTime": {
+        "S": {
+          "medianDays": 0.004747575231481482,
+          "sample": 184
+        }
+      },
+      "specChurn": {
+        "churnedSpecs": 2,
+        "frozenSpecs": 20,
+        "rate": 0.1
+      },
+      "gateSkipRate": {
+        "skippedIssues": 0,
+        "closedIssues": 184,
+        "rate": 0
+      },
+      "auditFindings": {
+        "p0p1": 1,
+        "auditedIssues": 26
+      },
+      "wipPerAgent": {
+        "unassigned": 1,
+        "328fddb9-26b4-4475-9ed3-6265d23e7816": 1
+      }
+    }
+  },
+  {
+    "generatedAt": "2026-05-15T08:07:11.462Z",
+    "window": {
+      "start": "2026-05-08T08:07:11.462Z",
+      "end": "2026-05-15T08:07:11.462Z"
+    },
+    "metrics": {
+      "throughput": {
+        "closedIssues": 177,
+        "weightedBySize": 177
+      },
+      "reopenRate": {
+        "reopenedWithin14d": 2,
+        "closedIssues": 177,
+        "rate": 0.011299435028248588
+      },
+      "escapedDefects": {
+        "count": 1
+      },
+      "cycleTime": {
+        "S": {
+          "medianDays": 0.004718611111111111,
+          "sample": 177
+        }
+      },
+      "specChurn": {
+        "churnedSpecs": 2,
+        "frozenSpecs": 21,
+        "rate": 0.09523809523809523
+      },
+      "gateSkipRate": {
+        "skippedIssues": 0,
+        "closedIssues": 177,
+        "rate": 0
+      },
+      "auditFindings": {
+        "p0p1": 1,
+        "auditedIssues": 22
+      },
+      "wipPerAgent": {
+        "unassigned": 1,
+        "328fddb9-26b4-4475-9ed3-6265d23e7816": 1
+      }
+    }
+  },
+  {
+    "generatedAt": "2026-05-16T06:59:52.707Z",
+    "window": {
+      "start": "2026-05-09T06:59:52.707Z",
+      "end": "2026-05-16T06:59:52.707Z"
+    },
+    "metrics": {
+      "throughput": {
+        "closedIssues": 171,
+        "weightedBySize": 171
+      },
+      "reopenRate": {
+        "reopenedWithin14d": 2,
+        "closedIssues": 171,
+        "rate": 0.011695906432748537
+      },
+      "escapedDefects": {
+        "count": 0
+      },
+      "cycleTime": {
+        "S": {
+          "medianDays": 0.004670393518518518,
+          "sample": 171
+        }
+      },
+      "specChurn": {
+        "churnedSpecs": 2,
+        "frozenSpecs": 21,
+        "rate": 0.09523809523809523
+      },
+      "gateSkipRate": {
+        "skippedIssues": 0,
+        "closedIssues": 171,
+        "rate": 0
+      },
+      "auditFindings": {
+        "p0p1": 1,
+        "auditedIssues": 23
+      },
+      "wipPerAgent": {
+        "cbbc753a-1da7-4f2c-ac9c-11ebf2341f16": 1,
+        "1ffebb9a-4675-4b39-a191-a44b2fba9af2": 1,
+        "unassigned": 1
+      }
+    }
+  },
+  {
+    "generatedAt": "2026-05-16T08:15:36.754Z",
+    "window": {
+      "start": "2026-05-09T08:15:36.754Z",
+      "end": "2026-05-16T08:15:36.754Z"
+    },
+    "metrics": {
+      "throughput": {
+        "closedIssues": 171,
+        "weightedBySize": 171
+      },
+      "reopenRate": {
+        "reopenedWithin14d": 2,
+        "closedIssues": 171,
+        "rate": 0.011695906432748537
+      },
+      "escapedDefects": {
+        "count": 0
+      },
+      "cycleTime": {
+        "S": {
+          "medianDays": 0.004670393518518518,
+          "sample": 171
+        }
+      },
+      "specChurn": {
+        "churnedSpecs": 2,
+        "frozenSpecs": 21,
+        "rate": 0.09523809523809523
+      },
+      "gateSkipRate": {
+        "skippedIssues": 0,
+        "closedIssues": 171,
+        "rate": 0
+      },
+      "auditFindings": {
+        "p0p1": 1,
+        "auditedIssues": 23
+      },
+      "wipPerAgent": {
+        "unassigned": 1,
+        "328fddb9-26b4-4475-9ed3-6265d23e7816": 1
+      }
+    }
+  },
+  {
+    "generatedAt": "2026-05-17T08:10:07.882Z",
+    "window": {
+      "start": "2026-05-10T08:10:07.882Z",
+      "end": "2026-05-17T08:10:07.882Z"
+    },
+    "metrics": {
+      "throughput": {
+        "closedIssues": 168,
+        "weightedBySize": 168
+      },
+      "reopenRate": {
+        "reopenedWithin14d": 4,
+        "closedIssues": 168,
+        "rate": 0.023809523809523808
+      },
+      "escapedDefects": {
+        "count": 0
+      },
+      "cycleTime": {
+        "S": {
+          "medianDays": 0.004809560185185186,
+          "sample": 168
+        }
+      },
+      "specChurn": {
+        "churnedSpecs": 2,
+        "frozenSpecs": 21,
+        "rate": 0.09523809523809523
+      },
+      "gateSkipRate": {
+        "skippedIssues": 1,
+        "closedIssues": 168,
+        "rate": 0.005952380952380952
+      },
+      "auditFindings": {
+        "p0p1": 1,
+        "auditedIssues": 23
+      },
+      "wipPerAgent": {
+        "cbbc753a-1da7-4f2c-ac9c-11ebf2341f16": 1,
+        "e7619d0d-175f-430d-9337-06e16c8a0cbe": 1,
+        "unassigned": 1,
+        "328fddb9-26b4-4475-9ed3-6265d23e7816": 1
+      }
+    }
+  }
+]

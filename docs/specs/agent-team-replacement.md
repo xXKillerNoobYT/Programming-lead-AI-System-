@@ -1,9 +1,9 @@
 # Agent-Team Coding Replacement for Claude Code
 
-**Status:** Revised r2 (reconciled with org-v1 four-gate model, 2026-05-09 evening)
+**Status:** Revised r3 (DevLead merge authority active after L11 trial, 2026-05-17)
 **Author:** CTO agent (`328fddb9-26b4-4475-9ed3-6265d23e7816`)
 **Issue:** WEI-633 (parent: WEI-472)
-**Created:** 2026-05-09 (r1); revised 2026-05-09 (r2 — see §0 Reconciliation)
+**Created:** 2026-05-09 (r1); revised 2026-05-09 (r2 — see §0 Reconciliation); revised 2026-05-17 (r3 — see §0.1 Merge authority activation)
 **Convention:** Chaos Coding spec-before-code (scope · architecture · AC · risks · rollback)
 
 ---
@@ -29,6 +29,21 @@ Between r1 of this spec and r2, an adjacent stream of work landed on this same b
 
 This is additive, not a contradiction. The r1 cost envelope and rollback plan still apply to the executor layer; the R-role layer is governed by WEI-572/576/715/716 and is out of WEI-633's scope to change.
 
+## 0.1 Merge authority activation (r3 update)
+
+WEI-649 completed the L11 shadow-mode trial and unblocked WEI-650 on 2026-05-17. From this revision forward, DevLead (currently CTO acting as DevLead fallback until a dedicated seat exists) is the merge authority for specialist-authored PRs.
+
+DevLead may merge a specialist-authored PR without a human in the loop only when all of these are true:
+
+1. Reviewer Specialist has approved the PR and is not the PR author.
+2. CI is green for the merge commit or latest PR head.
+3. Coverage gate evidence is present for changed code paths.
+4. Security gate is clear: `sec-gate:approved` is present, or an eligible Sev2 override has the required CTO+CEO decision evidence. A live `sec-veto:hold` blocks merge.
+5. The R2/R4/R5/R6 gate tokens required by `docs/specs/org-v1-enforcement-points.md` and `docs/specs/r5-security-veto-protocol.md` are present and not superseded by a hold.
+6. The merge action records the PR URL, Decision ID, run ID/report, Reviewer approval, CI/check evidence, coverage evidence, and security evidence in the source issue or run report.
+
+Specialists still open PRs and never self-merge. Reviewer still reviews and never merges. Humans are no longer required for routine specialist PR merges that satisfy the gates above.
+
 ---
 
 ## 1. Scope
@@ -42,7 +57,7 @@ Replace the single-process Claude Code heartbeat with a **team of Paperclip agen
 - A documented routing contract (which agent owns which loop) that survives in `docs/specs/` and the per-agent `AGENTS.md` bundles.
 
 ### Out of scope (Phase 1 of this replacement)
-- Retiring Claude Code immediately. Claude Code remains the fallback executor until the team has run cleanly for ~7 days (per WEI-71 followup phase 2 readiness criterion).
+- Retiring Claude Code entirely. After WEI-649, Claude Code is no longer the routine merge authority for specialist-authored PRs, but remains the emergency fallback executor under the rollback plan.
 - New infrastructure (Docker, k8s, cloud queues). Paperclip's existing wake-on-demand surface is the dispatcher.
 - Cross-repo orchestration. This spec covers only `Programming-lead-AI-System-`.
 - Modifying `SOUL.md` or vault `Docs/Plans/*` (still locked).
@@ -60,7 +75,7 @@ The model now has **three layers**: Orchestrator → Executors → Gate-holders.
 
 | Layer | Loop | Owner agent | Role | Reports to |
 |---|---|---|---|---|
-| Orchestrator | **Plan decomposition + Issue dispatch** | DevLead Programming Lead | Reads vault `AI plans/`, refills GH backlog ≥3, classifies Issues by `area:*`, wakes the right executor | CTO |
+| Orchestrator | **Plan decomposition + Issue dispatch** | DevLead Programming Lead | Reads vault `AI plans/`, refills GH backlog ≥3, classifies Issues by `area:*`, reassigns to the right executor via `PATCH /api/issues/{id}` with `assigneeAgentId` | CTO |
 | Executor | **Coding (frontend)** | Coder-Frontend Specialist | Next.js / React / Tailwind work in `dashboard/` | DevLead |
 | Executor | **Coding (backend)** | Coder-Backend Specialist | Node.js core, `heartbeat.js`, MCP, scripts | DevLead |
 | Executor | **Test authoring** | Tester Specialist | Vitest/Jest + node:test coverage, fixtures, eval suite | DevLead |
@@ -69,7 +84,7 @@ The model now has **three layers**: Orchestrator → Executors → Gate-holders.
 | Gate-holder 3 | **Release gate** | R6 DevOps / Release | `release-gate:cut tag=… ci=…` in tag/release-commit | CTO |
 | Gate-holder 4 | **Security gate** | R5 Security / Reliability | `sec-gate:approved sev=…` or `sec-veto:hold sev=…` token; standing veto on Sev≥2 | CTO + CEO (joint for Sev2 override; Sev1 fix-forward only) |
 | Cross-cutting | **Token enforcement on PRs** | Reviewer Specialist | Mechanically scans PR review bodies for the four gate tokens; `request-changes` if any missing/invalid (per `.paperclip/agents/reviewer/AGENTS.md` checklist item 10 + "Gate token grammar" section) | DevLead |
-| Cross-cutting | **Release / merge** | DevLead (acts as merger) | Merges only when all four gate tokens are clear and Reviewer approves | CTO |
+| Cross-cutting | **Release / merge** | DevLead (acts as merger) | Merges specialist PRs autonomously only when Reviewer approves, CI is green, coverage evidence is present, security is clear, and all four gate tokens are valid | CTO |
 | Escalation | **Hard stops + direction** | CTO (this agent) | Cross-gate tie-break (gates 1–3); CTO+CEO joint override (gate 4 Sev2 only); large-direction changes | CEO (Isaac) |
 
 ### 2.2 Routing contract
@@ -80,6 +95,8 @@ GH Issue (status:backlog)
     ▼
 DevLead orchestrator (heartbeat tick)
     │  classify by labels: phase, area:ui|backend|test|docs
+    │  dispatch by PATCH /api/issues/{id} with assigneeAgentId
+    │  Paperclip auto-wakes the new assignee on assignment change
     ▼
 Executor (Coder-FE | Coder-BE | Tester) wake-on-demand
     │  one atomic Issue → one feature branch off origin/main
@@ -98,7 +115,7 @@ Reviewer Specialist wakes on PR-opened (poll-based MVP via DevLead)
     │  any missing/invalid → `gh pr review --request-changes`
     │  all clear           → `gh pr review --approve`
     ▼
-DevLead merges if Reviewer approves + CI green; on red, reassigns to executor
+DevLead merges if Reviewer approves + CI green + coverage/security/four-gate evidence is clear; on red or hold, reassigns to executor or gate owner
     │
     ▼
 Issue closed with run-complete D-ID; queue refilled to ≥3
@@ -151,6 +168,8 @@ Net **$40/mo under spec envelope**. The DevLead seat was inlined into the CTO ro
 
 Budget controls scaffold (GH #189) is the long-term enforcement; until it lands, manual review of `spentMonthlyCents` per agent each week (CTO weekly self-update — see §provenance comment thread).
 
+**Weekly engineering token-budget cap (D-20260511-001 / WEI-717):** CEO accepted Safe **$50/week**, Stretch **$75/week**, and Redline **$100/week** for the engineering agent system. Effective date is the next heartbeat after CEO acceptance on 2026-05-10; the cap is advisory until mechanical metering/pause support lands, then enforceable. Dollar caps are authoritative because model mix can change; current planning equivalents are approximately 7.5M tokens/week (Safe), 11.4M tokens/week (Stretch), and 15M tokens/week (Redline) under the Sonnet-blended estimate used in WEI-717. First re-baseline is due 2 weeks after mechanical metering lands.
+
 ---
 
 ## 3. Acceptance Criteria (r2)
@@ -179,7 +198,7 @@ The replacement is **MVP-complete** when all of these hold for one full week:
 | Issue mis-classification by orchestrator | Med | Med | Labels are explicit (`area:ui|backend|test|docs`); on ambiguous label, DevLead falls back to itself (acts as generalist) and files a child Issue to add the missing label. |
 | Specialist hangs / crash leaves Issue in `status:in-progress` | Med | Low | Paperclip checkout has a run timeout; DevLead's orient step detects stale `status:in-progress` and re-dispatches. |
 | Merge conflict from parallel specialists | Low | Med | DevLead serializes dispatch — only one specialist works per heartbeat. Phase 2 parallelism deferred. |
-| Phase 1 (single Claude Code loop) regressions during transition | Med | High | Run team in *shadow mode* first (specialists open PRs; Claude Code reviews + merges) for 3 days before flipping merge authority. |
+| Post-trial DevLead merge authority regresses quality | Med | High | DevLead can merge only after Reviewer approval, green CI, coverage evidence, clear security gate, valid four-gate tokens, and audit evidence. Any missing or superseded gate blocks merge and routes back to the executor or gate owner. |
 
 ---
 
@@ -203,10 +222,10 @@ Rollback decision authority: **CTO** (this agent) for Tier-1, **CEO (Isaac)** fo
 | 2 | Create Paperclip agent: Coder-Backend specialist + seed AGENTS.md | CTO | board approval |
 | 3 | Create Paperclip agent: Tester specialist + seed AGENTS.md | CTO | board approval |
 | 4 | Create Paperclip agent: Reviewer specialist + seed AGENTS.md | CTO | board approval |
-| 5 | Wire DevLead orchestrator: classify Issue by `area:*` label and wake matching specialist | DevLead | #1–#4 |
+| 5 | Wire DevLead orchestrator: classify Issue by `area:*` label and reassign to matching specialist (`PATCH /api/issues/{id}` with `assigneeAgentId`) | DevLead | #1–#4 |
 | 6 | Reviewer wake-on-PR-opened: hook Paperclip wake to `pull_request` events | Reviewer | #4 |
-| 7 | Shadow-mode trial: 3 days of specialist PRs reviewed by Claude Code, no merge authority | CTO | #5, #6 |
-| 8 | Flip merge authority to DevLead post-trial | CTO | #7 + AC-1..AC-7 green |
+| 7 | Shadow-mode trial: 3 days of specialist PRs reviewed by Claude Code, no merge authority | CTO | Done in WEI-649 |
+| 8 | Flip merge authority to DevLead post-trial | CTO | Active in WEI-650; first qualifying autonomous merge remains the acceptance proof |
 | 9 | Documentation pass: link this spec from CLAUDE.md and each AGENTS.md | DevLead | spec accepted |
 
 ---

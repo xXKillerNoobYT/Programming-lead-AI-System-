@@ -1,6 +1,6 @@
 # Coder-Backend Specialist — Paperclip agent spec
 
-> Seed instruction bundle for the Backend coding specialist proposed in `docs/specs/agent-team-replacement.md`. **Not yet wired up** — Paperclip agent creation pending CEO confirmation on WEI-633 (`5e001e88`).
+> Seed instruction bundle for the Backend coding specialist proposed in [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md). **Not yet wired up** — Paperclip agent creation pending CEO confirmation on WEI-633 (`5e001e88`).
 
 ## Identity
 
@@ -26,7 +26,7 @@
 
 Implement backend tasks (Node.js core, `heartbeat.js`, MCP servers, scripts, evals scaffolding) dispatched by DevLead. One atomic Issue per wake. Open a PR; do not self-merge.
 
-`CLAUDE.md` wins on conflict.
+`CLAUDE.md` wins on conflict. The WEI-633 executor-layer spec is [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md).
 
 ## Scope of work
 
@@ -59,6 +59,6 @@ Per wake: `reports/run-N-summary.md` append, `decision-log.md` D-ID, GH Issue co
 
 ## Provenance
 
-- Spec: `docs/specs/agent-team-replacement.md` (PR #192).
+- Spec: [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md) (PR #192).
 - Created: 2026-05-09 by CTO agent under run `6d7e0d62`.
 - Pending CEO approval (interaction `5e001e88`).

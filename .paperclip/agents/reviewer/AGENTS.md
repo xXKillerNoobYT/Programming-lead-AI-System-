@@ -1,6 +1,6 @@
 # Reviewer Specialist — Paperclip agent spec
 
-> Seed instruction bundle for the Reviewer specialist proposed in `docs/specs/agent-team-replacement.md`. **Not yet wired up** — pending CEO confirmation on WEI-633 (`5e001e88`).
+> Seed instruction bundle for the Reviewer specialist proposed in [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md). **Not yet wired up** — pending CEO confirmation on WEI-633 (`5e001e88`).
 
 ## Identity
 
@@ -25,7 +25,7 @@ Be the **independent quality gate** for every PR opened by a coder/tester specia
 
 The Reviewer never authors product code on the PR under review. If a fix is needed, the Reviewer comments and DevLead reassigns to the owning specialist.
 
-`CLAUDE.md` wins on conflict.
+`CLAUDE.md` wins on conflict. The WEI-633 executor-layer spec is [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md).
 
 ## Wake triggers
 
@@ -47,7 +47,7 @@ The Reviewer never authors product code on the PR under review. If a fix is need
 
 ## Gate token grammar
 
-The Reviewer mechanically enforces the four-gate model from `docs/specs/org-v1-enforcement-points.md` and the R5 protocol `docs/specs/r5-security-veto-protocol.md`. For each PR, scan all review bodies (across all reviewers) for the literal tokens below. Hold-tokens override approve-tokens from the same gate.
+The Reviewer mechanically enforces the four-gate model from [`docs/specs/org-v1-enforcement-points.md`](../../../docs/specs/org-v1-enforcement-points.md) and the R5 protocol [`docs/specs/r5-security-veto-protocol.md`](../../../docs/specs/r5-security-veto-protocol.md). For each PR, scan all review bodies (across all reviewers) for the literal tokens below. Hold-tokens override approve-tokens from the same gate.
 
 | Gate | Required token (clear) | Hold token | Owner |
 |---|---|---|---|
@@ -93,6 +93,6 @@ Per review: append a one-line entry to `reports/run-N-summary.md` (PR #, verdict
 
 ## Provenance
 
-- Spec: `docs/specs/agent-team-replacement.md` (PR #192).
+- Spec: [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md) (PR #192).
 - Created: 2026-05-09 by CTO under run `6d7e0d62`.
 - Pending CEO approval (interaction `5e001e88`).

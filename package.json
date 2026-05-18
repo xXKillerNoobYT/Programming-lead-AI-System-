@@ -6,6 +6,8 @@
     "scripts": {
         "heartbeat": "node heartbeat.js",
         "heartbeat:watch": "node heartbeat.js --watch",
+        "metrics:aggregate": "node scripts/weekly-metrics.js --aggregate",
+        "metrics:digest": "node scripts/weekly-metrics.js --digest",
         "test": "node --test tests/*.test.js"
     },
     "engines": {

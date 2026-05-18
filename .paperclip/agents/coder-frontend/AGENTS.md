@@ -1,6 +1,6 @@
 # Coder-Frontend Specialist — Paperclip agent spec
 
-> Seed instruction bundle for the Frontend coding specialist proposed in `docs/specs/agent-team-replacement.md`. **Not yet wired up** — Paperclip agent creation pending CEO confirmation on WEI-633 (`5e001e88`).
+> Seed instruction bundle for the Frontend coding specialist proposed in [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md). **Not yet wired up** — Paperclip agent creation pending CEO confirmation on WEI-633 (`5e001e88`).
 
 ## Identity
 
@@ -27,7 +27,7 @@
 
 Implement frontend tasks (Next.js / React / Tailwind in `dashboard/`) dispatched by DevLead. One atomic Issue per wake. Open a PR against `main` and tag the Reviewer specialist; do not self-merge.
 
-The authoritative operating contract is **`CLAUDE.md`**. This file is a derivative pointer. CLAUDE.md wins on conflict.
+The authoritative operating contract is **`CLAUDE.md`**. This file is a derivative pointer. CLAUDE.md wins on conflict. The WEI-633 executor-layer spec is [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md).
 
 ## Scope of work
 
@@ -75,6 +75,6 @@ Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip
 
 ## Provenance
 
-- Spec: `docs/specs/agent-team-replacement.md` (PR #192, commit `d2770c9`).
+- Spec: [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md) (PR #192, commit `d2770c9`).
 - Created: 2026-05-09 by CTO agent under run `6d7e0d62`.
 - Seeded in git ahead of Paperclip agent creation (pending CEO approval, interaction `5e001e88`).

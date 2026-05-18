@@ -88,6 +88,17 @@ describe('Preferences UI', () => {
         expect(screen.getByText('120s')).toBeInTheDocument();
     });
 
+    it('merges partial saved preferences with defaults on mount', () => {
+        getItemMock.mockReturnValue(JSON.stringify({ heartbeatInterval: 60 }));
+
+        expect(() => render(<Dashboard />)).not.toThrow();
+        switchToGuidance();
+
+        expect(screen.getByText('60s')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('grok-4.20')).toBeInTheDocument();
+        expect(screen.getByLabelText('MemPalace')).not.toBeChecked();
+    });
+
     it('updates a model mapping input', () => {
         render(<Dashboard />);
         switchToGuidance();
@@ -168,6 +179,24 @@ describe('Preferences UI', () => {
         await waitFor(() => {
             expect(screen.queryByText('Preferences saved successfully!')).not.toBeInTheDocument();
         });
+    });
+
+    it('does not crash when saving preferences exceeds localStorage quota', () => {
+        setItemMock.mockImplementation(() => {
+            throw new DOMException('Quota exceeded', 'QuotaExceededError');
+        });
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        render(<Dashboard />);
+        switchToGuidance();
+
+        expect(() => {
+            fireEvent.click(screen.getByRole('button', { name: 'Save Preferences' }));
+        }).not.toThrow();
+        expect(screen.getByText('Unable to save preferences. Storage may be full.')).toBeInTheDocument();
+        expect(consoleError).toHaveBeenCalledWith('Failed to save preferences.', expect.any(DOMException));
+
+        consoleError.mockRestore();
     });
 
     it('does not crash when localStorage contains invalid JSON', () => {

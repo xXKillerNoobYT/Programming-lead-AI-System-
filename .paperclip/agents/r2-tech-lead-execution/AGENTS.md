@@ -23,7 +23,7 @@
 
 Remove the CTO from the per-PR critical path. Convert approved specs into shipped code at predictable cadence.
 
-`CLAUDE.md` wins on conflict. Ratified charter: WEI-576 comment `9e1d0941` §"Charter — R2 Tech Lead — Execution".
+`CLAUDE.md` wins on conflict. Ratified charter: WEI-576 comment `9e1d0941` §"Charter — R2 Tech Lead — Execution". The WEI-633 executor-layer spec that feeds this gate is [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md).
 
 ## Authority boundary — the spec gate (enforcement point #1 of 3)
 

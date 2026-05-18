@@ -29,6 +29,8 @@ Vault: $PLANS_VAULT_PATH/AI plans/*.md  ← Claude Code's long-term working plan
 
 One atomic task per **heartbeat** (CLAUDE.md §3). The builder (Claude Code) runs this loop via `/loop` or scheduled triggers. The product runtime (`heartbeat.js`) will eventually run the same loop itself.
 
+The coding-execution replacement is documented in [`docs/specs/agent-team-replacement.md`](docs/specs/agent-team-replacement.md). CTO/DevLead routes Paperclip issues to specialist agents by updating `assigneeAgentId`; Paperclip then wakes the assigned specialist. After the WEI-649 trial, DevLead also owns routine specialist PR merges when Reviewer approval, CI, coverage, security, and the four gate tokens are clear.
+
 ## Quick start (local dev, no Docker)
 
 ```bash
@@ -65,16 +67,28 @@ No Docker, no containers, no Python venv. Pure local Node 20+.
 | [`reports/run-*-summary.md`](reports/) | Per-heartbeat progress reports |
 | [`architecture.md`](architecture.md) | Living architecture doc |
 | [`memory.md`](memory.md) | Durable cross-run facts |
+| [`docs/specs/agent-team-replacement.md`](docs/specs/agent-team-replacement.md) | WEI-633 team-of-agents coding replacement spec |
 
 ## Environment setup
 
+- **Portable runtime path overrides** (optional): defaults keep current behavior; relative values resolve from the repo root, and absolute values stay platform-native.
+  - `REPORTS_DIR` (default: `./reports`)
+  - `DECISION_LOG_PATH` (default: `./decision-log.md`)
+  - `MCP_CONFIG_PATH` (default: `./.mcp.json`)
+  - `HEARTBEAT_PAUSE_LOCK_PATH` (default: `./.heartbeat-paused`)
+  - `MCP_CONNECT_TIMEOUT_MS` (default: `30000`)
+  - Starter template: [`.env.example`](.env.example)
+- **Portable MCP config template**: use [`.mcp.json.template`](.mcp.json.template) and set `FILESYSTEM_MCP_ROOT` to avoid machine-specific hardcoded filesystem paths in `.mcp.json`.
+  - PowerShell example:
+    - `$env:FILESYSTEM_MCP_ROOT="C:\\Users\\you\\GitHub\\Programming-lead-AI-System-"`
+    - `Copy-Item .mcp.json.template .mcp.json`
 - **MemPalace MCP server**: set `MEMPALACE_PALACE_PATH` to your local palace directory **before starting Claude Code / MCP server initialization**.
   - bash/zsh: `export MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"`
   - PowerShell: `$env:MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"`
 - `.mcp.json` reads this value for the `mempalace` server `--palace` argument. If unset, MemPalace startup will fail.
-- **Planning docs vault**: set `PLANS_VAULT_PATH` to the Obsidian vault project folder (default: `C:\Users\weird\Obsidain\AI CHat & shard Memory\01_projects\Programming-Lead-AI-System`). Plan files (`Docs/Plans/`, `AI plans/`) were moved from this repo to the vault per WEI-71 / WEI-72.
-  - bash/zsh: `export PLANS_VAULT_PATH="/c/Users/weird/Obsidain/AI CHat & shard Memory/01_projects/Programming-Lead-AI-System"`
-  - PowerShell: `$env:PLANS_VAULT_PATH="C:\Users\weird\Obsidain\AI CHat & shard Memory\01_projects\Programming-Lead-AI-System"`
+- **Planning docs vault**: set `PLANS_VAULT_PATH` to the Obsidian vault project folder. Plan files (`Docs/Plans/`, `AI plans/`) were moved from this repo to the vault per WEI-71 / WEI-72.
+  - bash/zsh: `export PLANS_VAULT_PATH="$HOME/Obsidian/Programming-Lead-AI-System"`
+  - PowerShell: `$env:PLANS_VAULT_PATH="$HOME\\Obsidian\\Programming-Lead-AI-System"`
 
 ## Architecture
 
@@ -82,6 +96,7 @@ See [architecture.md](architecture.md). High-level:
 
 - **Lead orchestrator**: local Ollama (target: Qwen3.5-32B Q5_K_M) + hourly Grok escalation
 - **Third-party coding agents**: delegation via MCP (Roo Code was primary; Claude Code is the current builder per 2026-04-17 user decision)
+- **Paperclip coding team**: WEI-633 specialist agents route through `docs/specs/agent-team-replacement.md`; dispatch uses issue reassignment rather than direct cross-agent wake calls, and DevLead is the post-trial merge authority for gated specialist PRs.
 - **MCP layer**: filesystem, GitHub, code-exec, delegation tools, memory (MemPalace)
 - **State**: local files today; SQLite per-project in Phase 4 (Q-006=C)
 - **UI**: two-pane hybrid dashboard per D-20260419-005 — Operator-console pane (dense) + Living-document conversational pane (AI interaction)

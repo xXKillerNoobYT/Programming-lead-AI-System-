@@ -39,6 +39,62 @@ const defaultPreferences: Preferences = {
     approvalThreshold: 'medium',
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const pickStringValues = (value: unknown): { [key: string]: string } => {
+    if (!isRecord(value)) {
+        return {};
+    }
+
+    return Object.entries(value).reduce<{ [key: string]: string }>((result, [key, entryValue]) => {
+        if (typeof entryValue === 'string') {
+            result[key] = entryValue;
+        }
+        return result;
+    }, {});
+};
+
+const pickBooleanValues = <T extends Record<string, boolean>>(
+    defaults: T,
+    value: unknown,
+): T => {
+    if (!isRecord(value)) {
+        return defaults;
+    }
+
+    return Object.fromEntries(
+        Object.entries(defaults).map(([key, defaultValue]) => [
+            key,
+            typeof value[key] === 'boolean' ? value[key] : defaultValue,
+        ]),
+    ) as T;
+};
+
+const mergeSavedPreferences = (saved: unknown): Preferences => {
+    if (!isRecord(saved)) {
+        return defaultPreferences;
+    }
+
+    return {
+        ...defaultPreferences,
+        heartbeatInterval: typeof saved.heartbeatInterval === 'number'
+            ? saved.heartbeatInterval
+            : defaultPreferences.heartbeatInterval,
+        maxParallelism: typeof saved.maxParallelism === 'number'
+            ? saved.maxParallelism
+            : defaultPreferences.maxParallelism,
+        approvalThreshold: typeof saved.approvalThreshold === 'string'
+            ? saved.approvalThreshold
+            : defaultPreferences.approvalThreshold,
+        modelMappings: {
+            ...defaultPreferences.modelMappings,
+            ...pickStringValues(saved.modelMappings),
+        },
+        toggles: pickBooleanValues(defaultPreferences.toggles, saved.toggles),
+    };
+};
+
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState<'coding' | 'guidance' | 'log'>('coding');
     const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
@@ -48,15 +104,20 @@ export default function Dashboard() {
         const saved = localStorage.getItem('preferences');
         if (!saved) return;
         try {
-            setPreferences(JSON.parse(saved));
+            setPreferences(mergeSavedPreferences(JSON.parse(saved)));
         } catch (err) {
             console.error('Failed to parse saved preferences; falling back to defaults.', err);
         }
     }, []);
 
     const handleSave = () => {
-        localStorage.setItem('preferences', JSON.stringify(preferences));
-        setSaveMessage('Preferences saved successfully!');
+        try {
+            localStorage.setItem('preferences', JSON.stringify(preferences));
+            setSaveMessage('Preferences saved successfully!');
+        } catch (err) {
+            console.error('Failed to save preferences.', err);
+            setSaveMessage('Unable to save preferences. Storage may be full.');
+        }
         setTimeout(() => setSaveMessage(''), 3000);
     };
 
@@ -236,7 +297,11 @@ export default function Dashboard() {
                                     Save Preferences
                                 </button>
                                 {saveMessage && (
-                                    <span className="text-green-400 text-sm">{saveMessage}</span>
+                                    <span
+                                        className={`text-sm ${saveMessage.startsWith('Unable') ? 'text-red-400' : 'text-green-400'}`}
+                                    >
+                                        {saveMessage}
+                                    </span>
                                 )}
                             </div>
                         </div>

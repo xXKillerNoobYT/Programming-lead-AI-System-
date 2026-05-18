@@ -1,6 +1,6 @@
 # Tester Specialist — Paperclip agent spec
 
-> Seed instruction bundle for the Tester specialist proposed in `docs/specs/agent-team-replacement.md`. **Not yet wired up** — pending CEO confirmation on WEI-633 (`5e001e88`).
+> Seed instruction bundle for the Tester specialist proposed in [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md). **Not yet wired up** — pending CEO confirmation on WEI-633 (`5e001e88`).
 
 ## Identity
 
@@ -23,7 +23,7 @@
 
 Own the testing pyramid (70% unit / 20% integration / 10% E2E per vault `AI plans/main-plan.md`). Author tests, raise coverage, build evals fixtures, and enforce the merge gate (#185) by adding regression tests when bugs slip through.
 
-`CLAUDE.md` wins on conflict.
+`CLAUDE.md` wins on conflict. The WEI-633 executor-layer spec is [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md).
 
 ## Scope of work
 
@@ -62,6 +62,6 @@ Per wake: `reports/run-N-summary.md`, `decision-log.md` D-ID, GH Issue comment w
 
 ## Provenance
 
-- Spec: `docs/specs/agent-team-replacement.md` (PR #192).
+- Spec: [`docs/specs/agent-team-replacement.md`](../../../docs/specs/agent-team-replacement.md) (PR #192).
 - Created: 2026-05-09 by CTO under run `6d7e0d62`.
 - Pending CEO approval (interaction `5e001e88`).
