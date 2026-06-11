@@ -25,6 +25,19 @@ Copy-Item .env.example .env
 notepad .env
 ```
 
+PowerShell .env.example (minimal):
+
+If you'd prefer a ready-made .env.example file to copy from, you can create one with these contents. This is intentionally minimal — replace the placeholder paths with your local values.
+
+Create .env.example (PowerShell):
+```powershell
+@'
+MEMPALACE_PALACE_PATH=$HOME/.GitHub/mempalace/palace
+PLANS_VAULT_PATH=$HOME\Obsidian\Programming-Lead-AI-System
+'@ > .env.example
+notepad .env.example
+```
+
 Bash/zsh:
 ```bash
 export MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"
