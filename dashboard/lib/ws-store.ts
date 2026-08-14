@@ -1,4 +1,5 @@
 import { createStore, type StoreApi } from 'zustand/vanilla';
+import type { IssueIntegrityListEnvelopeDto } from './issue-integrity';
 
 export const WS_MESSAGE_KINDS = [
     'heartbeat',
@@ -13,11 +14,17 @@ export const WS_MESSAGE_KINDS = [
 
 export type WsMessageKind = (typeof WS_MESSAGE_KINDS)[number];
 
-export interface WsMessage {
-    ts: string;
-    kind: WsMessageKind;
-    payload: unknown;
-}
+export type WsMessage =
+    | {
+        ts: string;
+        kind: 'issue_update';
+        payload: IssueIntegrityListEnvelopeDto;
+    }
+    | {
+        ts: string;
+        kind: Exclude<WsMessageKind, 'issue_update'>;
+        payload: unknown;
+    };
 
 export interface WsStoreState {
     projectId: string;

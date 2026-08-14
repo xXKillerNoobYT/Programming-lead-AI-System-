@@ -1,0 +1,140 @@
+{
+  "sourceSnapshot": {
+    "schemaVersion": 1,
+    "issueKey": "paperclip:company-demo:issue-42",
+    "sourceKind": "paperclip",
+    "scopeKey": "company-demo",
+    "sourceIssueId": "issue-42",
+    "identifier": "DEMO-42",
+    "title": "Sanitized dependency fixture",
+    "operationalStatus": "blocked",
+    "createdAt": "2026-08-01T00:00:00.000Z",
+    "updatedAt": "2026-08-03T00:00:00.000Z",
+    "blockerIssueKeys": [
+      "paperclip:company-demo:issue-7"
+    ]
+  },
+  "meaningfulActivityEvent": {
+    "schemaVersion": 1,
+    "issueKey": "paperclip:company-demo:issue-7",
+    "eventId": "event-progress-1",
+    "type": "dependency_progress",
+    "occurredAt": "2026-08-03T00:00:00.000Z",
+    "actorKind": "agent",
+    "sourceRef": "event://demo/progress-1"
+  },
+  "attentionLease": {
+    "schemaVersion": 1,
+    "issueKey": "paperclip:company-demo:issue-42",
+    "leaseId": "lease-demo-1",
+    "blockerIssueKey": "paperclip:company-demo:issue-7",
+    "kind": "dependency_wait",
+    "startsAt": "2026-08-03T00:00:00.000Z",
+    "expiresAt": "2026-08-06T00:00:00.000Z",
+    "nextExpectedActivityAt": "2026-08-06T00:00:00.000Z",
+    "ownerRef": "team://demo/engineering"
+  },
+  "integrityRecord": {
+    "schemaVersion": 1,
+    "issueKey": "paperclip:company-demo:issue-42",
+    "policyVersion": "issue-integrity-v1",
+    "rootCause": {
+      "statement": "The dependency lease expires without a qualifying progress event.",
+      "invariant": "dependency_progress_precedes_lease_expiry",
+      "component": "issue-integrity",
+      "confidence": "high",
+      "evidence": [
+        {
+          "kind": "artifact",
+          "ref": "artifact://demo/root-cause-1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observedAt": "2026-08-03T00:00:00.000Z"
+        }
+      ]
+    },
+    "fixIdentity": {
+      "kind": "commit",
+      "ref": "commit://demo/0123456789abcdef",
+      "rollbackRef": "commit://demo/fedcba9876543210",
+      "appliedAt": "2026-08-04T00:00:00.000Z"
+    },
+    "verificationEvidence": {
+      "result": "passed",
+      "policyVersion": "verification-v1",
+      "evidence": [
+        {
+          "kind": "test",
+          "ref": "test://demo/fixed-window",
+          "observedAt": "2026-08-05T00:00:00.000Z"
+        }
+      ]
+    },
+    "recurrenceReview": {
+      "state": "clear",
+      "reviewedAt": "2026-08-05T00:00:00.000Z"
+    },
+    "meaningfulActivityAt": "2026-08-04T00:00:00.000Z",
+    "nextExpectedActivityAt": "2026-08-06T00:00:00.000Z",
+    "createdAt": "2026-08-03T00:00:00.000Z",
+    "updatedAt": "2026-08-05T00:00:00.000Z"
+  },
+  "incidentFamily": {
+    "schemaVersion": 1,
+    "familyId": "family-supervisor-child-identity",
+    "canonicalIssueKey": "paperclip:company-demo:issue-42",
+    "issueKeys": [
+      "paperclip:company-demo:issue-42"
+    ],
+    "component": "process-supervisor",
+    "contract": "supervisor_child_identity",
+    "invariant": "reported_liveness_matches_child_identity",
+    "causalFamily": "supervisor_child_liveness_disagreement",
+    "algorithmVersion": "fingerprint-v1",
+    "createdAt": "2026-08-03T00:00:00.000Z",
+    "updatedAt": "2026-08-05T00:00:00.000Z"
+  },
+  "occurrence": {
+    "schemaVersion": 1,
+    "occurrenceId": "occurrence-demo-1",
+    "familyId": "family-supervisor-child-identity",
+    "issueKey": "paperclip:company-demo:issue-42",
+    "observedAt": "2026-08-05T00:00:00.000Z",
+    "failure": {
+      "operation": "reconcile_child",
+      "actor": "supervisor",
+      "resource": "child-process",
+      "direction": "live_child_reported_lost",
+      "invariant": "reported_liveness_matches_child_identity",
+      "component": "process-supervisor",
+      "contract": "supervisor_child_identity",
+      "errorCode": "process_lost"
+    },
+    "evidence": [
+      {
+        "kind": "log",
+        "ref": "log://demo/occurrence-1",
+        "observedAt": "2026-08-05T00:00:00.000Z"
+      }
+    ],
+    "disposition": "unreviewed"
+  },
+  "policy": {
+    "schemaVersion": 1,
+    "policyVersion": "issue-integrity-v1",
+    "staleAfterMs": 259200000,
+    "hardBlockerKinds": [
+      "missing_input",
+      "missing_owner"
+    ],
+    "meaningfulActivityTypes": [
+      "dependency_progress",
+      "fix_applied",
+      "input_received",
+      "lease_renewed",
+      "owner_response",
+      "root_cause_updated",
+      "verification_observation"
+    ],
+    "fingerprintAlgorithmVersion": "fingerprint-v1"
+  }
+}

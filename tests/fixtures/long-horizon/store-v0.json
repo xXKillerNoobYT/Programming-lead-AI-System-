@@ -1,0 +1,8 @@
+{
+  "fixtureVersion": 1,
+  "fixtureId": "store-v0-absent",
+  "storePresent": false,
+  "expectedMigrationId": "0001-init-file-store",
+  "expectedSchemaVersion": 1,
+  "expectedJournalRecords": 0
+}

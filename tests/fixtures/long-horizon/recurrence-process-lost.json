@@ -1,0 +1,97 @@
+{
+  "fixtureVersion": 1,
+  "fixtureId": "recurrence-process-lost",
+  "algorithmVersion": "fingerprint-v1",
+  "family": {
+    "schemaVersion": 1,
+    "familyId": "family-supervisor-child-identity",
+    "canonicalIssueKey": "paperclip:company-demo:issue-42",
+    "issueKeys": [
+      "paperclip:company-demo:issue-42"
+    ],
+    "component": "process-supervisor",
+    "contract": "supervisor_child_identity",
+    "invariant": "reported_liveness_matches_child_identity",
+    "causalFamily": "supervisor_child_liveness_disagreement",
+    "algorithmVersion": "fingerprint-v1",
+    "createdAt": "2026-05-13T00:00:00.000Z",
+    "updatedAt": "2026-05-13T00:00:00.000Z"
+  },
+  "occurrences": [
+    {
+      "id": "original-stale-identity",
+      "observedAt": "2026-05-13T00:00:00.000Z",
+      "failure": {
+        "operation": "terminate_child",
+        "actor": "supervisor",
+        "resource": "child-process",
+        "direction": "stale_identity_targets_unrelated_process",
+        "invariant": "reported_liveness_matches_child_identity",
+        "component": "process-supervisor",
+        "contract": "supervisor_child_identity",
+        "errorCode": "process_identity_mismatch"
+      }
+    },
+    {
+      "id": "inverse-process-lost",
+      "observedAt": "2026-08-11T00:00:00.000Z",
+      "failure": {
+        "operation": "reconcile_child",
+        "actor": "supervisor",
+        "resource": "child-process",
+        "direction": "live_child_reported_lost",
+        "invariant": "reported_liveness_matches_child_identity",
+        "component": "process-supervisor",
+        "contract": "supervisor_child_identity",
+        "errorCode": "process_lost"
+      },
+      "expected": {
+        "recommendedDisposition": "review_link",
+        "matchedLayer": "causal_family",
+        "preserveDifference": "direction"
+      }
+    },
+    {
+      "id": "renamed-after-90-days",
+      "observedAt": "2026-08-11T00:00:00.000Z",
+      "displayName": "runtime-worker-observer",
+      "pathHint": "runtime/observer/worker-state.js",
+      "failure": {
+        "operation": "observe_worker",
+        "actor": "runtime-observer",
+        "resource": "worker",
+        "direction": "live_child_reported_lost",
+        "invariant": "reported_liveness_matches_child_identity",
+        "component": "runtime-observer",
+        "contract": "supervisor_child_identity",
+        "errorCode": "worker_missing"
+      },
+      "expected": {
+        "recommendedDisposition": "review_link",
+        "matchedLayer": "component_contract",
+        "familyId": "family-supervisor-child-identity"
+      }
+    },
+    {
+      "id": "adjacent-different-invariant",
+      "observedAt": "2026-08-11T00:00:00.000Z",
+      "failure": {
+        "operation": "reconcile_child",
+        "actor": "supervisor",
+        "resource": "child-process",
+        "direction": "live_child_reported_lost",
+        "invariant": "restart_budget_not_exceeded",
+        "component": "process-supervisor",
+        "contract": "restart_budget",
+        "errorCode": "restart_budget_exhausted"
+      },
+      "expected": {
+        "recommendedDisposition": "suggest",
+        "mustDifferOn": [
+          "contract",
+          "invariant"
+        ]
+      }
+    }
+  ]
+}

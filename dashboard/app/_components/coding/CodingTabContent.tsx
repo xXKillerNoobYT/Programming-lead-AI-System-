@@ -2,6 +2,8 @@
 
 import type { ReactElement } from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import type { IssueIntegrityProjectionDto } from '../../../lib/issue-integrity';
+import { IssueIntegrityPanel } from '../issues/IssueIntegrityPanel';
 import { FilterBar } from './FilterBar';
 import { HandoffThread } from './HandoffThread';
 import { InspectorPanel } from './InspectorPanel';
@@ -46,6 +48,7 @@ export interface SelectedMessage {
 
 interface CodingTabContentProps {
     threads: HandoffThreadData[];
+    integrityItems?: readonly IssueIntegrityProjectionDto[];
     filters?: Filters;
     onFiltersChange?: (f: Filters) => void;
     initialFilters?: Filters;
@@ -88,6 +91,7 @@ function matchesFilters(thread: HandoffThreadData, filters: Filters): boolean {
 
 export function CodingTabContent({
     threads,
+    integrityItems = [],
     filters,
     onFiltersChange,
     initialFilters,
@@ -155,6 +159,19 @@ export function CodingTabContent({
             <div className="flex-1 min-h-0 flex overflow-hidden">
                 <div className="flex-1 min-w-0 overflow-auto p-3 space-y-2">
                     <h2 className="sr-only">Coding AI Relay</h2>
+                    {integrityItems.length > 0 ? (
+                        <div
+                            className="space-y-2 pb-1"
+                            aria-label="Canonical issue integrity"
+                        >
+                            {integrityItems.map((projection) => (
+                                <IssueIntegrityPanel
+                                    key={projection.issue.issueKey}
+                                    projection={projection}
+                                />
+                            ))}
+                        </div>
+                    ) : null}
                     {visibleThreads.length === 0 ? (
                         <p className="text-sm text-gray-400 py-8 text-center">
                             No handoffs match the current filters.

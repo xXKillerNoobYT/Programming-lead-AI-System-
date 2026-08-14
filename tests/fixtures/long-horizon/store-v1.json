@@ -1,0 +1,22 @@
+{
+  "fixtureVersion": 1,
+  "fixtureId": "store-v1-empty",
+  "manifest": {
+    "schemaVersion": 1,
+    "storeId": "store-demo-1",
+    "createdAt": "2026-08-11T00:00:00.000Z",
+    "lastSequence": 0,
+    "journalDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lastMigrationId": "0001-init-file-store"
+  },
+  "journal": [],
+  "index": {
+    "schemaVersion": 1,
+    "lastSequence": 0,
+    "journalDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "issues": {},
+    "families": {},
+    "fingerprints": {},
+    "idempotency": {}
+  }
+}

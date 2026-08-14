@@ -1,0 +1,96 @@
+{
+  "fixtureVersion": 1,
+  "fixtureId": "blocked-chain-8d",
+  "now": "2026-08-11T00:00:00.000Z",
+  "policy": {
+    "schemaVersion": 1,
+    "policyVersion": "issue-integrity-v1",
+    "staleAfterMs": 259200000,
+    "hardBlockerKinds": [
+      "missing_input",
+      "missing_owner"
+    ],
+    "meaningfulActivityTypes": [
+      "dependency_progress",
+      "fix_applied",
+      "input_received",
+      "lease_renewed",
+      "owner_response",
+      "root_cause_updated",
+      "verification_observation"
+    ],
+    "fingerprintAlgorithmVersion": "fingerprint-v1"
+  },
+  "sourceWatermark": {
+    "sourceKind": "paperclip",
+    "scopeKey": "company-demo",
+    "cursor": "cursor-demo-0001",
+    "observedAt": "2026-08-11T00:00:00.000Z",
+    "snapshotDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "issue": {
+    "schemaVersion": 1,
+    "issueKey": "paperclip:company-demo:issue-42",
+    "sourceKind": "paperclip",
+    "scopeKey": "company-demo",
+    "sourceIssueId": "issue-42",
+    "identifier": "DEMO-42",
+    "title": "Sanitized blocked chain",
+    "operationalStatus": "blocked",
+    "createdAt": "2026-08-01T00:00:00.000Z",
+    "updatedAt": "2026-08-03T00:00:00.000Z",
+    "blockerIssueKeys": [
+      "paperclip:company-demo:issue-7"
+    ]
+  },
+  "dependencies": [
+    {
+      "schemaVersion": 1,
+      "issueKey": "paperclip:company-demo:issue-7",
+      "sourceKind": "paperclip",
+      "scopeKey": "company-demo",
+      "sourceIssueId": "issue-7",
+      "identifier": "DEMO-7",
+      "title": "Sanitized dependency",
+      "operationalStatus": "in_progress",
+      "createdAt": "2026-08-01T00:00:00.000Z",
+      "updatedAt": "2026-08-03T00:00:00.000Z",
+      "blockerIssueKeys": []
+    }
+  ],
+  "events": [
+    {
+      "schemaVersion": 1,
+      "issueKey": "paperclip:company-demo:issue-7",
+      "eventId": "event-progress-1",
+      "type": "dependency_progress",
+      "occurredAt": "2026-08-03T00:00:00.000Z",
+      "actorKind": "agent",
+      "sourceRef": "event://demo/progress-1"
+    }
+  ],
+  "leases": [],
+  "expected": {
+    "attention": {
+      "state": "stalled",
+      "reason": "stale_dependency",
+      "unresolvedBlockerCount": 1,
+      "coveredBlockerCount": 0,
+      "stalledBlockerCount": 1,
+      "attentionBlockerCount": 0,
+      "sampleBlockerIdentifier": "DEMO-7",
+      "sampleStalledBlockerIdentifier": "DEMO-7",
+      "evaluatedAt": "2026-08-11T00:00:00.000Z",
+      "staleSinceAt": "2026-08-06T00:00:00.000Z",
+      "policyVersion": "issue-integrity-v1"
+    },
+    "paritySurfaces": [
+      "agent",
+      "detail",
+      "export",
+      "inbox",
+      "list",
+      "ui"
+    ]
+  }
+}

@@ -1,0 +1,279 @@
+name: WEIA-1532 exact-candidate macOS evidence
+run-name: WEIA-1532 exact-candidate macOS evidence
+
+"on":
+  push:
+    branches:
+      - evidence/weia-1532-macos
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Native macOS exact-candidate verification
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      DEVLEAD_ISSUE_INTEGRITY_MODE: "off"
+      BASE_HEAD: bab298d5fe0bc3f44b2122b81e5ca4fe5f70f456
+      REQUIRED_DIGEST: sha256:69d64d44be37acbb3674e5899abe81b897fdd2e51881fda2a0e848ccb0093677
+      CANDIDATE_MANIFEST_B64: WwogIHsKICAgICJwYXRoIjogIi5naXRpZ25vcmUiLAogICAgInNoYTI1NiI6ICI0YjBlNDU2YzVjN2Y2MjNkNGE0ODc3ZTJlNzM4M2FmYjQwODlkYWJjMDU5NTMzY2VmYzkzZjJlYzRmOGE0M2U1IiwKICAgICJzaXplIjogNjAxCiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvX190ZXN0c19fL2lzc3VlLWF0dGVudGlvbi1iYWRnZS50ZXN0LnRzeCIsCiAgICAic2hhMjU2IjogIjM4MDAxNDk4OWNjYTJjOWFiMzVkNzFkZjhkNDU0ODk0YTU1OWRhNTdmYjE2Y2QyYjFkMWRkNTMwMjM2YWMxMWQiLAogICAgInNpemUiOiAxODI0CiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvX190ZXN0c19fL2lzc3VlLWludGVncml0eS1wYW5lbC50ZXN0LnRzeCIsCiAgICAic2hhMjU2IjogIjUxNjZjN2M4ODUzZGY1Y2FmMzRiM2YxY2MyNGVlNDY2Y2YxOWFjNGRiYTVmNjk4OTZiYmU0YjVkZWFjYjM5YjgiLAogICAgInNpemUiOiAzODYxCiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvX190ZXN0c19fL2lzc3VlLWludGVncml0eS1yb3V0ZXMudGVzdC50cyIsCiAgICAic2hhMjU2IjogImJhMWMyM2MxMGJjYjU2YjhkYTNiNWY5ZTc4ZWI0YmJiOWIxMDU4OGRkMGQ5YzhhNzRlZGUxM2IwODkyZWQwOTIiLAogICAgInNpemUiOiA5MTAyCiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvX190ZXN0c19fL3dzLXN0b3JlLnRlc3QudHMiLAogICAgInNoYTI1NiI6ICJiYjYxYTJhNGU3YzMxNDUyYWYxM2VkYmZmMGY5ZDFjYzVjMGFlMTUyNWY4MjQzNzg0NzljZjYzZWQyMzhkNjBlIiwKICAgICJzaXplIjogNTM3OQogIH0sCiAgewogICAgInBhdGgiOiAiZGFzaGJvYXJkL2FwcC9fY29tcG9uZW50cy9jb2RpbmcvQ29kaW5nVGFiQ29udGVudC50c3giLAogICAgInNoYTI1NiI6ICJkMmYyYmNlMjQxYTAxZmMzOGVmMmE5NGUxODgzNDgwZmYzMDk0OGRkNWM2MmYxNGMyNGE0NWE5NjQyZjhlZmUzIiwKICAgICJzaXplIjogODQ3NQogIH0sCiAgewogICAgInBhdGgiOiAiZGFzaGJvYXJkL2FwcC9fY29tcG9uZW50cy9pc3N1ZXMvSXNzdWVBdHRlbnRpb25CYWRnZS50c3giLAogICAgInNoYTI1NiI6ICI3ZGU5NzJiODNmNmM4MTY2YmY5Yjc2MDI4NjY4ODhlOTk0YzQxMzg2Zjc4MDBmM2NhOWJkYmIyMjNkOTM2M2NkIiwKICAgICJzaXplIjogOTQzCiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvYXBwL19jb21wb25lbnRzL2lzc3Vlcy9Jc3N1ZUludGVncml0eVBhbmVsLnRzeCIsCiAgICAic2hhMjU2IjogImE2ZjkwYTgzNDAyZjIwY2YyZTQ0MmIyMTcxOGFiYWEzNzA4MGVmN2IzNWUzMDkwYmM5NjdhNjU0ZTE1M2Y0YWIiLAogICAgInNpemUiOiAzMzIzCiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvYXBwL2FwaS9wcm9qZWN0cy9bcHJvamVjdElkXS9pc3N1ZS1pbnRlZ3JpdHkvW3NvdXJjZUtpbmRdL1tzb3VyY2VJZF0vcm91dGUudHMiLAogICAgInNoYTI1NiI6ICI4N2JmYmY4ZjEyZjc1MmVkOTA4NzI1YzJiZDFhNWZiZWU5OTk0ZGVhNTA0Zjg3NjVkNTdjMzA0YjgxNGQzNTA4IiwKICAgICJzaXplIjogMTIwNQogIH0sCiAgewogICAgInBhdGgiOiAiZGFzaGJvYXJkL2FwcC9hcGkvcHJvamVjdHMvW3Byb2plY3RJZF0vaXNzdWUtaW50ZWdyaXR5L2V4cG9ydC9yb3V0ZS50cyIsCiAgICAic2hhMjU2IjogIjE0NDlkOTkzYWIzMTdhZDIwNmNjZjE3OTczM2IwNjNiMDQxMzc5Njk5YTEwODcyMWZkNWE4Mjk1OGIyNGYyZDciLAogICAgInNpemUiOiAxMDUzCiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvYXBwL2FwaS9wcm9qZWN0cy9bcHJvamVjdElkXS9pc3N1ZS1pbnRlZ3JpdHkvaW5ib3gvcm91dGUudHMiLAogICAgInNoYTI1NiI6ICJlZTlhZjQ5ODIwYzFhOWU0MmNkODlhMjk1Y2JhY2U2NTUyYzdmMzAyNTc5NGNjYzk5MjE4MTUwMzllMThhNGQ5IiwKICAgICJzaXplIjogODk1CiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvYXBwL2FwaS9wcm9qZWN0cy9bcHJvamVjdElkXS9pc3N1ZS1pbnRlZ3JpdHkvcm91dGUudHMiLAogICAgInNoYTI1NiI6ICI1NzEzM2FhYmJiYzFjODM5YTU0NDUwNGYzY2JlN2RhYTI2YzAzMGFhMzZlMDZmNjRkNTczYjQyMTJhMmQyMDBkIiwKICAgICJzaXplIjogNTgzCiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvYXBwL3Byb2plY3RzL1twcm9qZWN0SWRdL1t0YWJdL1Byb2plY3RUYWJDb250ZW50LnRzeCIsCiAgICAic2hhMjU2IjogIjRkYmFkNDkxOWNlZWUzZDY0NDkwYjQ1YTIyMWYwZmY1YTcyMDcyYzYzNWFhMDQ4MmFkYzgxZWE2ZDAzMDJjN2IiLAogICAgInNpemUiOiA5MTY4CiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvbGliL2lzc3VlLWludGVncml0eS1zZXJ2ZXIudHMiLAogICAgInNoYTI1NiI6ICI3MjU2YjJhZDUwZWQxZmUyZjhjMTMxYzg1MDU3MDQyNjFkNTEwMTA3YzY4MmZjMWVlODdiOGIwNmUyYTNlZWRlIiwKICAgICJzaXplIjogNjEwNwogIH0sCiAgewogICAgInBhdGgiOiAiZGFzaGJvYXJkL2xpYi9pc3N1ZS1pbnRlZ3JpdHkudHMiLAogICAgInNoYTI1NiI6ICI2Mzc1MDMwOWQzNDNjNzZmMDkzZWFjMGMxYzk0MTM4ZTAwODk0ODQxNGI5ZmY3MjJhMGVlZmRjODViMjQ0YzhhIiwKICAgICJzaXplIjogMzQ5NAogIH0sCiAgewogICAgInBhdGgiOiAiZGFzaGJvYXJkL2xpYi93cy1zdG9yZS50cyIsCiAgICAic2hhMjU2IjogIjVjYTg2NWJkZDg2NGI1Y2E2YWMwMzU0YTkwZjBjMTViOGNiYmM5NmEyYjgwM2M3MDVmZTRlNmNmY2E1OGM2YzkiLAogICAgInNpemUiOiAyMTUwCiAgfSwKICB7CiAgICAicGF0aCI6ICJkYXNoYm9hcmQvbmV4dC5jb25maWcubWpzIiwKICAgICJzaGEyNTYiOiAiOWI1MDE4OTQzYzU2ZjM2N2RlOGViZWI0N2RjMzQ2NmRlYWVlMDI1NmQzMDM4ZDg4M2VlZjUwMThjMGJhNjE3NSIsCiAgICAic2l6ZSI6IDE3MwogIH0sCiAgewogICAgInBhdGgiOiAiZGFzaGJvYXJkL3R5cGVzL2xvbmctaG9yaXpvbi5kLnRzIiwKICAgICJzaGEyNTYiOiAiYTcxM2FjZmY3NDJhMDUzMGQ0OWRlY2Q0YjFmYWQ0MDAzNDUxMTJkYzEyY2RlZDA3NWViOGMyNDdhODU2MjBkMiIsCiAgICAic2l6ZSI6IDExMTQKICB9LAogIHsKICAgICJwYXRoIjogImxpYi9sb25nLWhvcml6b24vYWRhcHRlcnMvZ2l0aHViLmpzIiwKICAgICJzaGEyNTYiOiAiOTkyNTZjZDUzODAwNTc2ZGM5OTU3N2RiNThiOGE0MzQ4YTkwNzk4ZmEzMTYxODI0OWViMDg3YWE1YjJjMmMzYyIsCiAgICAic2l6ZSI6IDY2NDIKICB9LAogIHsKICAgICJwYXRoIjogImxpYi9sb25nLWhvcml6b24vYWRhcHRlcnMvcGFwZXJjbGlwLmpzIiwKICAgICJzaGEyNTYiOiAiMTc4ZjIwYjRjZDIzMDcwOGQ1ZTc5MWJmNjIyOTc4MDQ3MTlkY2U3ZjkxYmRhYzg5ZmUzNTcwZWY3NzRhMDkwZiIsCiAgICAic2l6ZSI6IDczMTYKICB9LAogIHsKICAgICJwYXRoIjogImxpYi9sb25nLWhvcml6b24vYXR0ZW50aW9uLmpzIiwKICAgICJzaGEyNTYiOiAiY2U4Y2UzZTI1Y2FiMWJiM2I1ZjZhYTAwNWY1YzVjNjM3MjcyMDU2YjllNGMwZjcyOTVhMmJiZGFiN2Q0NTFlYiIsCiAgICAic2l6ZSI6IDc3NDMKICB9LAogIHsKICAgICJwYXRoIjogImxpYi9sb25nLWhvcml6b24vY29udHJhY3RzLmpzIiwKICAgICJzaGEyNTYiOiAiNjA3Mjk0Njk3OTU0Mjc1ODFlMjYzNzRmMWRiOTQzYWJkYmE5MzFiOGE1NGU3MTY0ODlhY2YzZmJlY2U2YmE1ZCIsCiAgICAic2l6ZSI6IDI2OTk2CiAgfSwKICB7CiAgICAicGF0aCI6ICJsaWIvbG9uZy1ob3Jpem9uL2ZpbmdlcnByaW50LmpzIiwKICAgICJzaGEyNTYiOiAiMjg1YTE1OTczOGM1NWQ0ZThiYTA1MWMwNTIwNTgyNjI1MGJhYzkxZTBkMDQyZTEwOTk1ZDNiZDAzNTgxMjFhYiIsCiAgICAic2l6ZSI6IDEyMzY5CiAgfSwKICB7CiAgICAicGF0aCI6ICJsaWIvbG9uZy1ob3Jpem9uL2luZGV4LmpzIiwKICAgICJzaGEyNTYiOiAiZjVkMjA1ZWRmOWM2Y2E2ZjA1Y2Y4OGVmNmZkMDNjYmQ3ZGQwMTQ0NDNkNTBmNjk0YTAzYTc5ZmE3OTI5NmFjMSIsCiAgICAic2l6ZSI6IDU0MgogIH0sCiAgewogICAgInBhdGgiOiAibGliL2xvbmctaG9yaXpvbi9saWZlY3ljbGUuanMiLAogICAgInNoYTI1NiI6ICI4OWI5ZWExZjljNTBlYmE1YzQ3ZDJmNWRhYzFiZTNkMmZlYzE0NWU2ZTEyYjY1MjkxNDU2NjdmNDk2YTZjYjViIiwKICAgICJzaXplIjogMjU3NAogIH0sCiAgewogICAgInBhdGgiOiAibGliL2xvbmctaG9yaXpvbi9wcm9qZWN0aW9uLmpzIiwKICAgICJzaGEyNTYiOiAiY2M2ZTUwMDFjMDI2YzNhYWIyYmY0ZTExZjEyNDZiMDJiMjBjM2M3OWExNTJjYzI0NjM4MGVjNjQwNGZmMzNjMiIsCiAgICAic2l6ZSI6IDk0OTQKICB9LAogIHsKICAgICJwYXRoIjogImxpYi9sb25nLWhvcml6b24vc3RvcmUuanMiLAogICAgInNoYTI1NiI6ICJiNzc2Y2E3OTRhZmZlYTJkODE3MTU5NWVhNTNiYjM2OWMzMDM1MTUyZmIwYzI0YTI0Y2Y0ZWJlMGYxYmM1MmMzIiwKICAgICJzaXplIjogMzczNzIKICB9LAogIHsKICAgICJwYXRoIjogInBhY2thZ2UuanNvbiIsCiAgICAic2hhMjU2IjogIjA1ZjM2NzQyMmQ1OGZmNDMxNWI0YjM0MGFjZGFkMGNhNDZjNTNmMDcwOGVlNTdmM2E4MDZlMDQ2NDgwYTUyN2EiLAogICAgInNpemUiOiA3NDcKICB9LAogIHsKICAgICJwYXRoIjogInNjcmlwdHMvZGV2bGVhZC1pbnRlZ3JpdHkuanMiLAogICAgInNoYTI1NiI6ICI4MzFjNTE0ZjM2Y2RkNzM4MmY0ZmFlM2NjZDRhYmYzZmE0OTgwNDBkMmJhN2VkYjg1ODYxZTVjMDE2MjMxYjZlIiwKICAgICJzaXplIjogNTE0MAogIH0sCiAgewogICAgInBhdGgiOiAic2NyaXB0cy9kZXZsZWFkLXJvdXRlLmpzIiwKICAgICJzaGEyNTYiOiAiYWJiODkxMzdlZTZlZGRiYzkyZGRiN2FhZDRlZWFmZWUzYWNkMTA4YjM1MGQwNTA3YjdhODc5NDZlOTZiMDliNiIsCiAgICAic2l6ZSI6IDkxMjUKICB9LAogIHsKICAgICJwYXRoIjogInRlc3RzL2RldmxlYWQtaW50ZWdyaXR5LWNsaS50ZXN0LmpzIiwKICAgICJzaGEyNTYiOiAiNjU1YzcwNzM0NDlmNjBlMzFjY2E3MTdkOGFmNWUzY2I0YTM5ZTA5NDUxZTZiM2M4NjkxZGI5OTg0ZDNhNTAzYyIsCiAgICAic2l6ZSI6IDYxMDMKICB9LAogIHsKICAgICJwYXRoIjogInRlc3RzL2ZpeHR1cmVzL2xvbmctaG9yaXpvbi9ibG9ja2VkLWNoYWluLThkLmpzb24iLAogICAgInNoYTI1NiI6ICJjMzk3Njc4MzJjZGFhYTk5YWRlMTZmYzViNjVmYzZiOWNmNjk5YWU2ZjMzZTI1OGQxOTcwMjY4MWQwYjI1NGI2IiwKICAgICJzaXplIjogMjY1NAogIH0sCiAgewogICAgInBhdGgiOiAidGVzdHMvZml4dHVyZXMvbG9uZy1ob3Jpem9uL2NvbnRyYWN0cy12YWxpZC5qc29uIiwKICAgICJzaGEyNTYiOiAiMDIzNDhiZTI1Y2QxYjQwYTlmN2E0NGEzMzU1ODVhYzFmNzRiMzE2N2RjMjMyYTU4YjQ4ODNjZWZkYjYzYjRiNyIsCiAgICAic2l6ZSI6IDQ0NDAKICB9LAogIHsKICAgICJwYXRoIjogInRlc3RzL2ZpeHR1cmVzL2xvbmctaG9yaXpvbi9saWZlY3ljbGUtY2xvc2UtZ2F0ZS5qc29uIiwKICAgICJzaGEyNTYiOiAiMGE3MDAzNTAxYzRjMjU5ZWEwZjYzNDdjN2I2MDBmOTJjMWM3ZjJlYTYwOWUwZWI0NzgzMWY5ODliZWRlMTIyYSIsCiAgICAic2l6ZSI6IDExODcKICB9LAogIHsKICAgICJwYXRoIjogInRlc3RzL2ZpeHR1cmVzL2xvbmctaG9yaXpvbi9yZWN1cnJlbmNlLXByb2Nlc3MtbG9zdC5qc29uIiwKICAgICJzaGEyNTYiOiAiYjNmNmY0NDIyY2Y5MWNhNzQ3NDY4ZGViM2RkMGY4Nzg4ZDU3NWIyNjMxN2U4MWRlM2IxMjhlMGM0ZDAyY2NhNiIsCiAgICAic2l6ZSI6IDMyMDkKICB9LAogIHsKICAgICJwYXRoIjogInRlc3RzL2ZpeHR1cmVzL2xvbmctaG9yaXpvbi9yZWQtY2FzZXMuanNvbiIsCiAgICAic2hhMjU2IjogIjkyZWIwMDc3MGZlMTA0MGRlOTlhZDFmZWU2OGE3NTliZTdkZDVlYTBjYjg3NGQ0N2U1ZTM2OGY4MzIxMTA0YTAiLAogICAgInNpemUiOiAxODM5CiAgfSwKICB7CiAgICAicGF0aCI6ICJ0ZXN0cy9maXh0dXJlcy9sb25nLWhvcml6b24vc3RvcmUtdjAuanNvbiIsCiAgICAic2hhMjU2IjogImJlOTk0MDMzNWRlNmM1NTkxZjBiZTgyMWVjNjMzMTlkN2RiZWMwYzQ1OTY1OWYyNmM4NzJjMGFiZTE4YjhiZWEiLAogICAgInNpemUiOiAxOTUKICB9LAogIHsKICAgICJwYXRoIjogInRlc3RzL2ZpeHR1cmVzL2xvbmctaG9yaXpvbi9zdG9yZS12MS5qc29uIiwKICAgICJzaGEyNTYiOiAiOTRhY2NhMjFiMmU4ZWE5NzAwZDJiOGIyYTEyZThjZjQ0ZjRhY2ViNTQ0MDFkNzA3ZmNjMzgxNzE0MjA0N2EwNSIsCiAgICAic2l6ZSI6IDYwNwogIH0sCiAgewogICAgInBhdGgiOiAidGVzdHMvbG9uZy1ob3Jpem9uLWF0dGVudGlvbi50ZXN0LmpzIiwKICAgICJzaGEyNTYiOiAiMzRmMGM0NzExNDNlODJhMzI5ZTA3Y2U0NGQyMWQ3MjU4MWNkMWExMmYyZjVjODJjM2IxN2EyOTc4MGYyYWJhNiIsCiAgICAic2l6ZSI6IDc4NjYKICB9LAogIHsKICAgICJwYXRoIjogInRlc3RzL2xvbmctaG9yaXpvbi1jb250cmFjdHMudGVzdC5qcyIsCiAgICAic2hhMjU2IjogIjdkZDE2YzBjYWMxOTM5MTAyNjE2ODJkNzcyMWZlM2NhZTc2ZWM2MDgwOTVkNWQ4MzJmZTBjM2ZhNzcxMmM5OGEiLAogICAgInNpemUiOiAxMjcwNwogIH0sCiAgewogICAgInBhdGgiOiAidGVzdHMvbG9uZy1ob3Jpem9uLWxpZmVjeWNsZS50ZXN0LmpzIiwKICAgICJzaGEyNTYiOiAiMWM5ZmYyZmE2NGViNGRiYzVjOWI3NzVkYjhlMzQwMDI2OWI2YjU3NzhhMzc4OWIzZTc3ZDljYWM3ZjlmZDBkMiIsCiAgICAic2l6ZSI6IDY2MTUKICB9LAogIHsKICAgICJwYXRoIjogInRlc3RzL2xvbmctaG9yaXpvbi1wcm9qZWN0aW9uLXBhcml0eS50ZXN0LmpzIiwKICAgICJzaGEyNTYiOiAiNTUyYjQ4NjlkNjlmODM4YTRmNThmOWM3NjVlM2FjMzI2OTQzYTYxM2FiNWE2ZDBhMjBmZGFiYzk4NmI1Y2RkZCIsCiAgICAic2l6ZSI6IDE4OTE5CiAgfSwKICB7CiAgICAicGF0aCI6ICJ0ZXN0cy9sb25nLWhvcml6b24tcmVjdXJyZW5jZS50ZXN0LmpzIiwKICAgICJzaGEyNTYiOiAiNjJlODJkZjE5YTRjM2E4YWQ4OTQ0ODg2MDlhODkyNzFhYjMxNDVkZjZiMWQ3NGIzNGNhYTMxNzMxOTBmZWNlMSIsCiAgICAic2l6ZSI6IDEyNzI2CiAgfSwKICB7CiAgICAicGF0aCI6ICJ0ZXN0cy9sb25nLWhvcml6b24tc3RvcmUudGVzdC5qcyIsCiAgICAic2hhMjU2IjogImFmYmEyNmM1OTU5MWMzMTE0MzQzNGJmNGYxNDIxN2QyYzNkM2M1MmQyNGVjYmQ1NjdjN2M3YmEyNWFiMTcwMTMiLAogICAgInNpemUiOiAzMTQzNgogIH0KXQo=
+    steps:
+      - name: Check out exact evidence commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify candidate manifest and transport scope before installation
+        id: manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          evidence="$GITHUB_WORKSPACE/weia-1535-evidence"
+          mkdir -p "$evidence/commands"
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import subprocess
+          import sys
+
+          root = pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+          evidence = root / "weia-1535-evidence"
+          manifest = json.loads(base64.b64decode(os.environ["CANDIDATE_MANIFEST_B64"]))
+          expected_paths = [entry["path"] for entry in manifest]
+          if len(expected_paths) != 44 or len(set(expected_paths)) != 44:
+              raise SystemExit("candidate manifest path count/uniqueness mismatch")
+
+          actual_entries = []
+          digest = hashlib.sha256()
+          for expected in manifest:
+              path = expected["path"]
+              target = root / path
+              if not target.is_file():
+                  raise SystemExit(f"missing candidate path: {path}")
+              data = target.read_bytes()
+              actual_sha = hashlib.sha256(data).hexdigest()
+              actual_size = len(data)
+              if actual_sha != expected["sha256"] or actual_size != expected["size"]:
+                  raise SystemExit(f"candidate byte mismatch: {path}")
+              digest.update(path.encode("utf-8") + b"\0" + actual_sha.encode("ascii") + b"\n")
+              actual_entries.append({"path": path, "sha256": actual_sha, "size": actual_size})
+
+          actual_digest = "sha256:" + digest.hexdigest()
+          if actual_digest != os.environ["REQUIRED_DIGEST"]:
+              raise SystemExit(f"manifest digest mismatch: {actual_digest}")
+
+          parent = subprocess.check_output(["git", "rev-parse", "HEAD^"], text=True).strip()
+          if parent != os.environ["BASE_HEAD"]:
+              raise SystemExit(f"evidence commit parent mismatch: {parent}")
+          changed = subprocess.check_output(
+              ["git", "diff", "--name-only", "--diff-filter=ACDMRTUXB", os.environ["BASE_HEAD"], "HEAD"],
+              text=True,
+          ).splitlines()
+          expected_changed = set(expected_paths) | {".github/workflows/weia-1532-macos.yml"}
+          if set(changed) != expected_changed or len(changed) != len(expected_changed):
+              raise SystemExit("transport changed-path set mismatch")
+
+          payload = {
+              "baseHead": os.environ["BASE_HEAD"],
+              "evidenceHead": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "githubRef": os.environ.get("GITHUB_REF"),
+              "githubRefName": os.environ.get("GITHUB_REF_NAME"),
+              "pathCount": len(actual_entries),
+              "manifestDigest": actual_digest,
+              "workflowOnlyExtraPath": True,
+              "changedPaths": changed,
+              "files": actual_entries,
+          }
+          (evidence / "pre-test-manifest.json").write_text(
+              json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n"
+          )
+          print(json.dumps({
+              "baseHead": payload["baseHead"],
+              "evidenceHead": payload["evidenceHead"],
+              "pathCount": payload["pathCount"],
+              "manifestDigest": payload["manifestDigest"],
+              "workflowOnlyExtraPath": payload["workflowOnlyExtraPath"],
+          }, separators=(",", ":")))
+          PY
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Record native macOS and toolchain facts
+        shell: bash
+        run: |
+          set -euo pipefail
+          evidence="$GITHUB_WORKSPACE/weia-1535-evidence"
+          {
+            echo '### sw_vers'
+            sw_vers
+            echo '### architecture'
+            uname -m
+            echo '### uname'
+            uname -a
+            echo '### node'
+            node --version
+            echo '### npm'
+            npm --version
+            echo '### DEVLEAD_ISSUE_INTEGRITY_MODE'
+            printf '%s\n' "$DEVLEAD_ISSUE_INTEGRITY_MODE"
+          } | tee "$evidence/native-facts.txt"
+
+      - name: Install and execute the complete accepted verification matrix
+        id: matrix
+        shell: bash
+        run: |
+          set -uo pipefail
+          evidence="$GITHUB_WORKSPACE/weia-1535-evidence"
+          summary="$evidence/command-summary.tsv"
+          printf 'name\texitCode\tdurationSeconds\tcommand\n' > "$summary"
+          failed=0
+          LAST_RC=0
+
+          run_capture() {
+            local name="$1"
+            local display="$2"
+            shift 2
+            local out="$evidence/commands/${name}.stdout.txt"
+            local err="$evidence/commands/${name}.stderr.txt"
+            local start end duration rc
+            start="$(date +%s)"
+            set +e
+            "$@" > >(tee "$out") 2> >(tee "$err" >&2)
+            rc=$?
+            set -e
+            end="$(date +%s)"
+            duration=$((end - start))
+            printf '%s\t%s\t%s\t%s\n' "$name" "$rc" "$duration" "$display" | tee -a "$summary"
+            LAST_RC=$rc
+          }
+
+          expect_zero() {
+            if [ "$LAST_RC" -ne 0 ]; then
+              failed=1
+            fi
+          }
+
+          run_capture npm-ci-root 'npm ci' npm ci
+          expect_zero
+          run_capture npm-ci-dashboard 'cd dashboard && npm ci' bash -lc 'cd dashboard && npm ci'
+          expect_zero
+
+          run_capture root-focused-contracts-attention-lifecycle 'node --test tests/long-horizon-contracts.test.js tests/long-horizon-attention.test.js tests/long-horizon-lifecycle.test.js' \
+            node --test tests/long-horizon-contracts.test.js tests/long-horizon-attention.test.js tests/long-horizon-lifecycle.test.js
+          expect_zero
+          run_capture root-focused-store-recurrence-parity 'node --test tests/long-horizon-store.test.js tests/long-horizon-recurrence.test.js tests/long-horizon-projection-parity.test.js' \
+            node --test tests/long-horizon-store.test.js tests/long-horizon-recurrence.test.js tests/long-horizon-projection-parity.test.js
+          expect_zero
+
+          run_capture integrity-cli 'node scripts/devlead-integrity.js --fixture tests/fixtures/long-horizon/blocked-chain-8d.json --at 2026-08-03T00:00:00.000Z --format json' \
+            node scripts/devlead-integrity.js --fixture tests/fixtures/long-horizon/blocked-chain-8d.json --at 2026-08-03T00:00:00.000Z --format json
+          cli_rc="$LAST_RC"
+          set +e
+          node - "$evidence/commands/integrity-cli.stdout.txt" "$evidence/commands/integrity-cli.stderr.txt" "$cli_rc" <<'NODE' | tee "$evidence/integrity-cli-validation.json"
+          const fs = require('node:fs');
+          const [stdoutPath, stderrPath, exitText] = process.argv.slice(2);
+          const stdout = fs.readFileSync(stdoutPath, 'utf8');
+          const stderr = fs.readFileSync(stderrPath, 'utf8');
+          let parsed = null;
+          let parseable = false;
+          try {
+            parsed = JSON.parse(stdout);
+            parseable = true;
+          } catch {}
+          const canonical = parseable && stdout === `${JSON.stringify(parsed)}\n`;
+          const closeAllowed = parseable ? parsed?.lifecycle?.closeAllowed : null;
+          const result = {
+            exitCode: Number(exitText),
+            parseable,
+            canonical,
+            stderrBytes: Buffer.byteLength(stderr),
+            closeAllowed,
+            accepted: Number(exitText) === 1 && parseable && canonical && stderr.length === 0 && closeAllowed === false,
+          };
+          process.stdout.write(`${JSON.stringify(result)}\n`);
+          process.exit(result.accepted ? 0 : 1);
+          NODE
+          cli_validation_rc=$?
+          set -e
+          if [ "$cli_validation_rc" -ne 0 ]; then
+            failed=1
+          fi
+
+          run_capture root-npm-test 'npm test' npm test
+          expect_zero
+          run_capture dashboard-focused-jest 'cd dashboard && npx jest --runInBand __tests__/issue-integrity-routes.test.ts __tests__/issue-integrity-panel.test.tsx __tests__/issue-attention-badge.test.tsx' \
+            bash -lc 'cd dashboard && npx jest --runInBand __tests__/issue-integrity-routes.test.ts __tests__/issue-integrity-panel.test.tsx __tests__/issue-attention-badge.test.tsx'
+          expect_zero
+          run_capture dashboard-check-types 'cd dashboard && npm run check:types' bash -lc 'cd dashboard && npm run check:types'
+          expect_zero
+          run_capture dashboard-build 'cd dashboard && npm run build' bash -lc 'cd dashboard && npm run build'
+          expect_zero
+          run_capture git-diff-check 'git diff --check' git diff --check
+          expect_zero
+          run_capture git-base-diff-check 'git diff --check bab298d5fe0bc3f44b2122b81e5ca4fe5f70f456 HEAD' \
+            git diff --check bab298d5fe0bc3f44b2122b81e5ca4fe5f70f456 HEAD
+          expect_zero
+          run_capture final-git-status 'git status --short --branch' git status --short --branch
+          expect_zero
+          run_capture final-git-porcelain 'git status --porcelain=v1 --untracked-files=all' \
+            git status --porcelain=v1 --untracked-files=all
+          expect_zero
+          if [ -s "$evidence/commands/final-git-porcelain.stdout.txt" ]; then
+            failed=1
+          fi
+
+          python3 - "$summary" "$failed" <<'PY'
+          import csv
+          import json
+          import pathlib
+          import sys
+
+          summary_path = pathlib.Path(sys.argv[1])
+          rows = list(csv.DictReader(summary_path.open(encoding="utf-8", newline=""), delimiter="\t"))
+          payload = {
+              "overallAccepted": sys.argv[2] == "0",
+              "commands": [
+                  {
+                      **row,
+                      "exitCode": int(row["exitCode"]),
+                      "durationSeconds": int(row["durationSeconds"]),
+                  }
+                  for row in rows
+              ],
+          }
+          (summary_path.parent / "command-summary.json").write_text(
+              json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n"
+          )
+          print(json.dumps({"overallAccepted": payload["overallAccepted"], "commandCount": len(rows)}, separators=(",", ":")))
+          PY
+
+          python3 - "$evidence" <<'PY'
+          import hashlib
+          import pathlib
+          import sys
+
+          root = pathlib.Path(sys.argv[1])
+          lines = []
+          for path in sorted(p for p in root.rglob("*") if p.is_file() and p.name != "files.sha256"):
+              relative = path.relative_to(root).as_posix()
+              lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {relative}")
+          (root / "files.sha256").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+          PY
+          exit "$failed"
+
+      - name: Upload raw macOS evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weia-1532-macos-${{ github.run_id }}
+          path: weia-1535-evidence
+          if-no-files-found: error
+          retention-days: 14

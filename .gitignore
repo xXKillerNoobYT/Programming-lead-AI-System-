@@ -20,6 +20,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Long-horizon issue-integrity runtime state (fixtures remain committed under tests/)
+.devlead/issue-integrity/v1/
+
 # OS/editor noise
 .DS_Store
 Thumbs.db

@@ -4,6 +4,11 @@ import { LeftRail } from '../../../_components/LeftRail';
 import { MainPanes } from '../../../_components/MainPanes';
 import { CodingTabContent } from '../../../_components/coding/CodingTabContent';
 import type { HandoffThreadData } from '../../../_components/coding/types';
+import type { IssueIntegrityProjectionDto } from '../../../../lib/issue-integrity';
+import {
+    IssueIntegrityHttpError,
+    loadIssueIntegrityProjectionSet,
+} from '../../../../lib/issue-integrity-server';
 import { TAB_TITLES } from './tab-titles';
 
 /**
@@ -135,6 +140,23 @@ const MOCK_CODING_THREADS: HandoffThreadData[] = [
     },
 ];
 
+function loadCodingIntegrityItems(projectId: string): IssueIntegrityProjectionDto[] {
+    try {
+        return loadIssueIntegrityProjectionSet({
+            projectId,
+            searchParams: new URLSearchParams(),
+        }).projections as unknown as IssueIntegrityProjectionDto[];
+    } catch (error) {
+        if (
+            error instanceof IssueIntegrityHttpError &&
+            (error.status === 404 || error.status === 503)
+        ) {
+            return [];
+        }
+        throw error;
+    }
+}
+
 interface ProjectTabContentProps {
     projectId: string;
     tab: string;
@@ -145,6 +167,7 @@ export function ProjectTabContent({ projectId, tab }: ProjectTabContentProps): R
 
     let operator: ReactNode;
     if (tab === 'coding') {
+        const integrityItems = loadCodingIntegrityItems(projectId);
         // Uncontrolled CodingTabContent: it owns its own Filters useState so
         // this parent can remain a server component.
         operator = (
@@ -152,7 +175,10 @@ export function ProjectTabContent({ projectId, tab }: ProjectTabContentProps): R
                 <div className="sr-only">
                     project: <span className="font-mono">{projectId}</span>
                 </div>
-                <CodingTabContent threads={MOCK_CODING_THREADS} />
+                <CodingTabContent
+                    threads={MOCK_CODING_THREADS}
+                    integrityItems={integrityItems}
+                />
             </div>
         );
     } else {

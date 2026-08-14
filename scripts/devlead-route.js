@@ -16,6 +16,9 @@
 //
 // Exit codes: 0 ok / classified, 1 ambiguous-fallback (DevLead self), 2 usage / api error.
 
+const { createHash } = require('node:crypto');
+const { paperclip } = require('../lib/long-horizon/index.js');
+
 const SPECIALISTS = {
   'Coder-Frontend': '9769380d-f550-4967-98df-b2b4a1b10d6e',
   'Coder-Backend':  'd7edb4d2-edec-4ffe-b4b1-dbe7b507e2b1',
@@ -124,9 +127,52 @@ async function api(path, opts = {}) {
   return text ? JSON.parse(text) : {};
 }
 
+function classificationWatermark(issue) {
+  const snapshot = {
+    id: issue.id,
+    identifier: issue.identifier,
+    title: issue.title,
+    status: issue.status,
+    companyId: issue.companyId,
+    projectId: issue.projectId,
+    createdAt: issue.createdAt,
+    updatedAt: issue.updatedAt,
+    blockedBy: issue.blockedBy || [],
+  };
+  return {
+    sourceKind: 'paperclip',
+    scopeKey: issue.companyId,
+    cursor: issue.updatedAt,
+    observedAt: issue.updatedAt,
+    snapshotDigest: `sha256:${createHash('sha256').update(JSON.stringify(snapshot)).digest('hex')}`,
+  };
+}
+
+async function readClassificationIssue(issue) {
+  const result = await paperclip.readIssue({
+    http: async ({ method, path }) => {
+      if (method !== 'GET' || path !== `/api/issues/${encodeURIComponent(issue.id)}`) {
+        throw new Error('classification adapter attempted a non-read or unexpected source operation');
+      }
+      return {
+        data: issue,
+        sourceWatermark: classificationWatermark(issue),
+      };
+    },
+    scopeKey: issue.companyId,
+    projectId: issue.projectId,
+    issueId: issue.id,
+  });
+  return result.sourceSnapshot;
+}
+
 (async () => {
   const issue = await api(`/api/issues/${issueRef}`);
-  const result = classify(issue);
+  const classificationIssue = await readClassificationIssue(issue);
+  const result = classify({
+    ...classificationIssue,
+    labels: issue.labels,
+  });
   const out = {
     issue: issue.identifier,
     title: issue.title,

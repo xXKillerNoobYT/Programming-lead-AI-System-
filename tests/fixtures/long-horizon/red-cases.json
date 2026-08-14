@@ -1,0 +1,41 @@
+{
+  "fixtureVersion": 1,
+  "fixtureId": "downstream-red-cases",
+  "cases": [
+    {
+      "id": "attention-lease-expiry",
+      "ownerTest": "tests/long-horizon-attention.test.js",
+      "module": "lib/long-horizon/attention.js",
+      "fixture": "blocked-chain-8d.json",
+      "expectedBehavior": "The same immutable inputs evaluate covered before the lease boundary and stalled at the boundary."
+    },
+    {
+      "id": "root-cause-close-gate",
+      "ownerTest": "tests/long-horizon-lifecycle.test.js",
+      "module": "lib/long-horizon/lifecycle.js",
+      "fixture": "lifecycle-close-gate.json",
+      "expectedBehavior": "Done is rejected with stable reason codes until root cause, fix identity, passed evidence, and recurrence clearance are present."
+    },
+    {
+      "id": "append-only-store-recovery",
+      "ownerTest": "tests/long-horizon-store.test.js",
+      "module": "lib/long-horizon/store.js",
+      "fixture": "store-v1.json",
+      "expectedBehavior": "Duplicate operations are idempotent and index rebuild preserves journal digest and sequence while corrupt tails fail closed."
+    },
+    {
+      "id": "inverse-and-renamed-recurrence",
+      "ownerTest": "tests/long-horizon-recurrence.test.js",
+      "module": "lib/long-horizon/fingerprint.js",
+      "fixture": "recurrence-process-lost.json",
+      "expectedBehavior": "Inverse and 90-day renamed failures retrieve the original causal family without erasing differing dimensions or auto-reopening."
+    },
+    {
+      "id": "cross-surface-projection-parity",
+      "ownerTest": "tests/long-horizon-projection-parity.test.js",
+      "module": "lib/long-horizon/projection.js",
+      "fixture": "blocked-chain-8d.json",
+      "expectedBehavior": "List, detail, inbox, agent, export, and UI adapters consume byte-equivalent canonical projection fields."
+    }
+  ]
+}

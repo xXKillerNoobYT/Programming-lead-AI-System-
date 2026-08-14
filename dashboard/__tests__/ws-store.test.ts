@@ -33,6 +33,35 @@ describe('Issue #24 final leaf — Zustand WS store (Part 6 §6.2)', () => {
         expect(store.getState().messages).toEqual([msg]);
     });
 
+    it('narrows issue_update messages to the canonical projection envelope', () => {
+        const issueUpdate: WsMessage = {
+            ts: '2026-08-11T00:00:00.000Z',
+            kind: 'issue_update',
+            payload: {
+                schemaVersion: 1,
+                policyVersion: 'issue-integrity-v1',
+                evaluatedAt: '2026-08-11T00:00:00.000Z',
+                sourceWatermark: {
+                    sourceKind: 'paperclip',
+                    scopeKey: 'company-demo',
+                    cursor: 'cursor-demo-0001',
+                    observedAt: '2026-08-11T00:00:00.000Z',
+                    snapshotDigest: `sha256:${'b'.repeat(64)}`,
+                },
+                items: [],
+            },
+        };
+        // @ts-expect-error issue_update requires the complete canonical envelope.
+        const invalidIssueUpdate: WsMessage = {
+            ts: '2026-08-11T00:00:00.000Z',
+            kind: 'issue_update',
+            payload: { schemaVersion: 1 },
+        };
+
+        expect(issueUpdate.kind).toBe('issue_update');
+        expect(invalidIssueUpdate.kind).toBe('issue_update');
+    });
+
     it('receive() keeps messages in insertion order', () => {
         const store = createWsStore({ projectId: 'devlead-mcp' });
         const msg1: WsMessage = { ts: '2026-04-19T04:00:00Z', kind: 'heartbeat', payload: 1 };

@@ -6,7 +6,9 @@
     "scripts": {
         "heartbeat": "node heartbeat.js",
         "heartbeat:watch": "node heartbeat.js --watch",
-        "test": "node --test tests/*.test.js"
+        "test": "node --test tests/*.test.js",
+        "test:integrity": "node --test tests/devlead-integrity-cli.test.js tests/long-horizon-*.test.js",
+        "integrity:fixture": "node scripts/devlead-integrity.js --fixture tests/fixtures/long-horizon/blocked-chain-8d.json --at 2026-08-03T00:00:00.000Z --format json"
     },
     "engines": {
         "node": ">=18"

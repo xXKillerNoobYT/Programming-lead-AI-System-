@@ -1,0 +1,58 @@
+{
+  "fixtureVersion": 1,
+  "fixtureId": "lifecycle-close-gate",
+  "requestedStatus": "done",
+  "completeRecordRef": "contracts-valid.json#integrityRecord",
+  "cases": [
+    {
+      "id": "missing-root-cause",
+      "remove": "rootCause",
+      "expected": {
+        "allowed": false,
+        "reasons": [
+          "root_cause_missing"
+        ]
+      }
+    },
+    {
+      "id": "missing-fix-identity",
+      "remove": "fixIdentity",
+      "expected": {
+        "allowed": false,
+        "reasons": [
+          "fix_identity_missing"
+        ]
+      }
+    },
+    {
+      "id": "missing-verification-evidence",
+      "remove": "verificationEvidence",
+      "expected": {
+        "allowed": false,
+        "reasons": [
+          "verification_evidence_missing"
+        ]
+      }
+    },
+    {
+      "id": "unresolved-recurrence-review",
+      "replace": {
+        "path": "recurrenceReview.state",
+        "value": "required"
+      },
+      "expected": {
+        "allowed": false,
+        "reasons": [
+          "recurrence_review_required"
+        ]
+      }
+    },
+    {
+      "id": "complete-record",
+      "expected": {
+        "allowed": true,
+        "reasons": []
+      }
+    }
+  ]
+}
