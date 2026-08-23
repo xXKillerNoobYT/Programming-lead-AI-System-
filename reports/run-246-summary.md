@@ -98,7 +98,7 @@ All four findings require independent re-review; no implementation or release ga
 - CLI errors are stable, redacted JSON and do not echo source errors or environment values.
 - Evidence writes are confined to `.devlead/runtime/` or a dedicated operating-system temporary directory and reject symlink/hardlink targets.
 - The runtime evidence file is supporting evidence only and never replaces the GitHub ledger.
-- A fresh root audit exits 1 with 6 transitive findings (3 high, 2 moderate, 1 low, 0 critical). The branch adds no dependency; #227 remains open and unwaived, and its older 5-finding snapshot needs ledger refresh.
+- A fresh root audit exits 1 with 6 transitive findings (3 high, 2 moderate, 1 low, 0 critical). The branch adds no dependency; #227 now records this current six-finding baseline and remains open and unwaived.
 
 ## Risks and rollback
 
