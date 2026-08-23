@@ -13,29 +13,26 @@ A **pure intelligent orchestrator** that plans, delegates, reviews, and ships so
 ## How it works — at a glance
 
 ```
-Designer intent (Obsidian vault: $PLANS_VAULT_PATH/Docs/Plans/*.md)
+GitHub roadmap/product epics
            │
-           ▼ decompose
-Vault: $PLANS_VAULT_PATH/AI plans/*.md  ← Claude Code's long-term working plans
-           │
-           ▼ pick one
-   GitHub Issues (backlog)   ← the visible to-do list
+           ▼ native sub-issues
+   Atomic GitHub leaf Issue
            │
            ▼ TDD
        Commit + PR + merge
            │
            ▼ record
-   reports/run-*.md + decision-log.md
+   Issue comments/checks + reports/run-*.md
 ```
 
-One atomic task per **heartbeat** (CLAUDE.md §3). The builder (Claude Code) runs this loop via `/loop` or scheduled triggers. The product runtime (`heartbeat.js`) will eventually run the same loop itself.
+Plan mode produces an approval-ready plan without implementation. After approval, each app execution session handles one atomic Issue and stops. This harness has no `/loop`; recurring sessions use the GitHub Copilot app workflow system. The product's Overall Management heartbeat is a separate runtime concern.
 
 ## Quick start (local dev, no Docker)
 
 ```bash
 # 1) Dashboard — user's preferred dev command
 cd dashboard
-npm install
+npm ci --legacy-peer-deps
 npm run dev
 # → http://localhost:3000 (or 3001 if 3000 busy)
 # routes: /                                 (legacy single-page dashboard)
@@ -57,12 +54,12 @@ No Docker, no containers, no Python venv. Pure local Node 20+.
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | **Start here** — autonomous-lead workflow, heartbeat rules, guardrails |
 | [`SOUL.md`](SOUL.md) | System identity & guardrails (locked) |
-| `$PLANS_VAULT_PATH/Docs/Plans/` | User's locked intent (Part 1–8) + `Dev-Q&A.md` (only writable file there) — in Obsidian vault |
-| `$PLANS_VAULT_PATH/AI plans/` | Claude Code's long-term detailed plans — in Obsidian vault |
+| [GitHub Issues](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues) | Active roadmap, questions, approvals, decisions, and tasks |
+| [`.github/github-app.yml`](.github/github-app.yml) | Copilot app instructions, setup/test/run scripts, and automation |
 | [`heartbeat.js`](heartbeat.js) | Product runtime — read-only tick logger (v1) |
 | [`dashboard/`](dashboard/) | Next.js 15 App Router UI (React 19 RC, Tailwind) |
 | [`lib/mcp-client.js`](lib/mcp-client.js) | MCP client layer |
-| [`decision-log.md`](decision-log.md) | Append-only `D-YYYYMMDD-###` decisions |
+| [`decision-log.md`](decision-log.md) | Read-only historical D-ID provenance |
 | [`reports/run-*-summary.md`](reports/) | Per-heartbeat progress reports |
 | [`architecture.md`](architecture.md) | Living architecture doc |
 | [`memory.md`](memory.md) | Durable cross-run facts |
@@ -73,9 +70,7 @@ No Docker, no containers, no Python venv. Pure local Node 20+.
   - bash/zsh: `export MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"`
   - PowerShell: `$env:MEMPALACE_PALACE_PATH="$HOME/.GitHub/mempalace/palace"`
 - `.mcp.json` reads this value for the `mempalace` server `--palace` argument. If unset, MemPalace startup will fail.
-- **Planning docs vault**: set `PLANS_VAULT_PATH` to the Obsidian vault project folder (default: `C:\Users\weird\Obsidain\AI CHat & shard Memory\01_projects\Programming-Lead-AI-System`). Plan files (`Docs/Plans/`, `AI plans/`) were moved from this repo to the vault per WEI-71 / WEI-72.
-  - bash/zsh: `export PLANS_VAULT_PATH="/c/Users/weird/Obsidain/AI CHat & shard Memory/01_projects/Programming-Lead-AI-System"`
-  - PowerShell: `$env:PLANS_VAULT_PATH="C:\Users\weird\Obsidain\AI CHat & shard Memory\01_projects\Programming-Lead-AI-System"`
+- Repository planning requires GitHub access; historical vault paths are not active runtime configuration.
 
 ## Architecture
 
@@ -90,7 +85,7 @@ See [architecture.md](architecture.md). High-level:
 
 ## Contributing
 
-This repo is authored autonomously by Claude Code per [`CLAUDE.md`](CLAUDE.md). Users answer design questions via `$PLANS_VAULT_PATH/Docs/Plans/Dev-Q&A.md` (in the Obsidian vault) **or** via companion GitHub Issues labeled `type:question` + `status:needs-user`.
+This repo is authored through plan-approved, one-Issue execution sessions per [`CLAUDE.md`](CLAUDE.md). Users answer design questions on GitHub Issues labeled `type:question` + `status:needs-user`.
 
 ## License
 

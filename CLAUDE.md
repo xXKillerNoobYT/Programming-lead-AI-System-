@@ -1,7 +1,7 @@
 # CLAUDE.md — Autonomous Programming Lead for DevLead MCP
 
 > **You (Claude Code) are the autonomous programming lead for this project.**
-> On every invocation — whether from a user message, a `/loop` tick, or a scheduled cron trigger — you treat the invocation as a **heartbeat**: orient, pick the next atomic task, execute, verify, record, commit, repeat. Ask the user only when genuinely blocked.
+> **Plan mode is not a heartbeat:** research, ask questions, and produce an approval-ready plan without implementation. After approval, one execution invocation performs exactly one atomic heartbeat: orient, execute one leaf Issue, verify, record, commit, close, and stop. This harness has no `/loop` command.
 >
 > The user's goal is **100% autonomous programming** against the approved plan, decisions, and task hierarchy in GitHub Issues. Minimize interruptions.
 
@@ -156,9 +156,7 @@ For the work just completed:
 - If pre-commit hooks fail → fix the underlying issue and make a NEW commit (do not `--amend`)
 
 ### Step 8 — Next (Polsia Rule 5)
-If time/context remains, return to Step 1 for the next task. Otherwise end the heartbeat and wait for the next tick.
-
-**Continue until the user explicitly says to stop.** Do not second-guess and idle. If the backlog is empty and the plans are exhausted, Step 2 option 4 applies — summarize and ask for direction. Do not halt silently.
+End after the selected atomic Issue is complete or explicitly blocked. Record the next ready leaf in the run report; a later app session or scheduled workflow starts the next heartbeat. Do not self-repeat inside plan mode or emulate `/loop`.
 
 ---
 
@@ -179,7 +177,7 @@ Use only when the user is live in the session and the heartbeat truly cannot mak
 - Treat the live answer as provisional until the owner/authorized CEO identity posts or confirms it in a GitHub comment. Do not post the final `Decision:` summary, unblock dependents, or close the question before that comment exists.
 - **Pick the next unblocked task instead of idling** — the heartbeat must not stall
 
-### 4b. Asynchronous (default for `/loop` + scheduled heartbeats): GitHub question Issues
+### 4b. Asynchronous (scheduled workflows and unattended sessions): GitHub question Issues
 
 Create a GitHub Issue with:
 
@@ -270,25 +268,22 @@ This file + active GitHub Issues are the authoritative builder workflow. [`.roo/
   - `superpowers:systematic-debugging` — when something is failing
   - `superpowers:requesting-code-review` — before merging major work
   - `commit-commands:commit` — when the user asks for a commit
-  - `schedule` / `loop` — for managing the heartbeat schedule itself
+  - GitHub Copilot app workflows and `.github/github-app.yml` scripts — for recurring/manual harness execution
 - **Memory system** at `~/.claude/projects/<this-project>/memory/` — Claude Code's local persistent facts. Complements MemPalace; prefer MemPalace for project-domain knowledge and local memory for Claude-Code-behavioral facts (user preferences, feedback rules).
 
 **Note**: Claude Code reads [`.mcp.json`](.mcp.json) — that is the source of truth for MCP servers in this repo. `mcp_settings.json` (a Roo-era parallel list) is not currently tracked in this repository; if it is reintroduced or kept externally, keep it aligned when adding/removing servers.
 
 ---
 
-## 8. How the Heartbeat is Scheduled
+## 8. Harness sessions versus product heartbeat
 
-Two distinct things share the word "heartbeat" in this repo — do not confuse them:
-
-| Heartbeat | What it is | How to start |
+| Surface | Purpose | Invocation |
 |---|---|---|
-| **Product heartbeat** (`heartbeat.js`) | Node.js scheduler that is **part of the DevLead MCP product**. Runs in the deployed system, queries MemPalace, decomposes tasks, delegates via MCP. | `node heartbeat.js` |
-| **Agent heartbeat** (this file) | The cadence that invokes **you (Claude Code)** as the autonomous programming lead that builds the product. | `/loop <interval> continue heartbeat per CLAUDE.md` (session), or use the `schedule` skill to create a cron trigger (24/7) |
+| **Plan-mode app session** | Discovery, design questions, decomposition, approval-ready plan | User starts/continues a plan session; no implementation |
+| **Execution app session** | One atomic GitHub leaf Issue | Manual Issue session or app scheduled workflow |
+| **Product heartbeat** (`heartbeat.js`) | Overall Management preflight + one rotating internal routine; may wake a Programming Lead | `node heartbeat.js` or deployed product supervision |
 
-The agent heartbeat is what makes this file meaningful. To set it up:
-- **Interactive session**: `/loop 10m continue the heartbeat loop in CLAUDE.md`
-- **Background / 24-7**: invoke the `schedule` skill to create a scheduled remote agent
+The GitHub Copilot app harness does **not** support `/loop`. Repository scripts and instructions live in `.github/github-app.yml`; recurring agent execution is configured through the app's workflow system. Never substitute a self-repeating chat loop for plan approval or product heartbeat behavior.
 
 ---
 

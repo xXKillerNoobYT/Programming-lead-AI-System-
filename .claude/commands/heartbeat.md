@@ -47,4 +47,4 @@ Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip
 Do not start multiple Issues in a single tick. If the chosen Issue is too large, open child sub-Issues (`gh api graphql` `addSubIssue` mutation, per D-20260417-018) and pick a leaf. Finish → close → report → commit, then end the tick.
 
 ## Heartbeat ≡ both surfaces
-Per `feedback_heartbeat_rules_apply_to_loop_and_program.md` + D-20260417-021: every heartbeat convention applied here in Claude Code's `/loop` must also flow into the `heartbeat.js` product runtime. If a rule only makes sense on one side, stop and re-check.
+Every one-tick builder convention applied here must also be evaluated for the `heartbeat.js` product runtime. Plan mode remains non-executing, and the app harness has no `/loop` command. If a rule only makes sense on one surface, document that boundary explicitly.
