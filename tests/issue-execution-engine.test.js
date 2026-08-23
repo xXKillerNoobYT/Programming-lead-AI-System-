@@ -157,6 +157,18 @@ test('fails closed for duplicate IDs, missing references, cycles, and inconsiste
   }
 });
 
+test('allows six open children plus closed children, but fails closed with seven open children', () => {
+  const openChildren = [291, 292, 293, 294, 295, 296].map((number) => issue(number, { parentNumber: 290 }));
+  const closedChild = issue(297, { parentNumber: 290, state: 'CLOSED' });
+  const parent = issue(290, { childNumbers: [...openChildren.map((child) => child.number), closedChild.number] });
+  const allowed = snapshot([parent, ...openChildren, closedChild]);
+  const tooManyOpen = structuredClone(allowed);
+  tooManyOpen.issues.find((item) => item.number === 297).state = 'OPEN';
+
+  assert.doesNotThrow(() => validateSnapshot(allowed));
+  assert.throws(() => validateSnapshot(tooManyOpen), /more than six open children/i);
+});
+
 test('keeps packet hashes stable across clocks and observation timestamps, but changes them with content', () => {
   const first = snapshot([issue(270)]);
   const second = structuredClone(first);
@@ -180,4 +192,14 @@ test('makes only a leaf with an empty required section ineligible when the snaps
 
   assert.deepEqual(result.candidates.map((item) => item.number), [281]);
   assert.match(result.exclusions[280].join(' '), /goal.*empty/i);
+});
+
+test('preserves the complete first Goal paragraph while excluding later paragraphs', () => {
+  const body = REQUIRED_BODY.replace(
+    'Ship the selected unit of work.',
+    'Ship the selected unit of work\nwith its complete wrapped paragraph.\n\nThis later paragraph is not part of the packet goal.',
+  );
+  const decision = createExecutionDecision(snapshot([issue(298, { body })]));
+
+  assert.equal(decision.goal, 'Ship the selected unit of work\nwith its complete wrapped paragraph.');
 });
