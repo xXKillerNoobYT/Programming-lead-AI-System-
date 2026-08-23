@@ -6,6 +6,7 @@ A **pure intelligent orchestrator** that plans, delegates, reviews, and ships so
 
 - **Phase 1 MVP** ✓ complete — heartbeat.js, three-tab dashboard, SOUL.md
 - **Phase 2** ✓ complete — preferences editor, smart agent-model mapping, one-task-at-a-time rule
+- **Current model-routing policy** — GitHub Copilot desktop manages agent sessions; the root `AGENTS.md` assigns OpenAI models by capability, quality, affordability, and independent-review needs
 - **Phase 3** in progress — cohesion checks, multi-project route shape, UI upgrade, heartbeat hardening
 - **Phase 4** planned — PM2 supervision, GitHub Actions CI, one-command install
 

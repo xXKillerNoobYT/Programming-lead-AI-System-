@@ -149,6 +149,24 @@ Net **$40/mo under spec envelope**. The DevLead seat was inlined into the CTO ro
 
 **Adapter substitution caveat:** the AGENTS.md operating contract was authored assuming Claude. Codex (gpt-5.3-codex) may interpret some instructions differently. The L11 trial should track contract-fidelity issues per agent (e.g., does Codex respect "request-changes with at most 5 issues per round"? Does it cite Decision IDs in commit messages?). If contract drift is high, switch back to claude_local — budget stays under spec either way.
 
+### 4.1 Model-routing plan (owner-approved 2026-08-22)
+
+GitHub Copilot desktop is the preferred agent-management surface, with the configured OpenAI provider supplying the default worker models. Model choice is capability-first and quality-first; affordability decides among models that meet the bar, while speed is only a tie-breaker.
+
+| Team responsibility | Preferred model | Routing note |
+|---|---|---|
+| Direction, architecture, decomposition, escalation | `gpt-5.6-sol` | Directs difficult work; not the default executor |
+| Substantial implementation | `gpt-5.6-terra` | Primary cross-file implementation worker |
+| Affordable bounded implementation | `gpt-5.6-luna` | Use only when it meets the same task quality bar |
+| Repository-focused coding | `gpt-5.3-codex` | Coding-specialist and test-repair path |
+| Independent review and debugging | `gpt-5.5` | Prefer a different role from the implementer |
+| Low-risk utility work | `gpt-5.4-mini` | Inventory, search, formatting, and routine checks |
+| Informal questions and brainstorming | `chat-latest` | Never a reproducible build or release gate |
+
+The root `AGENTS.md` is the operational contract for this routing policy. Every run should record the selected provider/model, role, result, and available cost signal. Non-OpenAI or GitHub-hosted models are reserved for a specific missing capability or a measured quality/cost advantage. Availability and tool support must be checked before dispatch, and a fallback substitution must be recorded.
+
+All roles and all work in this plan use the universal operating loop from the canonical Notion doctrine: `OBSERVE → FRAME → DIAGNOSE → DECIDE → ARCHITECT → BUILD → VALIDATE → REVIEW → SHIP → MEASURE → IMPROVE → OBSERVE`. It governs the whole system, not only coding. The MEASURE and IMPROVE stages must feed evidence back into model routing, skill selection, prompt design, tests, durable lessons, and the next observation cycle. The owner approved global spread on 2026-08-22, resolving the scope question recorded in the canonical loop page.
+
 Budget controls scaffold (GH #189) is the long-term enforcement; until it lands, manual review of `spentMonthlyCents` per agent each week (CTO weekly self-update — see §provenance comment thread).
 
 ---
