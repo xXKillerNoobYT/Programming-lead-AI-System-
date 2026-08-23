@@ -82,7 +82,7 @@
 
 **Files:**
 - Modify: `README.md`
-- Create: `reports/run-244-summary.md`
+- Create: `reports/run-246-summary.md`
 
 **Interfaces:**
 - Documents the preview command, JSON result kinds, exit semantics, evidence path, R1-only boundary, and explicit non-goals.
@@ -90,7 +90,7 @@
 - [ ] Add a concise README section showing `npm run execute:next -- --repo xXKillerNoobYT/Programming-lead-AI-System-` and explaining that the command reads GitHub but does not claim or dispatch work.
 - [ ] Run the focused tests and full `npm test` fresh.
 - [ ] Run a live preview with `--evidence` pointing to a temporary file; verify the result is either one valid R1 packet or a reasoned no-action decision and verify no Issue timestamps or labels changed.
-- [ ] Write Run 244 with the governing Issue, changed files, RED/GREEN evidence, full verification, live snapshot outcome, known npm-audit baseline tracked by #227, risks, rollback, and required independent gates.
+- [ ] Write Run 246 with the governing Issue, changed files, RED/GREEN evidence, full verification, live snapshot outcome, known npm-audit baseline tracked by #227, risks, rollback, and required independent gates.
 - [ ] Run `git diff --check` and `git status --short`, ensuring no generated runtime evidence is staged.
 - [ ] Commit with `docs(execution): document GitHub preview workflow (#236)`.
 
@@ -106,5 +106,5 @@
 - [ ] Obtain independent architecture/spec, code-quality, QA, and security review; fix valid findings test-first and re-review the fix range.
 - [ ] Run `npm test`, all focused tests, `git diff --check`, and one final live read-only preview.
 - [ ] Comment on #236 and #234 with commit, commands/results, packet/no-action outcome, review evidence, risks, and rollback.
-- [ ] Push `codex/issue-236-execution-engine` without force and open a draft PR against the verified base branch. Include Issue #236, Run 244, verification, risks, rollback, dependency relationship, and unresolved gates.
+- [ ] Push `codex/issue-236-execution-engine` without force and open a draft PR against the verified base branch. Include Issue #236, Run 246, verification, risks, rollback, dependency relationship, and unresolved gates.
 - [ ] Do not merge or mark ready; independent gates and owner policy remain authoritative.
