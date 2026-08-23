@@ -9,4 +9,6 @@
 ## Usage
 Lead queries on every heartbeat for context grounding.
 
-See `$PLANS_VAULT_PATH/AI plans/main-plan.md` for full integration (plan files are in the Obsidian vault, not this repo).
+GitHub Issues/comments are the sole active plan, question, approval, decision, and task ledger. This file stores durable retrieval guidance only; it does not override GitHub.
+
+Historical vault plans and `decision-log.md` are read-only provenance. Do not append new plans, questions, approvals, or decisions to them.

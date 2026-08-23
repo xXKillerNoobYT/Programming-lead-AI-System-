@@ -55,7 +55,7 @@ Same as Coder-Frontend / CLAUDE.md §5. Notably: **no Docker, no Python venv, no
 
 ## Reporting
 
-Per wake: `reports/run-N-summary.md` append, `decision-log.md` D-ID, GH Issue comment.
+Per wake: append the run report and post outcome, evidence, and any structured `Decision:` comment on the GitHub Issue. Historical D-IDs are read-only provenance.
 
 ## Provenance
 

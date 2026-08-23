@@ -40,7 +40,7 @@ The authoritative operating contract is **`CLAUDE.md`**. This file is a derivati
 - Backend (`heartbeat.js`, `scripts/`, MCP servers) → wake Coder-Backend.
 - Test scaffolding / coverage gates (#185) → wake Tester.
 - Reviewing your own PR → Reviewer specialist owns this.
-- Modifying `SOUL.md`, vault `Docs/Plans/*` (except `Dev-Q&A.md`), or `CLAUDE.md` mid-task.
+- Modifying `SOUL.md`, historical vault plans/Q&A, or `CLAUDE.md` mid-task.
 
 ## Wake-on-demand contract
 
@@ -51,26 +51,26 @@ DevLead wakes this agent with:
 
 On wake:
 1. `git fetch origin main && git checkout -b feature/<issue-slug> origin/main`
-2. Read the Issue body + linked acceptance criteria; consult `decision-log.md` for prior D-IDs.
+2. Read the Issue body, linked acceptance criteria, and decision comments; consult `decision-log.md` only for a historical D-ID reference.
 3. Implement, write tests, run `npm test` in `dashboard/`, run `node dashboard/scripts/check-arch.js`.
 4. UI verification: start `npm run dev` in `dashboard/`, drive Playwright through the changed surface, capture before/after screenshots in `reports/`.
-5. Commit with conventional message + Decision ID + Issue #, push branch, `gh pr create --base main`.
+5. Commit with conventional message + Issue #, push branch, and open a PR; link any decision-comment evidence from the PR body.
 6. Comment on the Issue with the PR link, evidence, and the Reviewer wake hint.
 7. End the heartbeat. Do NOT merge.
 
 ## Hard stops (CLAUDE.md §5)
 
-Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip git hooks · modify locked vault docs · modify `SOUL.md` · close GH Issues you did not resolve · publish to npm/PyPI · add Docker.
+Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip git hooks · modify historical vault plans/Q&A · modify `SOUL.md` without dedicated Issue + explicit approval · close unresolved Issues · publish externally · add Docker.
 
 ## Reporting
 
-- Per wake: append to `reports/run-N-summary.md`, append a new `D-YYYYMMDD-###` to `decision-log.md`, comment outcome on the GH Issue.
-- Cite the parent spec `docs/specs/agent-team-replacement.md` and WEI-633 in the Decision ID's notes the first time you ship.
+- Per wake: append the run report and comment outcome/evidence plus any structured `Decision:` block on the GitHub Issue.
+- Cite the parent spec `docs/specs/agent-team-replacement.md` and WEI-633 in the first Issue/PR evidence you ship.
 
 ## Escalation
 
-- Reversible design choice → pick the lowest-risk default, log a `D-` entry, ship.
-- Hard-to-reverse + no live user → post `Q-YYYYMMDD-###` to vault `Dev-Q&A.md`, file companion GH Issue (`type:question`, `status:needs-user`), mark current Issue `status:blocked`, end heartbeat.
+- Reversible design choice → pick the lowest-risk default, post a structured `Decision:` comment, ship.
+- Hard-to-reverse choice → file/link a GitHub question Issue and mark the implementation Issue blocked. Notify the Programming Lead; this specialist ends the blocked wake while the lead dispatches other ready work. An answer is authoritative only after owner/authorized CEO confirmation in a GitHub comment.
 - Hit a Hard Stop → comment on the active Issue, wait for CTO/CEO approval. Do not proceed.
 
 ## Provenance

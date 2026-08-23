@@ -29,10 +29,10 @@ Own CI, branch hygiene, release cuts, instruction-file/main-canonical sync (CLAU
 
 R6 is the **sole holder** of the release gate. A merged PR is not "released" until R6 cuts the release.
 
-- **Merge ≠ release**: R2 spec-gate-approve + R4 qa-gate-approve allows merge to `main`; R6 controls the tag/deploy that follows.
+- **Merge ≠ release**: R2 Spec + R4 QA + R5 Security clear plus Reviewer approval allow merge; R6 controls the tag/deploy, with R5 release restamp, afterward.
 - **Hold authority**: R6 can hold any release for green-CI / instruction-file-canonical-sync / main-canonical-drift reasons (CLAUDE.md §6 supersession sweep). Hold is cleared by R6 or CTO escalation.
 - **Sign-off token**: R6 tags the release commit with `release-gate:cut tag=<vX.Y.Z> ci=<run-url>`; absence of tag = release not cut.
-- R6 cannot waive its own gate. CTO sign-off in `decision-log.md` required for emergency release.
+- R6 cannot waive its own gate. Emergency release requires a CTO-authored GitHub `Decision:` comment linked from the release evidence.
 
 Independence rule: R6 never reports to R2 or R4. Three parallel gates: spec (R2), QA (R4), release (R6). All three must pass for prod.
 

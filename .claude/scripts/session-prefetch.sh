@@ -2,7 +2,7 @@
 # .claude/scripts/session-prefetch.sh
 #
 # Fires on SessionStart. Writes .claude/session-state.md with a snapshot of the
-# six orient-step inputs from CLAUDE.md §3 Step 1, so the model can read ONE
+# GitHub-only orient inputs from CLAUDE.md §3 Step 1, so the model can read ONE
 # file instead of issuing six tool calls at the start of every heartbeat.
 #
 # Safe to fail silently — the heartbeat's Step 1 fallback is to gather the
@@ -14,6 +14,9 @@ set +e  # keep going even if a command fails; this is best-effort
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="$REPO_ROOT/.claude/session-state.md"
 TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+REPO_SLUG="$(cd "$REPO_ROOT" && gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)"
+REPO_OWNER="${REPO_SLUG%%/*}"
+REPO_NAME="${REPO_SLUG#*/}"
 
 # Run `npm install` for root + dashboard/ so `npm test` works out-of-the-box in
 # fresh remote sessions (fresh clones have no node_modules/). Short-circuits
@@ -66,9 +69,19 @@ DASH_INSTALL_LOG="$(prefetch_install '[dashboard/]' "$REPO_ROOT/dashboard" --leg
   (cd "$REPO_ROOT" && git log --oneline -10 2>&1)
   echo '```'
   echo
-  echo "## gh issue list --state open --limit 30"
+  echo "## Open GitHub Issues"
   echo '```'
-  (cd "$REPO_ROOT" && gh issue list --state open --limit 30 2>&1 | head -40)
+  (cd "$REPO_ROOT" && gh issue list --state open --limit 100 2>&1 | head -110)
+  echo '```'
+  echo
+  echo "## Open roadmap epics"
+  echo '```'
+  (cd "$REPO_ROOT" && gh issue list --state open --limit 30 --label type:epic 2>&1 | head -40)
+  echo '```'
+  echo
+  echo "## Open pull requests"
+  echo '```'
+  (cd "$REPO_ROOT" && gh pr list --state open --limit 100 2>&1 | head -110)
   echo '```'
   echo
   echo "## Latest run report"
@@ -81,18 +94,29 @@ DASH_INSTALL_LOG="$(prefetch_install '[dashboard/]' "$REPO_ROOT/dashboard" --leg
     echo "_(no run-*-summary.md found)_"
   fi
   echo
-  echo "## Last 5 Decision IDs"
+  echo "## Open GitHub design questions"
   echo '```'
-  (cd "$REPO_ROOT" && grep -oE 'D-[0-9]{8}-[0-9]{3}' decision-log.md 2>/dev/null | tail -5)
+  (cd "$REPO_ROOT" && gh issue list --state open --limit 100 --label type:question --label status:needs-user 2>&1 | head -110)
   echo '```'
   echo
-  echo "## Dev-Q&A.md — Open Questions"
-  VAULT_PATH="${PLANS_VAULT_PATH:-/c/Users/weird/Obsidain/AI CHat & shard Memory/01_projects/Programming-Lead-AI-System}"
-  if [ -f "$VAULT_PATH/Docs/Plans/Dev-Q&A.md" ]; then
-    awk '/^## Open Questions/,/^---/' "$VAULT_PATH/Docs/Plans/Dev-Q&A.md" 2>/dev/null | head -80
+  echo "## Native Issue graph + recent comments"
+  echo '```json'
+  if [ -n "$REPO_OWNER" ] && [ -n "$REPO_NAME" ] && [ "$REPO_OWNER" != "$REPO_NAME" ]; then
+    (
+      cd "$REPO_ROOT" &&
+      gh api graphql \
+        -f query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){issues(first:30,states:OPEN,orderBy:{field:UPDATED_AT,direction:DESC}){nodes{number title updatedAt parent{number title}labels(first:20){nodes{name}}subIssues(first:20){nodes{number title state}}comments(last:10){nodes{author{login}createdAt updatedAt url body}}}}}}' \
+        -F owner="$REPO_OWNER" \
+        -F name="$REPO_NAME" 2>&1 | head -c 30000
+    )
   else
-    echo "_($VAULT_PATH/Docs/Plans/Dev-Q&A.md not found)_"
+    echo '{"error":"repository identity unavailable; gather Issue graph/comments live"}'
   fi
+  echo
+  echo '```'
+  echo
+  echo "## Historical decision provenance"
+  echo "_decision-log.md is read-only; consult only when an Issue cites a historical D-ID._"
 } > "$OUT" 2>&1
 
 exit 0

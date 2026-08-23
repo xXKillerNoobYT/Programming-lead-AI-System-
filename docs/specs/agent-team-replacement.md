@@ -45,7 +45,7 @@ Replace the single-process Claude Code heartbeat with a **team of Paperclip agen
 - Retiring Claude Code immediately. Claude Code remains the fallback executor until the team has run cleanly for ~7 days (per WEI-71 followup phase 2 readiness criterion).
 - New infrastructure (Docker, k8s, cloud queues). Paperclip's existing wake-on-demand surface is the dispatcher.
 - Cross-repo orchestration. This spec covers only `Programming-lead-AI-System-`.
-- Modifying `SOUL.md` or vault `Docs/Plans/*` (still locked).
+- Modifying `SOUL.md` without its dedicated approval flow or altering historical vault plan/Q&A files.
 
 ### Non-goals
 - Replacing the **product** runtime (`heartbeat.js`) — that is a separate program. This spec covers the *builders*, not the *built thing*.
@@ -60,16 +60,16 @@ The model now has **three layers**: Orchestrator → Executors → Gate-holders.
 
 | Layer | Loop | Owner agent | Role | Reports to |
 |---|---|---|---|---|
-| Orchestrator | **Plan decomposition + Issue dispatch** | DevLead Programming Lead | Reads vault `AI plans/`, refills GH backlog ≥3, classifies Issues by `area:*`, wakes the right executor | CTO |
+| Orchestrator | **Plan decomposition + Issue dispatch** | DevLead Programming Lead | Reads active GitHub roadmap Issues, refills backlog ≥3, classifies Issues by `area:*`, wakes the right executor | CTO |
 | Executor | **Coding (frontend)** | Coder-Frontend Specialist | Next.js / React / Tailwind work in `dashboard/` | DevLead |
 | Executor | **Coding (backend)** | Coder-Backend Specialist | Node.js core, `heartbeat.js`, MCP, scripts | DevLead |
 | Executor | **Test authoring** | Tester Specialist | Vitest/Jest + node:test coverage, fixtures, eval suite | DevLead |
-| Gate-holder 1 | **Spec gate** | R2 Tech Lead — Execution | `spec-gate:approved D-… spec=…` token in PR review | CTO |
+| Gate-holder 1 | **Spec gate** | R2 Tech Lead — Execution | `spec-gate:approved decision=<github-comment-url> spec=…` token in PR review | CTO |
 | Gate-holder 2 | **QA gate** | R4 QA — Break-Testing | `qa-gate:approved scenarios=N` token; `qa:hold` label on PR | CTO |
 | Gate-holder 3 | **Release gate** | R6 DevOps / Release | `release-gate:cut tag=… ci=…` in tag/release-commit | CTO |
 | Gate-holder 4 | **Security gate** | R5 Security / Reliability | `sec-gate:approved sev=…` or `sec-veto:hold sev=…` token; standing veto on Sev≥2 | CTO + CEO (joint for Sev2 override; Sev1 fix-forward only) |
-| Cross-cutting | **Token enforcement on PRs** | Reviewer Specialist | Mechanically scans PR review bodies for the four gate tokens; `request-changes` if any missing/invalid (per `.paperclip/agents/reviewer/AGENTS.md` checklist item 10 + "Gate token grammar" section) | DevLead |
-| Cross-cutting | **Release / merge** | DevLead (acts as merger) | Merges only when all four gate tokens are clear and Reviewer approves | CTO |
+| Cross-cutting | **Token enforcement on PRs** | Reviewer Specialist | Before merge, scans R2/R4/R5 review tokens; release evidence is checked at tag time | DevLead |
+| Cross-cutting | **Merge / release coordination** | DevLead | Merges after R2/R4/R5 + Reviewer; coordinates post-merge R6 release + R5 restamp | CTO |
 | Escalation | **Hard stops + direction** | CTO (this agent) | Cross-gate tie-break (gates 1–3); CTO+CEO joint override (gate 4 Sev2 only); large-direction changes | CEO (Isaac) |
 
 ### 2.2 Routing contract
@@ -83,25 +83,28 @@ DevLead orchestrator (heartbeat tick)
     ▼
 Executor (Coder-FE | Coder-BE | Tester) wake-on-demand
     │  one atomic Issue → one feature branch off origin/main
-    │  commits, pushes, opens PR (cites Decision ID + Issue #)
+    │  commits, pushes, opens PR (cites Issue # + decision-comment evidence)
     ▼
-Four gate-holders run in parallel (no chain — each independent):
-  ├─ R2 Spec gate      → posts `spec-gate:approved D-… spec=…`     in PR review
+Three pre-merge gate-holders run in parallel:
+  ├─ R2 Spec gate      → posts `spec-gate:approved decision=<url> spec=…`
   ├─ R4 QA gate        → posts `qa-gate:approved scenarios=N`      in PR review
   ├─ R5 Security gate  → posts `sec-gate:approved sev=…`           in PR review
   │                       OR `sec-veto:hold sev=…` (≥2hr grace, Sev1 no override)
-  └─ R6 Release gate   → posts `release-gate:cut tag=… ci=…`       in tag/release-commit
     │
     ▼
 Reviewer Specialist wakes on PR-opened (poll-based MVP via DevLead)
-    │  scans PR for all four gate tokens (per AGENTS.md item 10 + grammar)
+    │  scans PR reviews for R2/R4/R5 pre-merge tokens
     │  any missing/invalid → `gh pr review --request-changes`
     │  all clear           → `gh pr review --approve`
     ▼
 DevLead merges if Reviewer approves + CI green; on red, reassigns to executor
     │
     ▼
-Issue closed with run-complete D-ID; queue refilled to ≥3
+R6 Release gate evaluates merged main + CI
+    │  posts `release-gate:cut tag=… ci=…`
+    │  requires R5 `sec-gate:cleared tag=…` restamp
+    ▼
+Issue closed with run-complete evidence/comment; queue refilled to ≥3
 ```
 
 ### 2.3 Instruction-bundle layout (r2)
@@ -147,7 +150,7 @@ Outside WEI-633's scope but referenced (governed by WEI-715/716):
 
 Net **$40/mo under spec envelope**. The DevLead seat was inlined into the CTO role + a routing script rather than a separate agent — reduces budget and keeps orchestration auditable through the CTO's existing run log. Worth re-evaluating after the L11 trial: if the routing volume warrants it, spin up a dedicated DevLead seat at the originally specced $30 (still leaves ~$10 headroom).
 
-**Adapter substitution caveat:** the AGENTS.md operating contract was authored assuming Claude. Codex (gpt-5.3-codex) may interpret some instructions differently. The L11 trial should track contract-fidelity issues per agent (e.g., does Codex respect "request-changes with at most 5 issues per round"? Does it cite Decision IDs in commit messages?). If contract drift is high, switch back to claude_local — budget stays under spec either way.
+**Adapter substitution caveat:** the AGENTS.md operating contract was authored assuming Claude. Codex (gpt-5.3-codex) may interpret some instructions differently. The L11 trial should track contract fidelity (for example, review limits and GitHub decision-evidence links). If drift is high, switch back to `claude_local`.
 
 ### 4.1 Model-routing plan (owner-approved 2026-08-22)
 
@@ -175,10 +178,10 @@ Budget controls scaffold (GH #189) is the long-term enforcement; until it lands,
 
 The replacement is **MVP-complete** when all of these hold for one full week:
 
-1. **AC-1**: An Issue labeled `area:ui` is closed end-to-end via Coder-Frontend — commits, PR, all four gate tokens posted by R2/R4/R5/R6, Reviewer approves, DevLead merges. No Claude Code intervention.
-2. **AC-2**: An Issue labeled `area:backend` is closed end-to-end via Coder-Backend with the same four-gate flow.
-3. **AC-3**: `gh pr list --state merged --limit 5` shows ≥1 PR authored by a specialist agent and reviewed by Reviewer with all four gate tokens present in the PR conversation.
-4. **AC-4**: `decision-log.md` contains run-complete D-IDs from at least two distinct executor agents.
+1. **AC-1**: An `area:ui` Issue completes via Coder-Frontend — R2/R4/R5 + Reviewer allow merge; post-merge R6 release + R5 restamp complete the lifecycle. No Claude Code intervention.
+2. **AC-2**: An `area:backend` Issue completes via Coder-Backend with the same pre-merge and release-time lifecycle.
+3. **AC-3**: ≥1 specialist PR merged with R2/R4/R5 pre-merge evidence and Reviewer approval, then released with R6 token + R5 restamp.
+4. **AC-4**: GitHub Issue histories contain run-complete evidence/decision comments from at least two distinct executor agents.
 5. **AC-5**: Total spend on the WEI-633 executor + orchestrator + reviewer agents (DevLead, Coder-FE, Coder-BE, Tester, Reviewer) ≤ $150 in the trial week. R2/R4/R5/R6 budgets are governed separately by WEI-715/716.
 6. **AC-6**: Zero hard-stop violations (no force-push, no `--no-verify`, no SOUL.md edits, no secret commits, no Sev1 override attempts).
 7. **AC-7**: This spec is referenced from `CLAUDE.md` (or successor) and from each WEI-633 specialist's `AGENTS.md`. Cross-referenced from `docs/specs/org-v1-enforcement-points.md` so future readers find the executor-layer spec from the gate-layer spec.
@@ -206,8 +209,8 @@ The replacement is **MVP-complete** when all of these hold for one full week:
 If the team replacement degrades velocity or quality, rollback is reversible at any heartbeat:
 
 1. **Tier-1 rollback (specialists only)**: pause specialist agents in Paperclip (`runtimeConfig.heartbeat.enabled = false`). DevLead orchestrator continues but falls back to acting as the generalist coder (the role it played pre-replacement).
-2. **Tier-2 rollback (full)**: pause DevLead too. Claude Code resumes via `/loop` per CLAUDE.md §8. Specialist `AGENTS.md` files stay in git for audit; their Paperclip records are archived (not deleted) so re-enabling is one config flip.
-3. **Audit trail**: every Issue closed by a specialist carries the agent ID in its run-complete D-ID — making "what did the team produce vs. Claude Code" trivially queryable.
+2. **Tier-2 rollback (full)**: pause DevLead too. Builder work resumes through manual Issue sessions or the GitHub Copilot app workflow system per CLAUDE.md §8. Specialist `AGENTS.md` files stay in git for audit; their Paperclip records are archived (not deleted) so re-enabling is one config flip.
+3. **Audit trail**: every Issue closed by a specialist records the agent ID in its run-complete GitHub evidence, making team-vs-fallback output queryable.
 
 Rollback decision authority: **CTO** (this agent) for Tier-1, **CEO (Isaac)** for Tier-2.
 

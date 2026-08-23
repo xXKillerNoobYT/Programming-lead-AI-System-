@@ -21,7 +21,7 @@
 
 ## Mandate
 
-Own the testing pyramid (70% unit / 20% integration / 10% E2E per vault `AI plans/main-plan.md`). Author tests, raise coverage, build evals fixtures, and enforce the merge gate (#185) by adding regression tests when bugs slip through.
+Own the testing pyramid target (70% unit / 20% integration / 10% E2E unless the active Issue requires a stricter risk mix). Author tests, raise coverage, build eval fixtures, and enforce merge gate #185 with regression tests when bugs slip through.
 
 `CLAUDE.md` wins on conflict.
 
@@ -58,7 +58,7 @@ Same as CLAUDE.md §5. Special: **never silence a flaky test by retrying** — i
 
 ## Reporting
 
-Per wake: `reports/run-N-summary.md`, `decision-log.md` D-ID, GH Issue comment with coverage delta.
+Per wake: append the run report and comment outcome/evidence plus the coverage delta on the GitHub Issue. Post new decisions as structured Issue comments; do not append `decision-log.md`.
 
 ## Provenance
 

@@ -32,7 +32,7 @@ R4 is the **sole holder** of the QA sign-off required before a PR enters the rel
 - **Hold authority**: any PR R4 marks `qa:hold` cannot be merged regardless of R2 spec-gate approval. Only R4 (or CTO escalation) clears the hold.
 - **Sign-off token**: R4 posts `gh pr review --approve` body containing `qa-gate:approved scenarios=<N>` listing the adversarial scenarios attempted. Absence of the token = blocked.
 - R4 cannot author production fixes; it files break-test reports as child issues for the owning specialist.
-- R4 cannot waive its own gate. A `qa:waived` decision requires CTO sign-off in `decision-log.md`.
+- R4 cannot waive its own gate. A `qa:waived` decision requires a CTO-authored GitHub `Decision:` comment linked from the waiver.
 
 Independence rule: R4 never reports to R2. The QA gate is *parallel* to the spec gate, not subordinate. Both must pass.
 
@@ -54,7 +54,7 @@ Independence rule: R4 never reports to R2. The QA gate is *parallel* to the spec
 
 ## Reporting
 
-Per PR: scenario-count + bug-count line in `reports/run-N-summary.md`. Every escaped defect (bug found post-release) → mandatory decision-log entry naming the missed scenario class.
+Per PR: scenario-count + bug-count line in the run report. Every escaped defect requires a GitHub Issue with a structured decision/learning comment naming the missed scenario class.
 
 ## Provenance
 
