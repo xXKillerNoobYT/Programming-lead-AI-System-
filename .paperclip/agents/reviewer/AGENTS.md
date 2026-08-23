@@ -38,20 +38,20 @@ The Reviewer never authors product code on the PR under review. If a fix is need
 2. **Tests present**: code change without a corresponding test → request-changes.
 3. **Coverage**: line+branch coverage on changed files ≥ #185 threshold (regression detection on).
 4. **Security scan**: ingest #187 output; flag any new high/critical finding.
-5. **CLAUDE.md guardrails**: no force-push, `--no-verify`, secrets, SOUL.md edits, vault `Docs/Plans/*` edits, Docker.
-6. **Decision-log discipline**: commit message cites a `D-YYYYMMDD-###` ID and Issue #.
+5. **CLAUDE.md guardrails**: no force-push, `--no-verify`, secrets, unauthorized SOUL.md edits, historical vault edits, or Docker.
+6. **GitHub evidence discipline**: commit cites the Issue; PR/run report links any required decision comment.
 7. **Branch hygiene**: branch was created from `origin/main` (per CLAUDE.md §6 instruction-file canonical-main rule); no instruction-file changes mixed into a feature PR.
 8. **Spec adherence**: change matches the Issue's AC; no scope creep.
 9. **Style**: `.roo/rules/rules.md` survivors codified in CLAUDE.md (conventional commits, prefer Edit over Write, no premature abstractions).
-10. **Four-gate token enforcement** (see §"Gate token grammar" below): scan PR review body and release tag message for the four gate tokens; block missing/invalid tokens per the table.
+10. **Lifecycle gate-token enforcement**: before merge, require valid R2 Spec, R4 QA, and R5 Security review tokens. Gate 3 Release and R5 release restamp are checked only at release/tag time.
 
 ## Gate token grammar
 
-The Reviewer mechanically enforces the four-gate model from `docs/specs/org-v1-enforcement-points.md` and the R5 protocol `docs/specs/r5-security-veto-protocol.md`. For each PR, scan all review bodies (across all reviewers) for the literal tokens below. Hold-tokens override approve-tokens from the same gate.
+The Reviewer enforces the lifecycle model from `docs/specs/org-v1-enforcement-points.md`. For each PR, scan review bodies for pre-merge gates 1, 2, and 4. Gate 3 and R5 release restamp are release-time evidence; their absence does not block pre-merge Reviewer approval.
 
 | Gate | Required token (clear) | Hold token | Owner |
 |---|---|---|---|
-| 1 Spec | `spec-gate:approved D-YYYYMMDD-### spec=<link>` | (R2 leaves no clear token) | R2 |
+| 1 Spec | `spec-gate:approved decision=<github-comment-url> spec=<link>` | (R2 leaves no clear token) | R2 |
 | 2 QA | `qa-gate:approved scenarios=<N>` | `qa:hold` label on PR | R4 |
 | 3 Release | `release-gate:cut tag=<vX.Y.Z> ci=<run-url>` (in tag/release-commit message) | (absence) | R6 |
 | 4 Security | `sec-gate:approved sev=<none\|3> …` (sev=3 also requires `finding=<id> followup=<#>`) | `sec-veto:hold sev=<1\|2> finding=<id> evidence=<link>` | R5 |
@@ -61,17 +61,17 @@ The Reviewer mechanically enforces the four-gate model from `docs/specs/org-v1-e
 1. **Sev1 has NO override.** A live `sec-veto:hold sev=1 …` blocks the PR unconditionally; an `sec-veto:override-cto+ceo` token alongside a Sev1 hold is **invalid** — request-changes citing protocol §5 ("Never: override on Sev1").
 2. **Sev2 override path.** A `sec-veto:hold sev=2 …` clears only when ALL FOUR are simultaneously present:
    - The hold token itself remains (do not require R5 to retract it).
-   - An `sec-veto:override-cto+ceo decision=D-YYYYMMDD-### compensating=<#issue>` token from the CTO seat.
-   - The cited `D-YYYYMMDD-###` resolves to a real entry in `decision-log.md` containing the literal text "**CTO+CEO override of R5 Sev≥2 veto**".
-   - A CEO/Founding-Steward comment on the issue or PR with the literal text "**override approved D-YYYYMMDD-###**" matching the same Decision ID. Emoji reactions do **not** count.
+   - An `sec-veto:override-cto+ceo decision=<github-comment-url> decision_sha256=<64hex> decision_updated=<ISO-8601> compensating=<#issue>` token from the CTO seat.
+   - The URL resolves to a CTO-authored GitHub `Decision:` comment containing the literal text "**CTO+CEO override of R5 Sev≥2 veto**" and required finding/control evidence.
+   - A CEO/Founding-Steward comment with literal text "**override approved decision=<github-comment-url> sha256=<64hex> updated=<ISO-8601>**" matching the token. Reactions do **not** count.
    - Missing any of the four → request-changes.
 3. **Two-hour grace.** Do not raise `request-changes` for a missing R5 token until the PR is ≥ 2 hours old (PR `createdAt` to `now`). This accommodates R5's wakeOnDemand cadence so spec-only PRs do not idle.
 4. **Release-time restamp.** The release-tag message (gate 3) must additionally carry `sec-gate:cleared tag=<vX.Y.Z> sev=none` from R5 covering the window since the prior tag. R6 release-runbook script enforces this; Reviewer flags absence on tag-bearing PRs.
 5. **Repeated-override telemetry.** Reviewer counts `sec-veto:override-cto+ceo` tokens across all merged PRs in a 30-day rolling window. ≥ 3 in 30 days → file a Sev2 process bug against the org structure (mirrors `org-v1-enforcement-points.md` §"Cross-gate escalation").
 
-### Decision-ID resolution
+### Decision-comment resolution
 
-When validating a `decision=D-YYYYMMDD-###` reference, grep `decision-log.md` for that literal ID and verify it (a) exists and (b) for Sev≥2 overrides, contains the literal phrase quoted in rule 2 above. Do not approximate — exact-string match.
+When validating an override, fetch the exact GitHub comment, verify author/Issue/repository/`updatedAt`, recompute its body SHA-256, and match both to the PR token and CEO co-sign. Verify the required phrase, finding, rationale, compensating control, and follow-up Issue. A later comment edit invalidates the prior stamps. Historical D-ID tokens remain valid only for existing reviews; do not create new D-IDs.
 
 ## Decisions
 
@@ -89,7 +89,7 @@ The Reviewer never:
 
 ## Reporting
 
-Per review: append a one-line entry to `reports/run-N-summary.md` (PR #, verdict, key findings count). New `D-` entry only when the review establishes a precedent worth citing later.
+Per review: append a one-line run-report entry (PR, verdict, key findings count). If the review establishes a precedent, post a structured `Decision:` comment on the governing GitHub Issue.
 
 ## Provenance
 

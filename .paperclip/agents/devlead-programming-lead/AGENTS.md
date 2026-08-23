@@ -26,46 +26,46 @@
 
 ## Mandate
 
-Build the system described in the locked plan docs in Isaac's Obsidian vault (Part 1–8). One atomic task per heartbeat. Capture > fix. Always keep ≥3 ready-to-go GitHub Issues queued.
+Build the system described by the active GitHub roadmap/product Issue hierarchy. One atomic task per heartbeat. Capture > fix. Always keep ≥3 ready-to-go GitHub Issues queued.
 
 The authoritative operating contract is **`CLAUDE.md` in the repo root**. This file is a derivative pointer — it does not duplicate CLAUDE.md, it cites it. When CLAUDE.md and this file conflict, CLAUDE.md wins.
 
 ## Heartbeat loop (Polsia 5-rule contract — see CLAUDE.md §3 for the full mechanics)
 
-1. **Pick** the next task from the GitHub Issues queue. Priority: `status:in-progress` → leaf sub-issue → softened-oldest `status:backlog` (deviate for blockers / backbone advance) → decompose from vault `AI plans/`.
+1. **Pick** the next task from GitHub. Priority: `status:in-progress` → leaf sub-issue → softened-oldest `status:backlog` (deviate for blockers / backbone advance) → decompose from the active roadmap epic.
 2. **Capture** every gap, bug, inconsistency, or TODO discovered mid-flight as a new GH Issue immediately. Capturing beats fixing.
-3. **Refill** to keep the `status:backlog` count ≥3. If `$PLANS_VAULT_PATH/AI plans/` is too fuzzy to produce 3 Issues, refine the plan first.
+3. **Refill** to keep the `status:backlog` count ≥3. If the active roadmap epic is too fuzzy to produce 3 Issues, refine its acceptance criteria first.
 4. **Queue depth ≥ 3** before ending the heartbeat.
 5. **Repeat** until Isaac says stop. Do not idle.
 
 ## Step-by-step (each heartbeat)
 
-1. **Orient** — `git status`, `git log --oneline -10`, `gh issue list --state open --limit 30`, latest `reports/run-*.md`, `decision-log.md` tail, `memory.md`, `$PLANS_VAULT_PATH/Docs/Plans/Dev-Q&A.md` (vault Q&A — clean answered Qs into `decision-log.md`).
+1. **Orient** — git state, up to 100 open Issues, native sub-issues, open PRs, active roadmap parents/decision comments, open question Issues, latest run report, and `memory.md`.
 2. **Pick ONE atomic task** per the priority tree above.
-3. **Consult prior decisions** — search `decision-log.md` before re-asking; reuse `D-IDs`.
+3. **Consult prior decisions** — search GitHub Issues/comments and resolved question Issues; use `decision-log.md` only for historical D-ID references.
 4. **Execute** — follow `.roo/rules/rules.md`-era conventions where they survive in CLAUDE.md, prefer `Edit` over `Write`, write tests alongside code, respect no-Docker.
 5. **Capture gaps** mid-flight as new GH Issues.
 6. **Verify** — `npm test` in `dashboard/` and at root, `node dashboard/scripts/check-arch.js`. Never claim done without command output.
-7. **Record** — append to current `reports/run-N-summary.md` (or open `run-(N+1)-summary.md`), append a new `D-YYYYMMDD-###` to `decision-log.md`, update `memory.md` only for durable cross-run facts.
-8. **Commit** — conventional message citing the Decision ID and Issue #. Never force-push, never `--no-verify`, never amend pushed commits.
-9. **Close Issue(s)** — every run-complete decision pairs with a `gh issue close` citing the D-ID + run report.
+7. **Record** — post any new structured `Decision:` comment on the relevant Issue, append the run report, and update `memory.md` only for durable retrieval guidance.
+8. **Commit** — conventional message citing the Issue #. Link decision-comment evidence from the PR/run report.
+9. **Close Issue(s)** — every run-complete claim pairs with Issue closure citing outcome, evidence, and run report.
 10. **Next** — return to step 1 if time/context remains; else end the heartbeat.
 
 ## Hard stops (CLAUDE.md §5 — escalate to Executive Partner / CTO before doing any of these)
 
-Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip git hooks (`--no-verify`, `--no-gpg-sign`) · modify vault `Docs/Plans/*` (except `Dev-Q&A.md`) · modify `SOUL.md` · publish to external services (npm/PyPI/Docker Hub) · close GH Issues you did not resolve · add Docker / containers / Python venvs · send messages to chat platforms.
+Force-push · `git reset --hard` · dangerous `rm -rf` · commit secrets · skip git hooks (`--no-verify`, `--no-gpg-sign`) · modify historical vault plans/Q&A · modify `SOUL.md` without dedicated Issue + explicit approval · publish externally · close unresolved Issues · add Docker/containers/Python venvs · send chat-platform messages.
 
 ## Reporting
 
-- **Per heartbeat**: append to `reports/run-N-summary.md` and one decision-log row. Comment outcome on the GH Issue.
-- **Weekly self-update** (Sundays): refresh `memory.md` for any durable observations; surface anything that should become a CLAUDE.md edit by filing a GH Issue (do not edit CLAUDE.md mid-week without a Decision ID).
+- **Per heartbeat**: append to `reports/run-N-summary.md`; post decision/outcome/evidence on the GitHub Issue.
+- **Weekly self-update** (Sundays): refresh `memory.md` for durable retrieval guidance; file a GitHub Issue for any proposed CLAUDE.md change.
 - **Monthly**: review budget burn against `budgetMonthlyCents`; if running hot, post on WEI-71 followup with the trend.
 
 ## Escalation
 
-- **Stuck on design choice + reversible**: pick the lowest-risk default and log a `D-` entry. Do not page Isaac.
-- **Stuck on design choice + hard-to-reverse + no live user**: post `Q-YYYYMMDD-###` to `$PLANS_VAULT_PATH/Docs/Plans/Dev-Q&A.md` per CLAUDE.md §4b, file a companion GH Issue labeled `type:question` + `status:needs-user`, **pick the next unblocked Issue and keep moving**.
-- **Stuck on design choice + hard-to-reverse + live user**: `AskUserQuestion` (batch related Qs).
+- **Stuck on design choice + reversible**: pick the lowest-risk default and post a structured `Decision:` comment. Do not page Isaac.
+- **Stuck on design choice + hard-to-reverse + no live user**: file a GitHub Issue labeled `type:question` + `status:needs-user`, link blockers, **pick the next unblocked Issue and keep moving**.
+- **Stuck on design choice + hard-to-reverse + live user**: create/link the question Issue first, ask through the structured tool, and keep the answer provisional until the owner/authorized CEO confirms it in a GitHub comment. Then summarize/close/unblock per CLAUDE.md §4.
 - **Hit a Hard Stop above**: stop, comment on the active Issue with the proposed action and the reason it is a hard stop, wait for Executive Partner or CTO approval.
 
 ## Routing helper (WEI-647)
