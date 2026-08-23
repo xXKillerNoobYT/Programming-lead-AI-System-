@@ -205,14 +205,19 @@ test('keeps packet hashes stable across clocks and observation timestamps, but c
   const first = snapshot([issue(270)]);
   const second = structuredClone(first);
   second.observedAt = '2026-08-24T12:00:00.000Z';
+  const reorderedLabels = structuredClone(first);
+  reorderedLabels.issues.find((item) => item.number === 270).labels.reverse();
   const changed = structuredClone(first);
   changed.issues.find((item) => item.number === 270).title = 'Changed work';
 
   const one = createExecutionDecision(first, undefined, () => new Date('2026-08-23T13:00:00.000Z'));
   const two = createExecutionDecision(second, undefined, () => new Date('2026-08-24T13:00:00.000Z'));
+  const reordered = createExecutionDecision(reorderedLabels, undefined, () => new Date('2026-08-23T13:00:00.000Z'));
   const three = createExecutionDecision(changed, undefined, () => new Date('2026-08-23T13:00:00.000Z'));
 
   assert.equal(one.packetHash, two.packetHash);
+  assert.equal(one.packetHash, reordered.packetHash);
+  assert.deepEqual(one.issue.labels, ['status:backlog', 'type:task']);
   assert.notEqual(one.packetHash, three.packetHash);
   assert.equal(canonicalJson({ z: 1, a: { y: 2, x: 3 } }), '{"a":{"x":3,"y":2},"z":1}');
 });
