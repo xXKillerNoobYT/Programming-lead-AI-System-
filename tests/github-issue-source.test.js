@@ -83,6 +83,9 @@ test('normalizes a complete REST issue shape and rejects malformed source fields
   assert.throws(() => normalizeIssue(rawIssue(236, { created_at: 'not-a-date' })), /created_at/i);
   assert.throws(() => normalizeIssue(rawIssue(236, { sub_issues_summary: { total: -1 } })), /sub_issues_summary/i);
   assert.throws(() => normalizeIssue(rawIssue(236, { parent_issue_url: '' })), /parent_issue_url/i);
+  assert.throws(() => normalizeIssue(rawIssue(236, { html_url: 'https://evil.example/acme/widgets/issues/236' })), /html_url/i);
+  assert.throws(() => normalizeIssue(rawIssue(236, { html_url: 'https://github.com/acme/widgets/pull/236' })), /html_url/i);
+  assert.throws(() => normalizeIssue(rawIssue(236, { html_url: 'https://github.com/acme/widgets/issues/237' })), /html_url/i);
 });
 
 test('resolves a repository with a read-only gh repo view when no explicit repository is provided', () => {
@@ -237,4 +240,44 @@ test('fails closed when a parent is absent after filtering or dependency payload
       'api --paginate --slurp repos/acme/widgets/issues/236/dependencies/blocked_by': response({ message: 'Forbidden' }),
     }, []),
   }), /expected paginated/i);
+});
+
+test('fails closed when a same-number parent URL belongs to a foreign host or repository', () => {
+  const foreignParents = [
+    'https://evil.example/repos/acme/widgets/issues/210',
+    'https://api.github.com/repos/other/widgets/issues/210',
+  ];
+
+  for (const parentIssueUrl of foreignParents) {
+    const root = rawIssue(210, { sub_issues_summary: { total: 1 } });
+    const child = rawIssue(236, { parent_issue_url: parentIssueUrl });
+    assert.throws(() => fetchIssueSnapshot({
+      repository: 'acme/widgets',
+      _spawnImpl: spawnFor({
+        'api --paginate --slurp repos/acme/widgets/issues?state=all&per_page=100': response([[root, child]]),
+      }, []),
+    }), /parent.*repository|parent.*GitHub/i);
+  }
+});
+
+test('fails closed when same-number blocked-by entries have foreign, malformed, or mismatched Issue URLs', () => {
+  const invalidDependencyUrls = [
+    'https://evil.example/acme/widgets/issues/235',
+    'https://github.com/other/widgets/issues/235',
+    'https://github.com/acme/widgets/pull/235',
+    'https://github.com/acme/widgets/issues/234',
+  ];
+
+  for (const htmlUrl of invalidDependencyUrls) {
+    const blocked = rawIssue(236, { issue_dependencies_summary: { total_blocked_by: 1 } });
+    const prerequisite = rawIssue(235);
+    const dependencyEntry = { number: 235, html_url: htmlUrl };
+    assert.throws(() => fetchIssueSnapshot({
+      repository: 'acme/widgets',
+      _spawnImpl: spawnFor({
+        'api --paginate --slurp repos/acme/widgets/issues?state=all&per_page=100': response([[blocked, prerequisite]]),
+        'api --paginate --slurp repos/acme/widgets/issues/236/dependencies/blocked_by': response([[dependencyEntry]]),
+      }, []),
+    }), /dependency.*URL|dependency.*repository|dependency.*number/i);
+  }
 });
