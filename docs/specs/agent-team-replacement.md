@@ -209,7 +209,7 @@ The replacement is **MVP-complete** when all of these hold for one full week:
 If the team replacement degrades velocity or quality, rollback is reversible at any heartbeat:
 
 1. **Tier-1 rollback (specialists only)**: pause specialist agents in Paperclip (`runtimeConfig.heartbeat.enabled = false`). DevLead orchestrator continues but falls back to acting as the generalist coder (the role it played pre-replacement).
-2. **Tier-2 rollback (full)**: pause DevLead too. Claude Code resumes via `/loop` per CLAUDE.md §8. Specialist `AGENTS.md` files stay in git for audit; their Paperclip records are archived (not deleted) so re-enabling is one config flip.
+2. **Tier-2 rollback (full)**: pause DevLead too. Builder work resumes through manual Issue sessions or the GitHub Copilot app workflow system per CLAUDE.md §8. Specialist `AGENTS.md` files stay in git for audit; their Paperclip records are archived (not deleted) so re-enabling is one config flip.
 3. **Audit trail**: every Issue closed by a specialist records the agent ID in its run-complete GitHub evidence, making team-vs-fallback output queryable.
 
 Rollback decision authority: **CTO** (this agent) for Tier-1, **CEO (Isaac)** for Tier-2.

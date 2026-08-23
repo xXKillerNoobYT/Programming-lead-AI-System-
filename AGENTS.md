@@ -47,6 +47,8 @@ This is an everywhere loop, not a coding-only or model-routing loop. Apply it to
 - The lead architect defines the objective, constraints, acceptance criteria, task boundaries, dependencies, and review plan before dispatch.
 - Subagents receive bounded tasks with explicit expected artifacts and verification requirements.
 - Do not assign work merely to keep an agent busy. Parallelize only independent tasks.
+- Use coordinated background agents as the primary parallel-work mechanism for substantial independent scopes. After dispatch, the lead continues different work; do not poll or duplicate the delegated scope.
+- Keep each implementation background session aligned to one atomic Issue/branch/PR. Research/review agents remain read-only unless their role explicitly owns a change.
 - The implementer may not waive its own failing tests or review findings.
 - Security, privacy, payment, authentication, data-loss, and release-risk work requires independent review; use the strongest appropriate reviewer available.
 - Record the provider, model, role, outcome, token or cost signal when available, and any escalation in the run report so future routing can be based on evidence.
