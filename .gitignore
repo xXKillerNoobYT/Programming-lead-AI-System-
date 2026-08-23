@@ -27,3 +27,6 @@ Thumbs.db
 # Claude Code local/generated state
 .claude/settings.local.json
 .claude/session-state.md
+
+# Machine-local execution preview evidence
+.devlead/runtime/
