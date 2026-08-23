@@ -29,14 +29,17 @@ The lockfile also records npm's mechanically reified nested dependencies for the
 2. Before remediation, `node --test tests/dependency-security-baseline.test.js` exited 1: all six package subtests failed on the vulnerable locked versions (0 passed, 7 failed including the parent test).
 3. Applied `npm audit fix --package-lock-only --ignore-scripts` without `--force`.
 4. After remediation, the focused command exited 0: 7 passed, 0 failed.
+5. Independent review found `SEC-227-M1`: the first implementation checked only each deduplicated root package entry, so a later vulnerable nested copy could escape the regression test.
+6. Added an adversarial nested-copy case and reproduced the bypass: the focused command exited 1 with `Missing expected exception` (7 passed, 1 failed).
+7. Updated the security-floor check to scan every lockfile path ending in `node_modules/<package>`; the focused command then exited 0 with 8/8 passing.
 
 ## Verification
 
 | Command | Result |
 |---|---|
 | `npm ci` | Exit 0; 93 packages installed. |
-| `node --test tests/dependency-security-baseline.test.js` | Exit 0; 7/7 passed. |
-| `npm test` | Exit 0; 179/179 passed. |
+| `node --test tests/dependency-security-baseline.test.js` | Exit 0; 8/8 passed, including the adversarial nested-copy regression. |
+| `npm test` | Exit 0; 180/180 passed after the review fix. |
 | `npm ls @modelcontextprotocol/sdk @hono/node-server body-parser fast-uri hono ip-address qs --all` | Exit 0; confirms SDK 1.29.0 and all six resolved versions shown above. |
 | `npm audit --json` | Exit 0; 0 info, low, moderate, high, or critical findings across 93 resolved dependencies. |
 | `git diff -- package.json` | Empty; direct manifest unchanged. |
@@ -45,12 +48,12 @@ The lockfile also records npm's mechanically reified nested dependencies for the
 ## Risk and rollback
 
 - Behavioral risk is low for the current stdio-client path but not zero: six production-installed transitive implementations changed, including a plausibly reachable Ajv URI parser.
-- A future SDK HTTP/server path could exercise the remediated Hono, Express, rate-limit, and query/body-parser packages; the regression test prevents those six versions from silently falling below the known safe floors.
+- A future SDK HTTP/server path could exercise the remediated Hono, Express, rate-limit, and query/body-parser packages; the regression test prevents any installed copy of those six packages from silently falling below the known safe floors.
 - PR #206 overlaps only on the root `qs` lockfile entry. It remains intact; after #227 lands, its root hunk can be rebased away while its dashboard work remains independently reviewable.
 - Rollback is a normal revert of this Issue's commit, followed by `npm ci`. That rollback would knowingly restore the six unwaived findings and therefore must not be merged without a new owner-approved risk record.
 
 ## Gates
 
-- Independent security/code review: pending.
-- Draft publication: pending review.
+- Independent security/code review: initial review found only `SEC-227-M1` (minor); fixed test-first at the source, with exact-range re-review pending.
+- Draft publication: pending final re-review.
 - Merge, ready-for-review promotion, self-approval, release, and Issue closure: not authorized by this run.
