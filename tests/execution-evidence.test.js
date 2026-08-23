@@ -1,7 +1,16 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { mkdtempSync, mkdirSync, readFileSync, rmSync } = require('node:fs');
+const {
+  existsSync,
+  linkSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} = require('node:fs');
 const { join } = require('node:path');
 const { tmpdir } = require('node:os');
 const { test } = require('node:test');
@@ -22,7 +31,9 @@ function decision(overrides = {}) {
 }
 
 function tempDirectory() {
-  return mkdtempSync(join(tmpdir(), 'devlead-execution-evidence-'));
+  const safeRoot = join(tmpdir(), 'devlead-execution-evidence');
+  mkdirSync(safeRoot, { recursive: true });
+  return mkdtempSync(join(safeRoot, 'case-'));
 }
 
 test('appends one complete JSON evidence record without truncating prior records', () => {
@@ -94,5 +105,55 @@ test('rejects decisions that cannot be represented as JSON', () => {
     assert.throws(() => appendExecutionEvidence(join(directory, 'bigint.jsonl'), decision({ value: 1n })), /JSON|serializ/i);
   } finally {
     rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('rejects ordinary evidence paths outside the dedicated runtime directories', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'devlead-evidence-outside-'));
+  const evidencePath = join(directory, 'evidence.jsonl');
+  try {
+    assert.throws(() => appendExecutionEvidence(evidencePath, decision()), /evidence path|runtime director/i);
+    assert.equal(existsSync(evidencePath), false);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('rejects hard-linked evidence files without changing the linked target', () => {
+  const directory = tempDirectory();
+  const targetPath = join(directory, 'target.txt');
+  const evidencePath = join(directory, 'linked-evidence.jsonl');
+  try {
+    writeFileSync(targetPath, 'original', 'utf8');
+    linkSync(targetPath, evidencePath);
+
+    assert.throws(() => appendExecutionEvidence(evidencePath, decision()), /evidence path|linked/i);
+    assert.equal(readFileSync(targetPath, 'utf8'), 'original');
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('rejects symlinked parent directories without writing through them', (context) => {
+  const directory = tempDirectory();
+  const outside = mkdtempSync(join(tmpdir(), 'devlead-evidence-target-'));
+  const linkedParent = join(directory, 'redirected');
+  const redirectedEvidence = join(linkedParent, 'evidence.jsonl');
+  try {
+    try {
+      symlinkSync(outside, linkedParent, process.platform === 'win32' ? 'junction' : 'dir');
+    } catch (error) {
+      if (error && ['EPERM', 'EACCES', 'ENOTSUP'].includes(error.code)) {
+        context.skip(`symbolic links unavailable: ${error.code}`);
+        return;
+      }
+      throw error;
+    }
+
+    assert.throws(() => appendExecutionEvidence(redirectedEvidence, decision()), /evidence path|symbolic link/i);
+    assert.equal(existsSync(join(outside, 'evidence.jsonl')), false);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+    rmSync(outside, { recursive: true, force: true });
   }
 });
