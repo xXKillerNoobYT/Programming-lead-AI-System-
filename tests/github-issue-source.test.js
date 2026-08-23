@@ -100,6 +100,20 @@ test('resolves a repository with a read-only gh repo view when no explicit repos
   assert.deepEqual(calls, [{ cmd: 'gh', args: ['repo', 'view', '--json', 'nameWithOwner'] }]);
 });
 
+test('raises the bounded gh output buffer above the Node default for complete repository snapshots', () => {
+  let observedSpawnOptions;
+  const repository = resolveRepository({
+    _spawnImpl: (cmd, args, spawnOptions) => {
+      observedSpawnOptions = spawnOptions;
+      return response({ nameWithOwner: 'acme/widgets' });
+    },
+  });
+
+  assert.equal(repository, 'acme/widgets');
+  assert.equal(observedSpawnOptions.encoding, 'utf8');
+  assert.equal(observedSpawnOptions.maxBuffer, 64 * 1024 * 1024);
+});
+
 test('keeps an explicit repository and does not invoke gh repo view', () => {
   let called = false;
   const repository = resolveRepository({
