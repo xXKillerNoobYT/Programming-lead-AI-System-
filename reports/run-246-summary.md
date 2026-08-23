@@ -1,8 +1,8 @@
 # Run 246 Summary — Deterministic GitHub execution preview
 
-**Date:** 2026-08-23  
-**Branch:** `codex/issue-236-execution-engine`  
-**Primary Issue:** #236 (child of #234)  
+**Date:** 2026-08-23
+**Branch:** `codex/issue-236-execution-engine`
+**Primary Issue:** #236 (child of #234)
 **Stack base:** PR #242 / `codex/issue-217-r1-hierarchy`
 
 ## Overview
@@ -46,10 +46,15 @@ Task 3 evidence and CLI:
 - GREEN: focused 8/8; full 202/202.
 - Independent scoped review: ACCEPT.
 
-Final merged-stack verification:
+Pre-review merged-stack verification:
 - Four execution-focused files: 30/30 passed.
 - Full root suite: 202/202 passed.
-- git diff --check: passed.
+- The initial diff check did not include the then-untracked Run 246 file; independent review correctly found its Markdown hard-break whitespace after commit.
+
+Post-review remediation verification:
+- Four execution-focused files: 35/35 passed.
+- Full root suite: 207/207 passed.
+- git diff --check against the verified stack base: passed after the Run 246 whitespace correction.
 ```
 
 Runtime used for final verification: Node `v24.12.0`, npm `11.6.2`. The package contract remains Node `>=18`; reviewed APIs are Node 18 compatible.
@@ -62,17 +67,28 @@ The production CLI was run against `xXKillerNoobYT/Programming-lead-AI-System-` 
 Exit: 0
 stderr: empty
 Decision: no-action
-Source observedAt: 2026-08-23T21:27:18.381Z
+Source observedAt: 2026-08-23T21:47:05.648Z
 Evidence records appended: 1
 Issues before / after: 166 / 166
 Canonical Issue hash before:
-  sha256:d047575343218a9806e2ea0e8f863742f0cc6e2d2ddfa2e357fe61ab50089243
+  sha256:f3ab367fb6049e243b676a3fa2ba6cd757bb94f3ca531b1cf54a18c9852bf63e
 Canonical Issue hash after:
-  sha256:d047575343218a9806e2ea0e8f863742f0cc6e2d2ddfa2e357fe61ab50089243
+  sha256:f3ab367fb6049e243b676a3fa2ba6cd757bb94f3ca531b1cf54a18c9852bf63e
 Issue truth unchanged: yes
 ```
 
 At that observation, #236 remained open with `status:in-progress`, parent #234, no blockers, and unchanged `updatedAt` `2026-08-23T19:52:33Z`. The other inspected R1 leaves were parents/epics, blocked/not-ready, or missing one or more required execution sections, so fail-closed `no-action` was the correct result. Project status was not used because Project fields are only a convenience projection and reopened-item status may be stale.
+
+## Independent review remediation
+
+The frozen `2ccec8d` gate round found four valid blocking defects. Publication remained paused while each was fixed at the source:
+
+- Markdown bullets/checklists/ordered-list dependency declarations could bypass closure. Commit `ab09822` adds the failing variants, a prose false-positive guard, and the parser fix.
+- Semantically identical label sets in different API order produced different packet hashes. Commit `6afdd62` canonicalizes packet labels and locks hash stability.
+- Evidence output could follow out-of-tree, symbolic-link, or hard-link paths. Commit `ab82e56` confines writes to dedicated runtime directories, checks every existing path component, rejects linked/non-regular files, and opens with no-follow semantics where the platform supports them.
+- Run 246 contained trailing Markdown whitespace while claiming a clean diff. This report removes the whitespace, explains why the earlier check missed the untracked file, and records the post-remediation command.
+
+All four findings require independent re-review; no implementation or release gate self-waives them.
 
 ## Security and operational boundaries
 
@@ -80,8 +96,9 @@ At that observation, #236 remained open with `status:in-progress`, parent #234, 
 - Relationship URLs must match GitHub, the explicit repository, and the stated Issue number.
 - The complete-snapshot buffer is bounded at 64 MiB; larger snapshots fail closed.
 - CLI errors are stable, redacted JSON and do not echo source errors or environment values.
+- Evidence writes are confined to `.devlead/runtime/` or a dedicated operating-system temporary directory and reject symlink/hardlink targets.
 - The runtime evidence file is supporting evidence only and never replaces the GitHub ledger.
-- The known npm audit baseline remains open and unwaived in #227.
+- A fresh root audit exits 1 with 6 transitive findings (3 high, 2 moderate, 1 low, 0 critical). The branch adds no dependency; #227 remains open and unwaived, and its older 5-finding snapshot needs ledger refresh.
 
 ## Risks and rollback
 

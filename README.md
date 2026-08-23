@@ -60,7 +60,7 @@ The command reads Issues, native parent/sub-issue links, labels, and blocked-by 
 
 A successful preview writes one JSON decision to stdout and exits `0` for both `execution-packet` and `no-action`. It appends the same decision to machine-local evidence at `.devlead/runtime/execution-evidence.jsonl`, which is ignored by Git and is not the active ledger. Argument, source, validation, and evidence failures emit a redacted JSON error on stderr and exit `1`.
 
-Use `--root`, `--horizon`, or `--evidence` to override the default root `#210`, R1 horizon `#211`, or evidence path. Unknown, positional, duplicate, and mutating flags are rejected.
+Use `--root`, `--horizon`, or `--evidence` to override the default root `#210`, R1 horizon `#211`, or evidence path. Evidence paths must remain under the repository's `.devlead/runtime/` directory or the operating system's dedicated `devlead-execution-evidence` temporary directory; symbolic-link and hard-link redirection is rejected. Unknown, positional, duplicate, and mutating flags are rejected.
 
 ## Project layout
 
