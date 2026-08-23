@@ -43,7 +43,7 @@ The lockfile also records npm's mechanically reified nested dependencies for the
 | `npm ls @modelcontextprotocol/sdk @hono/node-server body-parser fast-uri hono ip-address qs --all` | Exit 0; confirms SDK 1.29.0 and all six resolved versions shown above. |
 | `npm audit --json` | Exit 0; 0 info, low, moderate, high, or critical findings across 93 resolved dependencies. |
 | `git diff -- package.json` | Empty; direct manifest unchanged. |
-| `git diff --check` | Exit 0 before review. |
+| `git diff --check` | Exit 0 for `585032f..e79c942`. |
 
 ## Risk and rollback
 
@@ -54,6 +54,7 @@ The lockfile also records npm's mechanically reified nested dependencies for the
 
 ## Gates
 
-- Independent security/code review: initial review found only `SEC-227-M1` (minor); fixed test-first at the source, with exact-range re-review pending.
-- Draft publication: pending final re-review.
-- Merge, ready-for-review promotion, self-approval, release, and Issue closure: not authorized by this run.
+- Independent security/code review: initial review found only `SEC-227-M1` (minor); fixed test-first at the source. Exact-range re-review found no unresolved issues and independently reproduced clean install, 8/8 focused tests, 180/180 full tests, the expected dependency tree, zero audit findings, diff confinement, and no added-line secret matches.
+- Security evidence token: `sec-gate:approved sev=none finding=none scope=585032f..e79c942`.
+- Draft publication: approved by the local implementation and independent-review gates.
+- Merge, ready-for-review promotion, self-approval, release, and Issue closure remain gated on the published PR's normal CI, required review, merge authorization, and canonical Issue evidence.
