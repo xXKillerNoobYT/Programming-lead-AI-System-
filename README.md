@@ -48,6 +48,20 @@ HEARTBEAT_INTERVAL_MS=30000 node heartbeat.js --watch
 
 No Docker, no containers, no Python venv. Pure local Node 20+.
 
+## Preview the next eligible R1 Issue
+
+Use the execution preview to read the canonical GitHub Issue hierarchy and either emit one deterministic execution packet or explain why no atomic R1 leaf is currently eligible:
+
+```bash
+npm run execute:next -- --repo xXKillerNoobYT/Programming-lead-AI-System-
+```
+
+The command reads Issues, native parent/sub-issue links, labels, and blocked-by relationships. It does not claim work, change GitHub, dispatch an agent, merge, release, or make R2-R4 work eligible. Project-board fields are projections only; Issue state remains authoritative.
+
+A successful preview writes one JSON decision to stdout and exits `0` for both `execution-packet` and `no-action`. It appends the same decision to machine-local evidence at `.devlead/runtime/execution-evidence.jsonl`, which is ignored by Git and is not the active ledger. Argument, source, validation, and evidence failures emit a redacted JSON error on stderr and exit `1`.
+
+Use `--root`, `--horizon`, or `--evidence` to override the default root `#210`, R1 horizon `#211`, or evidence path. Unknown, positional, duplicate, and mutating flags are rejected.
+
 ## Project layout
 
 | Path | Purpose |
