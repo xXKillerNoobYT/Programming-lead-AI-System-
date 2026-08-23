@@ -120,6 +120,38 @@ test('requires native and declared dependencies to be closed and rejects contrad
   assert.match(result.exclusions[236].join(' '), /contradict/i);
 });
 
+test('recognizes open dependencies declared with Markdown list and checklist prefixes', () => {
+  const declarations = [
+    '- Depends on: #299',
+    '* Depends on: #299',
+    '+ Blocked by: #299',
+    '- [ ] Depends on: #299',
+    '- [x] Blocked by: #299',
+    '1. Depends on: #299',
+    '1) Blocked by: #299',
+  ];
+
+  for (const declaration of declarations) {
+    const openDependency = issue(299, { labels: ['type:task', 'status:blocked'] });
+    const target = issue(300, { body: REQUIRED_BODY.replace('None.', declaration) });
+    const result = evaluateCandidates(snapshot([openDependency, target]));
+
+    assert.match(result.exclusions[300].join(' '), /open dependency #299/i, declaration);
+  }
+});
+
+test('does not infer dependencies from ordinary list-item prose', () => {
+  const mentioned = issue(299, { labels: ['type:task', 'status:blocked'] });
+  const target = issue(300, {
+    body: REQUIRED_BODY.replace('None.', '- This work depends on: #299 for historical context only.'),
+  });
+
+  const result = evaluateCandidates(snapshot([mentioned, target]));
+
+  assert.deepEqual(result.candidates.map((item) => item.number), [300]);
+  assert.equal(result.exclusions[300], undefined);
+});
+
 test('orders eligible leaves by priority, then creation time, then Issue number', () => {
   const low = issue(240, { labels: ['type:task', 'status:backlog', 'priority:low'], createdAt: '2026-08-01T00:00:00.000Z' });
   const highLate = issue(241, { labels: ['type:task', 'status:backlog', 'priority:high'], createdAt: '2026-08-03T00:00:00.000Z' });
