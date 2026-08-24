@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "artifact": {
+    "version": "consolidated-candidate-v0.2.2",
+    "entrypoint": "index.html",
+    "byte_size": 79369,
+    "sha256": "544A6D22EA43EBA0F3D379D4E125353D2907D1FCC3B8C39116B8A0A66901AFFE",
+    "git_blob_sha1": "92d2cb6f478aa649e736b8fe8a7bb5b944cfb5cf",
+    "git_blob_api_permalink": "https://api.github.com/repos/xXKillerNoobYT/Programming-lead-AI-System-/git/blobs/92d2cb6f478aa649e736b8fe8a7bb5b944cfb5cf"
+  },
+  "provenance": {
+    "source_kind": "owner-approved-design-session-output",
+    "source_last_modified_utc": "2026-08-24T00:10:53.9591679Z",
+    "publication_prepared_utc": "2026-08-24T01:19:52.8291884Z",
+    "approval_recorded_utc": "2026-08-24T00:27:29Z",
+    "approval_reconciled_utc": "2026-08-24T00:27:32Z",
+    "governing_issue": "https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/245",
+    "parent_issue": "https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/225",
+    "approval_permalinks": [
+      "https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/218#issuecomment-5389372090",
+      "https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/225#issuecomment-5389372359"
+    ],
+    "source_location_recorded_in_governing_issue": true,
+    "approval_timing_note": "The immutable artifact predates approval and therefore retains its original candidate labels. The approval permalinks above grant authority only to these exact bytes and the approved desktop scope."
+  },
+  "scope": {
+    "approved": [
+      "desktop-design-and-interaction-authority"
+    ],
+    "not_approved": [
+      "mobile-design-authority",
+      "accessibility-conformance",
+      "production-implementation"
+    ],
+    "does_not_complete_issues": [
+      224,
+      225
+    ]
+  },
+  "runtime": {
+    "self_contained": true,
+    "external_network_dependencies_detected": false,
+    "browser_storage": {
+      "kind": "localStorage",
+      "key": "devlead-v022-layout",
+      "transmitted": false
+    }
+  },
+  "immutability": {
+    "artifact_bytes_must_not_change": true,
+    "changes_require_new_version_hash_and_approval": true,
+    "history_policy": "append-new-version-directory",
+    "repository_predecessor": null,
+    "rollback_policy": "select-a-separately-approved-prior-version-and-hash"
+  },
+  "consumption": {
+    "approved_input": "desktop-implementation-planning-and-fidelity",
+    "verify_sha256_before_use": true,
+    "pin_version_and_sha256": true,
+    "do_not_infer_unapproved_scope": true,
+    "instructions": [
+      "Read the governing Issue and both approval permalinks before use.",
+      "Verify index.html is exactly 79369 bytes and matches the recorded SHA-256 before rendering or implementation work.",
+      "Bind every downstream reference to consolidated-candidate-v0.2.2 and the exact SHA-256; a byte change is a new candidate requiring new approval.",
+      "Treat the artifact as desktop design input only; retain separate mobile, accessibility, implementation, test, security, review, beta, and release gates."
+    ]
+  }
+}
