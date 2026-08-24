@@ -1,0 +1,32 @@
+{
+  "root": true,
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "jest": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    ".next/",
+    "coverage/",
+    "next-env.d.ts",
+    "out/"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "*.config.js",
+        "jest.setup.js",
+        "__tests__/**/*.js",
+        "scripts/**/*.js"
+      ],
+      "rules": {
+        "@typescript-eslint/no-require-imports": "off"
+      }
+    }
+  ]
+}
