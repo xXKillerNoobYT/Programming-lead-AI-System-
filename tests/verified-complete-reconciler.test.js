@@ -1318,41 +1318,132 @@ test('fails closed when a stable-ID refetch returns missing, wrong, or extra ite
     }
 });
 
-test('fails restoration before refetch when capability support drifts', async () => {
+test('rejects capability tampering in both directions before adapter access', async (t) => {
     const {
         planReconciliationBatch,
         applyReconciliationPlan,
     } = require('../lib/verified-complete-reconciler.js');
-    const snapshot = snapshotFor([eligibleItem({
-        archived: true,
-        issue: { state: 'OPEN' },
-    })]);
-    const plan = planReconciliationBatch(snapshot, {
-        now: '2026-08-24T00:00:00.000Z',
-    });
-    let refetched = false;
-    const result = await applyReconciliationPlan(plan, {
-        async probeIdentity() {
-            return {
-                identity: snapshot.identity,
-                permissions: snapshot.permissions,
-                capabilities: { restoreProjectItem: false },
-            };
+    const cases = [
+        {
+            name: 'planned supported to tampered unsupported',
+            plannedSupport: true,
+            tamperedSupport: false,
+            expectedAction: 'restore-project-item',
         },
-        async refetchByStableIds() {
-            refetched = true;
-            return snapshot;
+        {
+            name: 'planned unsupported to tampered supported',
+            plannedSupport: false,
+            tamperedSupport: true,
+            expectedAction: 'manual-project-restoration',
         },
-        async ensureRestorationAudit() {},
-        async restoreProjectItem() {},
-    }, {
-        enabled: true,
-        now: '2026-08-24T00:00:00.000Z',
-    });
+    ];
 
-    assert.equal(result.ok, false);
-    assert.equal(result.error, 'capability-drift:restoreProjectItem');
-    assert.equal(refetched, false);
+    for (const entry of cases) {
+        await t.test(entry.name, async () => {
+            const snapshot = snapshotFor([eligibleItem({
+                archived: true,
+                issue: { state: 'OPEN' },
+            })], {
+                capabilities: { restoreProjectItem: entry.plannedSupport },
+            });
+            const plan = planReconciliationBatch(snapshot, {
+                now: '2026-08-24T00:00:00.000Z',
+            });
+            assert.equal(plan.actions[0].type, entry.expectedAction);
+
+            const tampered = JSON.parse(JSON.stringify(plan));
+            tampered.capabilities.restoreProjectItem = entry.tamperedSupport;
+            const calls = [];
+            const adapter = new Proxy({
+                async probeIdentity() {
+                    calls.push('probe-identity');
+                    return {
+                        identity: snapshot.identity,
+                        permissions: snapshot.permissions,
+                        capabilities: tampered.capabilities,
+                    };
+                },
+                async refetchByStableIds() {
+                    calls.push('refetch');
+                    throw new Error('unexpected-refetch-after-capability-tamper');
+                },
+                async ensureRestorationAudit() { calls.push('mutation:audit'); },
+                async restoreProjectItem() { calls.push('mutation:restore'); },
+                async emitManualRemediation() { calls.push('mutation:manual-remediation'); },
+            }, {
+                get(target, property, receiver) {
+                    calls.push(`get:${String(property)}`);
+                    return Reflect.get(target, property, receiver);
+                },
+            });
+            const result = await applyReconciliationPlan(tampered, adapter, {
+                enabled: true,
+                now: '2026-08-24T00:00:00.000Z',
+            });
+
+            assert.equal(result.ok, false);
+            assert.equal(result.error, 'plan-integrity-mismatch');
+            assert.deepEqual(calls, []);
+        });
+    }
+});
+
+test('fails restoration before refetch when capability support drifts in either direction', async (t) => {
+    const {
+        planReconciliationBatch,
+        applyReconciliationPlan,
+    } = require('../lib/verified-complete-reconciler.js');
+    const cases = [
+        {
+            name: 'planned supported to probed unsupported',
+            plannedSupport: true,
+            probedSupport: false,
+        },
+        {
+            name: 'planned unsupported to probed supported',
+            plannedSupport: false,
+            probedSupport: true,
+        },
+    ];
+
+    for (const entry of cases) {
+        await t.test(entry.name, async () => {
+            const snapshot = snapshotFor([eligibleItem({
+                archived: true,
+                issue: { state: 'OPEN' },
+            })], {
+                capabilities: { restoreProjectItem: entry.plannedSupport },
+            });
+            const plan = planReconciliationBatch(snapshot, {
+                now: '2026-08-24T00:00:00.000Z',
+            });
+            const calls = [];
+            const result = await applyReconciliationPlan(plan, {
+                async probeIdentity() {
+                    calls.push('probe-identity');
+                    return {
+                        identity: snapshot.identity,
+                        permissions: snapshot.permissions,
+                        capabilities: { restoreProjectItem: entry.probedSupport },
+                    };
+                },
+                async refetchByStableIds() {
+                    calls.push('refetch');
+                    return snapshot;
+                },
+                async ensureRestorationAudit() { calls.push('mutation:audit'); },
+                async restoreProjectItem() { calls.push('mutation:restore'); },
+                async emitManualRemediation() { calls.push('mutation:manual-remediation'); },
+            }, {
+                enabled: true,
+                now: '2026-08-24T00:00:00.000Z',
+            });
+
+            assert.equal(result.ok, false);
+            assert.equal(result.error, 'capability-drift:restoreProjectItem');
+            assert.deepEqual(calls, ['probe-identity']);
+        });
+    }
 });
 
 test('archive action identity is bound to current acceptance, gate, and implementation evidence', () => {

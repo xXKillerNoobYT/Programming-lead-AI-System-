@@ -5,9 +5,11 @@
 - Issue: [#249 — Implement Verified Complete closure and 14-day Project archival reconciler](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/249)
 - Canonical lease: [Issue comment 5390563071](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/249#issuecomment-5390563071)
 - Accepted path map: [Issue comment 5390749947](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/249#issuecomment-5390749947)
+- Remediation reactivation: [Issue comment 5392014940](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/249#issuecomment-5392014940)
 - Base: `origin/main` at `585032f248162965d392ebf58475045c2f276e84`
 - Branch: `codex/issue-249-verified-complete-reconciler`
 - Implementation commit: `c44c8b45615fc5ec1cd5b10dab56cc0e90f19704`
+- Prior reviewed head: `9628a029b9ab3101e8724df39721f9834daa3a42`; its review tokens became stale when the capability-integrity remediation began.
 - Worktree: isolated Windows worktree `C:\Users\weird\AppData\Local\Temp\devlead-issue-249-verified-complete`
 
 No Project field, queue, Issue lifecycle, native workflow, release, or production state was mutated during implementation or testing.
@@ -35,14 +37,17 @@ Representative failing signals observed before the corresponding fixes included:
 - no-op evidence/audit writers still allowing primary mutations;
 - one-day retention, `required:false` open children, and gate-insensitive archive hashes bypassing policy;
 - a successful close followed by missing read-back reported as not applied;
-- tampered plans and incomplete adapters reaching adapter access.
+- tampered plans and incomplete adapters reaching adapter access;
+- both supported-to-unsupported and unsupported-to-supported `restoreProjectItem` capability tampering reached adapter refetch because the canonical plan hash omitted the apply-trusted capability field.
 
 Each failure was converted into a regression before its source fix. Current focused result:
 
 ```text
 node --test tests\verified-complete-reconciler.test.js tests\reconcile-verified-complete-cli.test.js
-107 tests, 107 passed, 0 failed
+112 tests, 112 passed, 0 failed
 ```
+
+The two new capability-tampering subtests first failed on the prior implementation with `unexpected-refetch-after-capability-tamper` instead of `plan-integrity-mismatch`. After the source fix, tampered plans fail before any adapter access, while untampered live capability drift fails after identity probe and before refetch, audit, restoration, or manual-remediation writes in both directions.
 
 ## Verification
 
@@ -50,15 +55,14 @@ Environment: Windows, Node `v24.12.0`, npm `11.6.2`.
 
 | Check | Result |
 | --- | --- |
-| `npm ci --ignore-scripts` | exit 0; 91 packages installed |
-| focused planner + CLI suite | exit 0; 107/107 passed |
-| `npm test` | exit 0; 279/279 passed across 59 suites |
+| focused planner + CLI suite | exit 0; 112/112 passed |
+| `npm test` | exit 0; 284/284 passed across 59 suites |
 | `node --check` on planner and CLI | exit 0 |
 | `npm ls --all` | exit 0; SDK remains `@modelcontextprotocol/sdk@1.29.0` |
 | bounded secret-pattern scan across all six paths | exit 0; no matches |
-| generated full-suite heartbeat artifacts | removed by exact path; not part of the diff |
+| generated full-suite heartbeat artifacts | four exact test-local files removed after verification; not part of the six-path diff |
 
-The full suite executed heartbeat tests that intentionally generate reports. Only the four exact untracked test artifacts from this run were removed afterward; no repository evidence was deleted.
+The full suite executed heartbeat tests that intentionally generate local reports. Only the four exact files named by this run were removed afterward; no pre-existing or canonical evidence was deleted. No canonical Issue, Project, provider, release, or live-adapter mutation occurred.
 
 ## Dependency-security evidence
 
@@ -78,6 +82,8 @@ Read-only independent QA and security/code passes found the following before pub
 
 All five findings were reproduced, fixed at source, and covered by passing regressions. Final independent QA and code/security review must be bound to the exact committed head before draft publication; the early passes do not self-approve or clear merge.
 
+A later whole-diff review found that apply trusted `plan.capabilities.restoreProjectItem` for restoration decisions and live drift detection while the canonical plan hash did not bind it. The remediation hashes the explicit apply-trusted field and adds bidirectional tampering plus live-drift tests. All prior exact-head review tokens are stale; fresh code/security and QA review must bind the remediation commit.
+
 ## Risks and rollback
 
 - The normalized snapshot producer and live provider adapter are intentionally not included. Before either can be enabled, its pagination, stable IDs, allowlist, permissions, idempotent evidence writes, provider calls, read-back, secrets, and single-writer behavior require separate implementation and independent review.
@@ -89,8 +95,8 @@ Code rollback is an ordinary revert of the #249 commit. A wrongly closed Issue i
 
 ## Remaining gates
 
-- exact committed implementation is `c44c8b45615fc5ec1cd5b10dab56cc0e90f19704`; its merge base is the recorded `origin/main` SHA and its diff contains exactly the six accepted paths with `git diff --check` passing;
+- record the exact remediation commit after the ordinary commit is created; its merge base must remain the recorded `origin/main` SHA and its diff must remain exactly the six accepted paths with `git diff --check` passing;
 - obtain independent exact-head QA plus code/security review;
-- push normally and open one draft PR against `main` only if those gates pass;
+- push normally to the existing branch and update existing draft PR #253 only;
 - record exact-head evidence on #249 and its parent without changing Project/lifecycle state;
 - keep all readiness, human review, merge, closure, and release gates closed.
