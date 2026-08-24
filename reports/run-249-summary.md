@@ -69,7 +69,7 @@ Future approved artifacts must be added under a new version directory. This v0.2
 8. `git diff --cached --check`: exit `0`.
 9. Committed object verification: `git rev-parse HEAD:<artifact>` returned `92d2cb6f478aa649e736b8fe8a7bb5b944cfb5cf`; `git cat-file -s` returned `79369`.
 
-The full test suite generated two temporary heartbeat reports and two audit JSON files. The independent QA process generated another two of each while replaying checks. All eight files were identified by exact path and removed; none are in the Issue diff.
+The verification suites generate temporary heartbeat and audit outputs as an existing test side effect. Every generated file was identified by exact path and removed; none are in the Issue diff.
 
 ## Independent review
 
