@@ -2,13 +2,16 @@
 
 **Date:** 2026-08-23
 **Governing Issue:** #227
-**Decision:** D-20260823-001
+**Canonical GitHub ledger:** [bounded security diagnosis and plan](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/227#issuecomment-5388802840); [original draft evidence](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/227#issuecomment-5389018964); [POLICY-227-1 finding](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/227#issuecomment-5389879013); [exclusive remediation lease](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/227#issuecomment-5389908380)
+**Ledger policy:** [GitHub-only active-decision rule](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/208#issuecomment-5384916659)
 **Branch:** `codex/issue-227-security-baseline`
 **Base:** `origin/main` at `585032f248162965d392ebf58475045c2f276e84`
 
 ## Outcome
 
 The root MCP SDK dependency graph now resolves all six previously reported production-transitive findings to patched, semver-compatible releases. The direct manifest and `@modelcontextprotocol/sdk@1.29.0` remain unchanged. No dashboard dependency, PR #206, product source, permission, or release state was modified.
+
+`decision-log.md` remains identical to `origin/main` and is read-only historical evidence. Earlier pushed commit subjects retain their legacy `D-20260823-001` wording because published history is not rewritten; that text is provenance only and does not define active authority.
 
 ## Finding classification and remediation
 
@@ -43,7 +46,8 @@ The lockfile also records npm's mechanically reified nested dependencies for the
 | `npm ls @modelcontextprotocol/sdk @hono/node-server body-parser fast-uri hono ip-address qs --all` | Exit 0; confirms SDK 1.29.0 and all six resolved versions shown above. |
 | `npm audit --json` | Exit 0; 0 info, low, moderate, high, or critical findings across 93 resolved dependencies. |
 | `git diff -- package.json` | Empty; direct manifest unchanged. |
-| `git diff --check` | Exit 0 for `585032f..e79c942`. |
+| `git diff --exit-code origin/main...HEAD -- decision-log.md` | Exit 0; no active-decision row remains. |
+| `git diff --check origin/main...HEAD` | Exit 0. |
 
 ## Risk and rollback
 
@@ -54,7 +58,7 @@ The lockfile also records npm's mechanically reified nested dependencies for the
 
 ## Gates
 
-- Independent security/code review: initial review found only `SEC-227-M1` (minor); fixed test-first at the source. Exact-range re-review found no unresolved issues and independently reproduced clean install, 8/8 focused tests, 180/180 full tests, the expected dependency tree, zero audit findings, diff confinement, and no added-line secret matches.
-- Security evidence token: `sec-gate:approved sev=none finding=none scope=585032f..e79c942`.
-- Draft publication: approved by the local implementation and independent-review gates.
+- Independent security/code review at `feaf4ff` reproduced clean install, 8/8 focused tests, 180/180 full tests, the expected dependency tree, zero root-lock audit findings, diff confinement, and no added-line secret matches. It then identified `POLICY-227-1`: the newly appended legacy decision row contradicted the canonical GitHub-only ledger rule.
+- This bounded correction removes only that row and binds active authority to the canonical Issue comments above. Fresh exact-head code/security and QA verdicts are recorded on Issue #227 and draft PR #244 so the immutable report does not claim a review performed after its own commit.
+- Draft publication remains gated on fresh exact-head review after this correction.
 - Merge, ready-for-review promotion, self-approval, release, and Issue closure remain gated on the published PR's normal CI, required review, merge authorization, and canonical Issue evidence.
