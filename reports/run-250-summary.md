@@ -7,6 +7,7 @@
 - Accepted path map: [Issue comment 5390749947](https://github.com/xXKillerNoobYT/Programming-lead-AI-System-/issues/249#issuecomment-5390749947)
 - Base: `origin/main` at `585032f248162965d392ebf58475045c2f276e84`
 - Branch: `codex/issue-249-verified-complete-reconciler`
+- Implementation commit: `c44c8b45615fc5ec1cd5b10dab56cc0e90f19704`
 - Worktree: isolated Windows worktree `C:\Users\weird\AppData\Local\Temp\devlead-issue-249-verified-complete`
 
 No Project field, queue, Issue lifecycle, native workflow, release, or production state was mutated during implementation or testing.
@@ -88,7 +89,7 @@ Code rollback is an ordinary revert of the #249 commit. A wrongly closed Issue i
 
 ## Remaining gates
 
-- establish the committed head and rerun diff/confinement checks;
+- exact committed implementation is `c44c8b45615fc5ec1cd5b10dab56cc0e90f19704`; its merge base is the recorded `origin/main` SHA and its diff contains exactly the six accepted paths with `git diff --check` passing;
 - obtain independent exact-head QA plus code/security review;
 - push normally and open one draft PR against `main` only if those gates pass;
 - record exact-head evidence on #249 and its parent without changing Project/lifecycle state;
