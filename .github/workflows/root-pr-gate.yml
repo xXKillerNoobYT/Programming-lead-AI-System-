@@ -1,0 +1,72 @@
+name: Root PR gate
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  root:
+    name: Root tests, syntax, dependencies, and audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.12.0'
+          package-manager-cache: false
+
+      - name: Install root dependencies
+        id: install
+        run: npm ci
+
+      - name: Check tracked root JavaScript syntax
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          mapfile -d '' -t files < <(git ls-files -z -- '*.js' ':(exclude)dashboard/**')
+          if (( ${#files[@]} == 0 )); then
+            echo "::error::No tracked root JavaScript files were found."
+            exit 1
+          fi
+          printf 'Checking %s tracked root JavaScript files.\n' "${#files[@]}"
+          for file in "${files[@]}"; do
+            node --check -- "$file"
+          done
+
+      - name: Verify dependency security floor
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: node --test tests/dependency-security-baseline.test.js
+
+      - name: Run full root test suite
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm test
+
+      - name: Verify expected dependency tree
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm ls @modelcontextprotocol/sdk @hono/node-server body-parser fast-uri hono ip-address qs --all
+
+      - name: Audit root dependencies
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm audit --audit-level=low
