@@ -40,10 +40,28 @@ jobs:
 
       - name: Install root dependencies
         id: install
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Verify install did not mutate checkout
+        id: workspace
+        run: |
+          changes="$(git status --porcelain --untracked-files=all)"
+          if [[ -n "$changes" ]]; then
+            printf '%s\n' "$changes"
+            echo "::error::npm ci changed the checked-out source."
+            exit 1
+          fi
+
+      - name: Verify expected dependency tree
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
+        run: npm ls @modelcontextprotocol/sdk @hono/node-server body-parser fast-uri hono ip-address qs --all
+
+      - name: Audit root dependencies
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
+        run: npm audit --audit-level=low
 
       - name: Check tracked root JavaScript syntax
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
         run: |
           mapfile -d '' -t files < <(git ls-files -z -- '*.js' ':(exclude)dashboard/**')
           if (( ${#files[@]} == 0 )); then
@@ -56,17 +74,9 @@ jobs:
           done
 
       - name: Verify dependency security floor
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
         run: node --test tests/dependency-security-baseline.test.js
 
       - name: Run full root test suite
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
         run: npm test
-
-      - name: Verify expected dependency tree
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: npm ls @modelcontextprotocol/sdk @hono/node-server body-parser fast-uri hono ip-address qs --all
-
-      - name: Audit root dependencies
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: npm audit --audit-level=low
