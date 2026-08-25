@@ -1,0 +1,482 @@
+name: Root PR gate
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  root:
+    name: Root tests, syntax, dependencies, and audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout exact pull-request head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Verify pull-request identities
+        id: identity
+        env:
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          sha_pattern='^[0-9a-f]{40}$'
+          if [[ ! "$EXPECTED_BASE_SHA" =~ $sha_pattern || ! "$EXPECTED_HEAD_SHA" =~ $sha_pattern ]]; then
+            echo "::error::The pull-request event did not provide valid base and head commit identities."
+            exit 1
+          fi
+
+          observed_head="$(git rev-parse HEAD)"
+          observed_base="$(git rev-parse "${EXPECTED_BASE_SHA}^{commit}")"
+          if [[ "$observed_head" != "$EXPECTED_HEAD_SHA" ]]; then
+            echo "::error::Checked-out head identity does not match the pull-request event."
+            exit 1
+          fi
+          if [[ "$observed_base" != "$EXPECTED_BASE_SHA" ]]; then
+            echo "::error::Fetched base identity does not match the pull-request event."
+            exit 1
+          fi
+
+          printf 'base_sha=%s\n' "$observed_base" >> "$GITHUB_OUTPUT"
+          printf 'head_sha=%s\n' "$observed_head" >> "$GITHUB_OUTPUT"
+
+      - name: Detect dependency security floor
+        id: floor
+        env:
+          BASE_SHA: ${{ steps.identity.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+          base_present=false
+          head_present=false
+          if git cat-file -e "${BASE_SHA}:tests/dependency-security-baseline.test.js" 2>/dev/null; then
+            base_present=true
+          fi
+          if [[ -f tests/dependency-security-baseline.test.js ]]; then
+            head_present=true
+          fi
+
+          printf 'base_present=%s\n' "$base_present" >> "$GITHUB_OUTPUT"
+          printf 'present=%s\n' "$head_present" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Dependency security floor"
+            echo
+            printf '%s\n' "- Exact base: \`$BASE_SHA\`"
+            printf '%s\n' "- Present on base: \`$base_present\`"
+            printf '%s\n' "- Present on head: \`$head_present\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$base_present" == true && "$head_present" != true ]]; then
+            echo "::error::The dependency security floor exists on the exact base but is missing from the head."
+            exit 1
+          fi
+
+          if [[ "$head_present" == true ]]; then
+            echo "::notice title=Dependency security floor::The focused floor test is present and will run."
+          else
+            echo "::notice title=Dependency security floor::Not applicable on this head because the focused floor test has not landed on the base or head; its verification step is visibly skipped."
+            echo "- Focused floor result: **Not applicable (test not present)**" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.12.0'
+          package-manager-cache: false
+
+      - name: Install root dependencies
+        id: install
+        run: npm ci --ignore-scripts
+
+      - name: Verify install did not mutate checkout
+        id: workspace
+        run: |
+          changes="$(git status --porcelain --untracked-files=all)"
+          if [[ -n "$changes" ]]; then
+            printf '%s\n' "$changes"
+            echo "::error::npm ci changed the checked-out source."
+            exit 1
+          fi
+
+      - name: Verify expected dependency tree
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
+        run: npm ls @modelcontextprotocol/sdk @hono/node-server body-parser fast-uri hono ip-address qs --all
+
+      - name: Capture exact base and head audit evidence
+        id: audit_evidence
+        if: ${{ !cancelled() && steps.identity.outcome == 'success' && steps.floor.outcome == 'success' && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
+        env:
+          BASE_SHA: ${{ steps.identity.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.identity.outputs.head_sha }}
+          BASE_FLOOR_PRESENT: ${{ steps.floor.outputs.base_present }}
+          HEAD_FLOOR_PRESENT: ${{ steps.floor.outputs.present }}
+        run: |
+          set -euo pipefail
+          evidence_dir="$(mktemp -d "$RUNNER_TEMP/root-pr-audit.XXXXXX")"
+          base_dir="$evidence_dir/base"
+          mkdir -p "$base_dir"
+          chmod 700 "$evidence_dir"
+
+          git archive "$BASE_SHA" -- package.json package-lock.json | tar -x -C "$base_dir"
+          if [[ ! -f "$base_dir/package.json" || ! -f "$base_dir/package-lock.json" ]]; then
+            echo "::error::The exact base did not provide both root dependency manifests."
+            exit 1
+          fi
+
+          (
+            cd "$base_dir"
+            npm ci --ignore-scripts
+          )
+
+          base_audit_path="$evidence_dir/base-audit.json"
+          head_audit_path="$evidence_dir/head-audit.json"
+          base_error_path="$evidence_dir/base-audit.stderr"
+          head_error_path="$evidence_dir/head-audit.stderr"
+          context_path="$evidence_dir/context.json"
+
+          set +e
+          (
+            cd "$base_dir"
+            npm audit --json --audit-level=low
+          ) > "$base_audit_path" 2> "$base_error_path"
+          base_status=$?
+          npm audit --json --audit-level=low > "$head_audit_path" 2> "$head_error_path"
+          head_status=$?
+          set -e
+
+          cat > "$context_path" <<EOF
+          {"schemaVersion":1,"expected":{"baseSha":"$BASE_SHA","headSha":"$HEAD_SHA"},"observed":{"baseSha":"$(git rev-parse "${BASE_SHA}^{commit}")","headSha":"$(git rev-parse HEAD)"},"auditExitCodes":{"base":$base_status,"head":$head_status},"floorTest":{"basePresent":$BASE_FLOOR_PRESENT,"headPresent":$HEAD_FLOOR_PRESENT}}
+          EOF
+
+          printf 'context_path=%s\n' "$context_path" >> "$GITHUB_OUTPUT"
+          printf 'base_audit_path=%s\n' "$base_audit_path" >> "$GITHUB_OUTPUT"
+          printf 'head_audit_path=%s\n' "$head_audit_path" >> "$GITHUB_OUTPUT"
+          printf 'base_error_path=%s\n' "$base_error_path" >> "$GITHUB_OUTPUT"
+          printf 'head_error_path=%s\n' "$head_error_path" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce exact-base root audit policy
+        if: ${{ !cancelled() && steps.audit_evidence.outcome == 'success' }}
+        env:
+          AUDIT_CONTEXT_PATH: ${{ steps.audit_evidence.outputs.context_path }}
+          BASE_AUDIT_PATH: ${{ steps.audit_evidence.outputs.base_audit_path }}
+          HEAD_AUDIT_PATH: ${{ steps.audit_evidence.outputs.head_audit_path }}
+          BASE_AUDIT_ERROR_PATH: ${{ steps.audit_evidence.outputs.base_error_path }}
+          HEAD_AUDIT_ERROR_PATH: ${{ steps.audit_evidence.outputs.head_error_path }}
+        run: |
+          set -euo pipefail
+          # audit-compare-script:start
+          node --input-type=module - "$AUDIT_CONTEXT_PATH" "$BASE_AUDIT_PATH" "$HEAD_AUDIT_PATH" <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs';
+
+          const [contextPath, baseAuditPath, headAuditPath] = process.argv.slice(2);
+          const severityRank = new Map([
+            ['info', 0],
+            ['low', 1],
+            ['moderate', 2],
+            ['high', 3],
+            ['critical', 4],
+          ]);
+          const countKeys = [...severityRank.keys(), 'total'];
+          const shaPattern = /^[0-9a-f]{40}$/;
+
+          function safe(value) {
+            return String(value).replace(/[\r\n]+/g, ' ').slice(0, 500);
+          }
+
+          function fail(message) {
+            console.error(`::error title=Root audit policy::${safe(message)}`);
+            process.exit(1);
+          }
+
+          function isObject(value) {
+            return value !== null && typeof value === 'object' && !Array.isArray(value);
+          }
+
+          function canonical(value) {
+            if (Array.isArray(value)) {
+              return `[${value.map(canonical).join(',')}]`;
+            }
+            if (isObject(value)) {
+              return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`).join(',')}}`;
+            }
+            return JSON.stringify(value);
+          }
+
+          function readJson(path, label) {
+            if (typeof path !== 'string' || path.length === 0) {
+              fail(`${label} evidence path is missing.`);
+            }
+            try {
+              return JSON.parse(readFileSync(path, 'utf8'));
+            } catch (error) {
+              fail(`${label} evidence is missing or malformed JSON: ${error.message}`);
+            }
+          }
+
+          function validateContext(value) {
+            if (!isObject(value) || value.schemaVersion !== 1) {
+              fail('Audit context has an unsupported or missing schema version.');
+            }
+            for (const section of ['expected', 'observed']) {
+              if (!isObject(value[section])) {
+                fail(`Audit context ${section} identities are missing.`);
+              }
+              for (const key of ['baseSha', 'headSha']) {
+                if (!shaPattern.test(value[section][key] ?? '')) {
+                  fail(`Audit context ${section} ${key} is not a full commit SHA.`);
+                }
+              }
+            }
+            if (
+              value.expected.baseSha !== value.observed.baseSha
+              || value.expected.headSha !== value.observed.headSha
+            ) {
+              fail('Audit context base/head identity mismatch.');
+            }
+            if (!isObject(value.auditExitCodes)) {
+              fail('Audit exit-code evidence is missing.');
+            }
+            for (const key of ['base', 'head']) {
+              if (!Number.isInteger(value.auditExitCodes[key]) || value.auditExitCodes[key] < 0) {
+                fail(`Audit exit code for ${key} is invalid.`);
+              }
+            }
+            if (
+              !isObject(value.floorTest)
+              || typeof value.floorTest.basePresent !== 'boolean'
+              || typeof value.floorTest.headPresent !== 'boolean'
+            ) {
+              fail('Dependency-floor presence evidence is invalid.');
+            }
+            if (value.floorTest.basePresent && !value.floorTest.headPresent) {
+              fail('The dependency security floor was removed from the head.');
+            }
+            return value;
+          }
+
+          function advisoryIdentity(value, label) {
+            if (typeof value === 'string' && value.length > 0) {
+              return `dependency:${value}`;
+            }
+            if (!isObject(value)) {
+              fail(`${label} includes an invalid advisory entry.`);
+            }
+            const identity = {};
+            for (const key of ['source', 'name', 'dependency', 'url', 'range']) {
+              const field = value[key];
+              if (!['string', 'number'].includes(typeof field) || String(field).length === 0) {
+                fail(`${label} advisory ${key} is missing or invalid.`);
+              }
+              identity[key] = field;
+            }
+            if (!severityRank.has(value.severity)) {
+              fail(`${label} advisory severity is invalid.`);
+            }
+            return `advisory:${canonical(identity)}`;
+          }
+
+          function normalizeAudit(report, label, exitCode) {
+            if (!isObject(report) || report.auditReportVersion !== 2) {
+              fail(`${label} npm audit evidence does not use auditReportVersion 2.`);
+            }
+            if (!isObject(report.vulnerabilities)) {
+              fail(`${label} npm audit vulnerabilities are missing.`);
+            }
+            if (!isObject(report.metadata) || !isObject(report.metadata.vulnerabilities)) {
+              fail(`${label} npm audit metadata counts are missing.`);
+            }
+
+            const derivedCounts = Object.fromEntries(countKeys.map((key) => [key, 0]));
+            const packages = new Map();
+            for (const name of Object.keys(report.vulnerabilities).sort()) {
+              const entry = report.vulnerabilities[name];
+              if (!isObject(entry) || entry.name !== name) {
+                fail(`${label} vulnerability identity is invalid for ${name}.`);
+              }
+              if (!severityRank.has(entry.severity)) {
+                fail(`${label} vulnerability severity is invalid for ${name}.`);
+              }
+              if (!Array.isArray(entry.via) || !Array.isArray(entry.nodes)) {
+                fail(`${label} vulnerability paths are invalid for ${name}.`);
+              }
+              if (typeof entry.range !== 'string' || !Object.hasOwn(entry, 'fixAvailable')) {
+                fail(`${label} vulnerability range/fix evidence is missing for ${name}.`);
+              }
+              if (entry.nodes.some((node) => typeof node !== 'string' || node.length === 0)) {
+                fail(`${label} vulnerability node evidence is invalid for ${name}.`);
+              }
+
+              const advisories = entry.via.map((item) => ({
+                identity: advisoryIdentity(item, `${label} ${name}`),
+                severity: isObject(item) ? item.severity : entry.severity,
+              }));
+              const advisoryIds = advisories.map((item) => item.identity);
+              if (new Set(advisoryIds).size !== advisoryIds.length) {
+                fail(`${label} contains duplicate advisory evidence for ${name}.`);
+              }
+              if (new Set(entry.nodes).size !== entry.nodes.length) {
+                fail(`${label} contains duplicate node evidence for ${name}.`);
+              }
+
+              derivedCounts[entry.severity] += 1;
+              derivedCounts.total += 1;
+              packages.set(name, {
+                severity: entry.severity,
+                advisories: new Map(advisories.map((item) => [item.identity, item.severity])),
+                nodes: new Set(entry.nodes),
+                range: entry.range,
+                fixAvailable: canonical(entry.fixAvailable),
+              });
+            }
+
+            for (const key of countKeys) {
+              const reported = report.metadata.vulnerabilities[key];
+              if (!Number.isInteger(reported) || reported < 0 || reported !== derivedCounts[key]) {
+                fail(`${label} npm audit metadata count mismatch for ${key}.`);
+              }
+            }
+
+            const expectedExit = derivedCounts.total === 0 ? 0 : 1;
+            if (exitCode !== expectedExit) {
+              fail(`${label} npm audit exit code ${exitCode} does not match ${derivedCounts.total} finding(s).`);
+            }
+
+            return { counts: derivedCounts, packages };
+          }
+
+          const context = validateContext(readJson(contextPath, 'Context'));
+          const base = normalizeAudit(
+            readJson(baseAuditPath, 'Base audit'),
+            'Base audit',
+            context.auditExitCodes.base,
+          );
+          const head = normalizeAudit(
+            readJson(headAuditPath, 'Head audit'),
+            'Head audit',
+            context.auditExitCodes.head,
+          );
+
+          if (context.floorTest.basePresent && (base.counts.total !== 0 || head.counts.total !== 0)) {
+            fail('The landed dependency security floor requires zero base and head audit findings.');
+          }
+
+          if (head.counts.total > base.counts.total) {
+            fail(`Head audit regressed from ${base.counts.total} to ${head.counts.total} vulnerable packages.`);
+          }
+
+          for (const [name, headEntry] of head.packages) {
+            const baseEntry = base.packages.get(name);
+            if (!baseEntry) {
+              fail(`Head audit introduced vulnerable package ${name}.`);
+            }
+            if (severityRank.get(headEntry.severity) > severityRank.get(baseEntry.severity)) {
+              fail(`Head audit increased severity for ${name}.`);
+            }
+            if (headEntry.advisories.size > baseEntry.advisories.size) {
+              fail(`Head audit increased advisory count for ${name}.`);
+            }
+            for (const [identity, headSeverity] of headEntry.advisories) {
+              const baseSeverity = baseEntry.advisories.get(identity);
+              if (baseSeverity === undefined) {
+                fail(`Head audit introduced or changed advisory evidence for ${name}.`);
+              }
+              if (severityRank.get(headSeverity) > severityRank.get(baseSeverity)) {
+                fail(`Head audit increased advisory severity for ${name}.`);
+              }
+            }
+            if (headEntry.nodes.size > baseEntry.nodes.size) {
+              fail(`Head audit increased vulnerable node count for ${name}.`);
+            }
+            for (const node of headEntry.nodes) {
+              if (!baseEntry.nodes.has(node)) {
+                fail(`Head audit introduced a vulnerable node path for ${name}.`);
+              }
+            }
+            if (headEntry.range !== baseEntry.range) {
+              fail(`Head audit changed vulnerable range evidence for ${name}; review is required.`);
+            }
+            if (headEntry.fixAvailable !== baseEntry.fixAvailable) {
+              fail(`Head audit changed fix-availability evidence for ${name}; review is required.`);
+            }
+          }
+
+          const summary = [
+            '### Root npm audit comparison',
+            '',
+            `- Exact base: \`${context.expected.baseSha}\``,
+            `- Exact head: \`${context.expected.headSha}\``,
+            `- Base vulnerable packages: \`${base.counts.total}\``,
+            `- Head vulnerable packages: \`${head.counts.total}\``,
+            `- Dependency floor present on base: \`${context.floorTest.basePresent}\``,
+            '',
+            'Result: **Pass — no package, severity, advisory, node, range, or fix-availability regression.**',
+            '',
+          ].join('\n');
+          console.log(summary);
+          if (process.env.GITHUB_STEP_SUMMARY) {
+            appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary, 'utf8');
+          }
+          NODE
+          # audit-compare-script:end
+
+      - name: Show npm audit diagnostics on policy failure
+        if: ${{ !cancelled() && steps.audit_evidence.outcome == 'success' && failure() }}
+        env:
+          BASE_AUDIT_ERROR_PATH: ${{ steps.audit_evidence.outputs.base_error_path }}
+          HEAD_AUDIT_ERROR_PATH: ${{ steps.audit_evidence.outputs.head_error_path }}
+        run: |
+          echo "::group::Exact-base npm audit stderr"
+          if [[ -s "$BASE_AUDIT_ERROR_PATH" ]]; then
+            sed -n '1,120p' "$BASE_AUDIT_ERROR_PATH"
+          else
+            echo "(empty)"
+          fi
+          echo "::endgroup::"
+          echo "::group::Checked-out-head npm audit stderr"
+          if [[ -s "$HEAD_AUDIT_ERROR_PATH" ]]; then
+            sed -n '1,120p' "$HEAD_AUDIT_ERROR_PATH"
+          else
+            echo "(empty)"
+          fi
+          echo "::endgroup::"
+
+      - name: Check tracked root JavaScript syntax
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
+        run: |
+          mapfile -d '' -t files < <(git ls-files -z -- '*.js' ':(exclude)dashboard/**')
+          if (( ${#files[@]} == 0 )); then
+            echo "::error::No tracked root JavaScript files were found."
+            exit 1
+          fi
+          printf 'Checking %s tracked root JavaScript files.\n' "${#files[@]}"
+          for file in "${files[@]}"; do
+            node --check -- "$file"
+          done
+
+      - name: Verify dependency security floor
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' && steps.floor.outcome == 'success' && steps.floor.outputs.present == 'true' }}
+        run: node --test tests/dependency-security-baseline.test.js
+
+      - name: Run full root test suite
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.workspace.outcome == 'success' }}
+        run: npm test
