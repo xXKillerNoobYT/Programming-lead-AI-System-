@@ -62,3 +62,23 @@ The lockfile also records npm's mechanically reified nested dependencies for the
 - This bounded correction removes only that row and binds active authority to the canonical Issue comments above. Fresh exact-head code/security and QA verdicts are recorded on Issue #227 and draft PR #244 so the immutable report does not claim a review performed after its own commit.
 - Draft publication remains gated on fresh exact-head review after this correction.
 - Merge, ready-for-review promotion, self-approval, release, and Issue closure remain gated on the published PR's normal CI, required review, merge authorization, and canonical Issue evidence.
+
+## Corrective follow-up — P2/P3 exact-head review findings
+
+The independent technical review of head `770e89b9df5f6cfde4d9e2b5163465647f43a04c` reproduced two bounded defects. The corrective implementation remains under Issue #227 and the existing draft PR #244; it does not create a second branch, PR, Issue, or decision record.
+
+- **P2 artifact provenance:** the floor validator now requires every audited lock entry to resolve from the approved npm registry at the exact package/version tarball path and to carry a syntactically valid sha512 digest of the expected length. Fail-first fixtures proved that a same-version wrong-source substitution and a missing-integrity entry both passed before the correction; both are rejected afterward.
+- **P3 omit-peer runtime:** the incorrect peer-only metadata was removed from the lock entries for runtime-required `express`, `hono`, and `zod`. A disposable `npm ci --ignore-scripts --omit=peer --offline` fixture now imports `@modelcontextprotocol/sdk/client/index.js`; before the correction the same import failed with `Cannot find module 'zod/v3'`.
+
+Fresh disposable verification after the correction:
+
+| Gate | Result |
+|---|---|
+| Normal `npm ci --ignore-scripts` | Exit 0; 93 packages installed; audit summary 0. |
+| Focused dependency suite | 11/11 passed, including wrong-source, missing-integrity, nested-floor, and omit-peer runtime cases. |
+| Full root suite | 183/183 passed across 59 suites. |
+| Omit-peer runtime/import smoke | Exit 0 in disposable isolation. |
+| Dependency tree | SDK 1.29.0 retains patched versions and runtime `express@5.2.1`, `hono@4.13.3`, and `zod@4.3.6`. |
+| `npm audit --json` | Exit 0; 0 vulnerabilities. |
+
+The correction changes only `package-lock.json`, `tests/dependency-security-baseline.test.js`, and this report. `package.json`, workflows, settings, Project state, decision history, unrelated source/tests, and preserved #254 worktrees remain outside the change. Rollback is an ordinary revert of the single additive corrective commit; no history rewrite or force-push is used.
