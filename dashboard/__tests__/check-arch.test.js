@@ -13,7 +13,7 @@
  *      decision-log.md, reports/ are exempt (historical mentions OK).
  */
 
-const { existsSync, readFileSync, mkdirSync, writeFileSync, mkdtempSync, rmSync } = require('node:fs');
+const { existsSync, mkdirSync, writeFileSync, mkdtempSync, rmSync } = require('node:fs');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const os = require('node:os');

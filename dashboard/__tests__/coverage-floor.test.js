@@ -13,7 +13,7 @@
  *      floor by more than 1 percentage point
  */
 
-const { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, mkdtempSync } = require('node:fs');
+const { existsSync, readFileSync, rmSync, mkdtempSync } = require('node:fs');
 const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const os = require('node:os');
@@ -21,8 +21,6 @@ const os = require('node:os');
 const DASHBOARD_ROOT = path.resolve(__dirname, '..');
 const WRITER = path.join(DASHBOARD_ROOT, 'scripts', 'write-coverage-floor.js');
 const CHECKER = path.join(DASHBOARD_ROOT, 'scripts', 'check-coverage-threshold.js');
-
-const METRICS = ['statements', 'branches', 'functions', 'lines'];
 
 function mkSandbox() {
     return mkdtempSync(path.join(os.tmpdir(), 'cov-floor-'));
