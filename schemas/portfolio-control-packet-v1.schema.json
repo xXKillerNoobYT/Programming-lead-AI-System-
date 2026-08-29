@@ -1,0 +1,507 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devlead.invalid/schemas/portfolio-control-packet-v1.schema.json",
+  "title": "DevLead Portfolio Control Packet v1",
+  "description": "Provider-neutral, recommendation-only portfolio control packet. Validation never dispatches or mutates canonical state.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packetId",
+    "generatedAt",
+    "expiresAt",
+    "producer",
+    "scope",
+    "disposition",
+    "executionContext",
+    "executionCapacity",
+    "priority",
+    "capacity",
+    "budget",
+    "dependencies",
+    "blocker",
+    "gates",
+    "provenance",
+    "contextInputs",
+    "leaseSnapshot",
+    "collisionSnapshot"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "devlead.portfolio-control-packet/v1"
+    },
+    "packetId": {
+      "$ref": "#/$defs/stableId"
+    },
+    "generatedAt": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "expiresAt": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "producer": {
+      "$ref": "#/$defs/producer"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope"
+    },
+    "disposition": {
+      "$ref": "#/$defs/disposition"
+    },
+    "executionContext": {
+      "$ref": "#/$defs/executionContext"
+    },
+    "executionCapacity": {
+      "$ref": "#/$defs/executionCapacity"
+    },
+    "priority": {
+      "$ref": "#/$defs/priority"
+    },
+    "capacity": {
+      "$ref": "#/$defs/allocation"
+    },
+    "budget": {
+      "$ref": "#/$defs/allocation"
+    },
+    "dependencies": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/dependency"
+      }
+    },
+    "blocker": {
+      "$ref": "#/$defs/blocker"
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/gate"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "status", "reviewerId", "observedAt", "evidenceRef"],
+            "properties": {
+              "kind": { "const": "spec" },
+              "status": { "$ref": "#/$defs/gateStatus" },
+              "reviewerId": { "$ref": "#/$defs/stableId" },
+              "observedAt": { "$ref": "#/$defs/timestamp" },
+              "evidenceRef": { "$ref": "#/$defs/stableId" }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "status", "reviewerId", "observedAt", "evidenceRef"],
+            "properties": {
+              "kind": { "const": "qa" },
+              "status": { "$ref": "#/$defs/gateStatus" },
+              "reviewerId": { "$ref": "#/$defs/stableId" },
+              "observedAt": { "$ref": "#/$defs/timestamp" },
+              "evidenceRef": { "$ref": "#/$defs/stableId" }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "status", "reviewerId", "observedAt", "evidenceRef"],
+            "properties": {
+              "kind": { "const": "security" },
+              "status": { "$ref": "#/$defs/gateStatus" },
+              "reviewerId": { "$ref": "#/$defs/stableId" },
+              "observedAt": { "$ref": "#/$defs/timestamp" },
+              "evidenceRef": { "$ref": "#/$defs/stableId" }
+            }
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "status", "reviewerId", "observedAt", "evidenceRef"],
+            "properties": {
+              "kind": { "const": "reviewer" },
+              "status": { "$ref": "#/$defs/gateStatus" },
+              "reviewerId": { "$ref": "#/$defs/stableId" },
+              "observedAt": { "$ref": "#/$defs/timestamp" },
+              "evidenceRef": { "$ref": "#/$defs/stableId" }
+            }
+          }
+        }
+      ]
+    },
+    "provenance": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "contextInputs": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/contextInput"
+      }
+    },
+    "leaseSnapshot": {
+      "$ref": "#/$defs/leaseSnapshot"
+    },
+    "collisionSnapshot": {
+      "$ref": "#/$defs/collisionSnapshot"
+    },
+    "nextAction": {
+      "$ref": "#/$defs/nextAction"
+    },
+    "noAction": {
+      "$ref": "#/$defs/noAction"
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["nextAction"],
+      "not": {
+        "required": ["noAction"]
+      }
+    },
+    {
+      "required": ["noAction"],
+      "not": {
+        "required": ["nextAction"]
+      }
+    }
+  ],
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "pattern": "^[a-z][a-z0-9-]*:[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$"
+    },
+    "safeSummary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^[^\\r\\n]+$"
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/stableId"
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "actorId", "authorityGeneration", "policyVersion", "mode"],
+      "properties": {
+        "role": {
+          "const": "overall-manager"
+        },
+        "actorId": {
+          "$ref": "#/$defs/stableId"
+        },
+        "authorityGeneration": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "policyVersion": {
+          "const": "devlead.overall-manager-authority/v1"
+        },
+        "mode": {
+          "enum": [
+            "disabled",
+            "read-only",
+            "propose",
+            "manual-approval",
+            "bounded-automatic",
+            "superseded"
+          ]
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["portfolioId", "programId", "repositoryId", "canonicalRootId"],
+      "properties": {
+        "portfolioId": { "$ref": "#/$defs/stableId" },
+        "programId": { "$ref": "#/$defs/stableId" },
+        "repositoryId": { "$ref": "#/$defs/stableId" },
+        "canonicalRootId": { "$ref": "#/$defs/stableId" }
+      }
+    },
+    "disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reasonCode", "evidenceRefs"],
+      "properties": {
+        "status": { "enum": ["ready", "hold"] },
+        "reasonCode": { "type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[a-z][a-z0-9-]*$" },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" }
+      }
+    },
+    "executionContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "activeParentId", "taskId", "hostId", "leaseId", "hostSuitability", "evidenceRefs"],
+      "properties": {
+        "classification": { "enum": ["grouping", "executable-leaf"] },
+        "activeParentId": { "$ref": "#/$defs/stableId" },
+        "taskId": { "$ref": "#/$defs/stableId" },
+        "hostId": { "$ref": "#/$defs/stableId" },
+        "leaseId": { "$ref": "#/$defs/stableId" },
+        "hostSuitability": { "enum": ["suitable", "unsuitable", "unknown"] },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" }
+      }
+    },
+    "executionCapacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestedOverall", "defaultMaxOverall", "maxPerHost", "secondLane"],
+      "properties": {
+        "requestedOverall": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "defaultMaxOverall": { "const": 1 },
+        "maxPerHost": { "const": 1 },
+        "secondLane": { "$ref": "#/$defs/secondLane" }
+      }
+    },
+    "secondLane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "nonOverlapEvidenceRefs"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "hostId": { "$ref": "#/$defs/stableId" },
+        "delayReductionSummary": { "$ref": "#/$defs/safeSummary" },
+        "nonOverlapEvidenceRefs": { "type": "array", "maxItems": 32, "uniqueItems": true, "items": { "$ref": "#/$defs/stableId" } }
+      }
+    },
+    "priority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rank", "rationale", "evidenceRefs"],
+      "properties": {
+        "rank": { "type": "integer", "minimum": 1 },
+        "rationale": { "$ref": "#/$defs/safeSummary" },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" }
+      }
+    },
+    "allocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "available", "requested"],
+      "properties": {
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "available": { "type": "number", "minimum": 0 },
+        "requested": { "type": "number", "minimum": 0 }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dependencyId", "programId", "status", "evidenceRefs"],
+      "properties": {
+        "dependencyId": { "$ref": "#/$defs/stableId" },
+        "programId": { "$ref": "#/$defs/stableId" },
+        "status": { "enum": ["satisfied", "blocked", "unknown"] },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "reasonCode", "summary", "ownerId", "canonicalLink", "state", "resumeCondition", "evidenceRefs"],
+      "properties": {
+        "classification": {
+          "enum": ["none", "actionable-internal", "waiting-external", "unknown-conflicting"]
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "summary": { "$ref": "#/$defs/safeSummary" },
+        "ownerId": { "$ref": "#/$defs/stableId" },
+        "canonicalLink": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "state": { "enum": ["cleared", "active", "waiting", "unknown"] },
+        "resumeCondition": { "$ref": "#/$defs/safeSummary" },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" },
+        "recheckAt": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+    "gateStatus": {
+      "enum": ["pass", "hold", "unknown", "not-applicable"]
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "status", "reviewerId", "observedAt", "evidenceRef"],
+      "properties": {
+        "kind": { "enum": ["spec", "qa", "security", "reviewer"] },
+        "status": { "$ref": "#/$defs/gateStatus" },
+        "reviewerId": { "$ref": "#/$defs/stableId" },
+        "observedAt": { "$ref": "#/$defs/timestamp" },
+        "evidenceRef": { "$ref": "#/$defs/stableId" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceId", "sourceKind", "stableId", "permalink", "observedAt", "sha256"],
+      "properties": {
+        "evidenceId": { "$ref": "#/$defs/stableId" },
+        "sourceKind": {
+          "enum": ["canonical-ledger", "signed-artifact", "verified-system-readback"]
+        },
+        "stableId": { "$ref": "#/$defs/stableId" },
+        "permalink": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "observedAt": { "$ref": "#/$defs/timestamp" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "claimKind": { "const": "exact-non-overlap" }
+      }
+    },
+    "contextInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputId", "kind", "authority", "summary", "evidenceRefs"],
+      "properties": {
+        "inputId": { "$ref": "#/$defs/stableId" },
+        "kind": { "enum": ["memory", "prompt", "reminder"] },
+        "authority": { "const": "none" },
+        "summary": { "$ref": "#/$defs/safeSummary" },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" }
+      }
+    },
+    "leaseSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observedAt", "snapshotHash", "leases"],
+      "properties": {
+        "observedAt": { "$ref": "#/$defs/timestamp" },
+        "snapshotHash": { "$ref": "#/$defs/sha256" },
+        "leases": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/lease" }
+        }
+      }
+    },
+    "lease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["leaseId", "resourceId", "actorId", "hostId", "mode", "generation", "expiresAt", "evidenceRef"],
+      "properties": {
+        "leaseId": { "$ref": "#/$defs/stableId" },
+        "resourceId": { "$ref": "#/$defs/stableId" },
+        "actorId": { "$ref": "#/$defs/stableId" },
+        "hostId": { "$ref": "#/$defs/stableId" },
+        "mode": { "enum": ["exclusive", "shared-read"] },
+        "generation": { "type": "integer", "minimum": 1 },
+        "expiresAt": { "$ref": "#/$defs/timestamp" },
+        "evidenceRef": { "$ref": "#/$defs/stableId" }
+      }
+    },
+    "collisionSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observedAt", "snapshotHash", "conflicts"],
+      "properties": {
+        "observedAt": { "$ref": "#/$defs/timestamp" },
+        "snapshotHash": { "$ref": "#/$defs/sha256" },
+        "conflicts": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/conflict" }
+        }
+      }
+    },
+    "conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conflictId", "resourceId", "summary", "evidenceRefs"],
+      "properties": {
+        "conflictId": { "$ref": "#/$defs/stableId" },
+        "resourceId": { "$ref": "#/$defs/stableId" },
+        "summary": { "$ref": "#/$defs/safeSummary" },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" }
+      }
+    },
+    "nextAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "actionId", "programId", "repositoryId", "programmingLeadId", "targetId", "summary", "evidenceRefs"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "recommend-program-priority",
+            "recommend-capacity-budget",
+            "surface-cross-program-dependency",
+            "escalate-canonical-blocker"
+          ]
+        },
+        "actionId": { "$ref": "#/$defs/stableId" },
+        "programId": { "$ref": "#/$defs/stableId" },
+        "repositoryId": { "$ref": "#/$defs/stableId" },
+        "programmingLeadId": { "$ref": "#/$defs/stableId" },
+        "targetId": { "$ref": "#/$defs/stableId" },
+        "summary": { "$ref": "#/$defs/safeSummary" },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" }
+      }
+    },
+    "noAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reasonCode", "summary", "evidenceRefs", "recheckAt"],
+      "properties": {
+        "reasonCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "summary": { "$ref": "#/$defs/safeSummary" },
+        "evidenceRefs": { "$ref": "#/$defs/evidenceRefs" },
+        "recheckAt": { "$ref": "#/$defs/timestamp" }
+      }
+    }
+  }
+}
