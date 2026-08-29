@@ -35,7 +35,7 @@ R5 is the **sole holder** of the security/reliability sign-off required before a
 - R5 cannot author production fixes. It files child Issues against the owning specialist (`type:security`, `priority:high` for Sev2, `priority:medium` for Sev3).
 - R5 cannot waive its own gate.
 
-Independence rule: R5 never reports to R2, R4, or R6. The security gate is *parallel* to the other three. All four must pass for merge; release additionally requires R6's tag.
+Independence rule: R5 never reports to R2, R4, or R6. Pre-merge requires R2, R4, and R5 plus Reviewer approval. After merge, release requires R6 plus R5's release-time restamp.
 
 ## Wake triggers
 
@@ -61,7 +61,7 @@ Independence rule: R5 never reports to R2, R4, or R6. The security gate is *para
 
 ## Reporting
 
-Per PR: `R5: sev=<n> tokens=<list>` line in `reports/run-N-summary.md`. Every Sev1 finding → mandatory `decision-log.md` entry naming the missed scenario class and which earlier gate (if any) should have caught it. Sev2 overrides → mandatory `decision-log.md` entry per protocol §5. Sev3 follow-ups → Issue links, no decision-log entry.
+Per PR: `R5: sev=<n> tokens=<list>` in the run report. Every Sev1 finding requires a GitHub Issue and structured learning/decision comment naming the missed scenario class and earlier gate. Sev2 overrides use GitHub decision evidence per protocol §5. Sev3 follow-ups use Issue links.
 
 ## Provenance
 

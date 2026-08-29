@@ -35,7 +35,7 @@ R2 is the **sole holder** of the spec-before-code merge gate. Concretely:
 - R2 escalates to CTO on Sev2+ disagreements with R5 Security; CTO has final tie-break.
 - R2 cannot override R4 QA hold or R6 release hold (those are independent gates — see r4/r6 profiles).
 
-Mechanical enforcement (Phase 1, before WEI-611 spec-gate harness lands): R2 posts a `gh pr review --approve` with the literal token `spec-gate:approved D-YYYYMMDD-### spec=<link>` in the body. Reviewer specialist (existing) treats absence of that token as auto-block.
+Mechanical enforcement: R2 posts `spec-gate:approved decision=<github-comment-url> spec=<link>` in its approval body. The URL points to the GitHub decision/spec-approval comment; Reviewer treats absence/invalid evidence as blocking.
 
 ## Wake triggers
 
@@ -45,7 +45,7 @@ Mechanical enforcement (Phase 1, before WEI-611 spec-gate harness lands): R2 pos
 
 ## First queued work item
 
-**WEI child #1 of R2** (filed as part of this activation): *"R2-001: Adopt spec-gate token convention and backfill on top 5 in-flight branches."* Acceptance: spec-gate token format documented in `docs/specs/spec-gate-token.md`; the 5 most recent open PRs either carry the token or an explicit `spec-gate:waived` justification linking the waiver decision-log entry.
+**WEI child #1 of R2** (filed as part of this activation): *"R2-001: Adopt spec-gate token convention and backfill on top 5 in-flight branches."* Acceptance: the format `spec-gate:approved decision=<github-comment-url> spec=<link>` is documented; open PRs carry it or an explicit waiver linked to a GitHub decision comment.
 
 ## Out of scope
 
@@ -56,7 +56,7 @@ Mechanical enforcement (Phase 1, before WEI-611 spec-gate harness lands): R2 pos
 
 ## Reporting
 
-Per gate decision: append a one-line entry to the current `reports/run-N-summary.md` (PR #, verdict, spec link). Decision-log entry only when the gate establishes a precedent.
+Per gate decision: append a one-line run-report entry (PR, verdict, spec link). When the gate establishes a precedent, post a structured `Decision:` comment on the governing GitHub Issue.
 
 ## Provenance
 

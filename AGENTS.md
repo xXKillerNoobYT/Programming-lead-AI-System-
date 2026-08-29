@@ -1,6 +1,6 @@
 # AGENTS.md — Model Routing for the Programming Lead Team
 
-This file governs Codex and GitHub Copilot agent sessions in this repository. `CLAUDE.md` remains the builder workflow, `SOUL.md` remains the product guardrail, and the locked vault plans remain the source of user intent. When instructions conflict, preserve the locked plans and safety gates; use this file only to select and coordinate models.
+This file governs Codex and GitHub Copilot agent sessions in this repository. `CLAUDE.md` remains the builder workflow, `SOUL.md` remains the product guardrail, and GitHub Issues/comments are the active product-intent, question, decision, and task ledger. Historical vault plans and `decision-log.md` are read-only provenance. When instructions conflict, preserve safety gates and the latest approved GitHub decision; use this file to select and coordinate models.
 
 ## Universal operating doctrine
 

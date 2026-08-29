@@ -26,11 +26,11 @@ A finding that would, if shipped, cause **immediate user-visible harm or unrecov
 ### Sev2 — High (must-fix-before-merge)
 A finding that **degrades the security or reliability posture** of the system but does not cause immediate user harm if caught before merge. Examples:
 - Authenticated injection or XSS where the attacker is already a session holder.
-- Storage corruption risk (race on writes to MemPalace / vault / `decision-log.md`).
+- Storage corruption risk affecting GitHub decision evidence, audit state, or project memory.
 - Missing input validation at a system boundary that *could* escalate to a Sev1 with one more bug.
 - New dependency with a known CVE rated High (CVSS ≥ 7.0).
 - Heartbeat process that can deadlock, hot-loop, or burn the token-budget cap (WEI-576 §8) under adversarial input.
-- Removal or weakening of an existing decision-log invariant (e.g., dropping a Decision ID requirement).
+- Removal or weakening of a GitHub decision-evidence or approval invariant.
 
 **Veto effect**: PR blocked until R5 clears it. Standing veto applies — R5 may block solo, no second signoff required.
 
@@ -85,19 +85,20 @@ A live R5 veto cannot be cleared by R5 alone reversing position — that path ex
 
 Required evidence trail (all artifacts — missing any one → override is invalid and Reviewer rejects the PR):
 
-1. **Decision-log entry** `D-YYYYMMDD-###` authored by CTO with:
+1. **GitHub `Decision:` comment** authored by CTO on the governing Issue with:
    - The finding short-id and Sev classification R5 used.
    - The business reason the override is needed (cite an Issue or CEO directive).
    - The compensating control (what is being added to make the residual risk acceptable — e.g., feature flag default-off, monitoring alert, accelerated follow-up Issue).
    - Explicit text "**CTO+CEO override of R5 Sev≥2 veto**".
-2. **CEO co-sign**: a comment on the Issue (or the PR thread) from the CEO/Founding-Steward seat (`agent 1ffebb9a-4675-4b39-a191-a44b2fba9af2` or human equivalent) reading "**override approved D-YYYYMMDD-###**". CEO co-sign by reaction emoji is **not** sufficient; explicit text is required so the audit log greps cleanly.
+   - After posting, capture SHA-256 of the exact UTF-8 bytes returned in the GitHub API comment `body` plus the comment `updatedAt`.
+2. **CEO co-sign**: a comment from the CEO/Founding-Steward seat reading "**override approved decision=<github-comment-url> sha256=<64hex> updated=<ISO-8601>**", binding approval to the exact CTO comment body/version. Reactions are insufficient.
 3. **PR review token from CTO** (added in addition to R5's standing `sec-veto:hold`):
    ```
-   sec-veto:override-cto+ceo decision=D-YYYYMMDD-### compensating=<follow-up-issue#>
+   sec-veto:override-cto+ceo decision=<github-comment-url> decision_sha256=<64hex> decision_updated=<ISO-8601> compensating=<follow-up-issue#>
    ```
 4. **Follow-up Issue** opened the same heartbeat with `priority:high label:security label:override-followup` describing the residual risk and the date by which the compensating control retires the risk.
 
-Reviewer specialist clears the gate when (a) the `sec-veto:hold` token is still present *and* (b) the `sec-veto:override-cto+ceo` token is present *and* (c) the cited Decision ID resolves to a real entry in `decision-log.md`. R6 separately re-checks at release time.
+Reviewer fetches the CTO comment, verifies author/body/`updatedAt`, recomputes SHA-256, checks the CEO co-sign binds the same URL/hash/timestamp, and verifies the compensating Issue. Any later edit invalidates the override until CTO and CEO restamp it. R6 re-checks the same immutable evidence at release time.
 
 **Never**: override on Sev1. Sev1 findings have no override path — fix-forward only. (If the user/CEO wants to override a Sev1, they may do so by directly modifying SOUL.md per §5 of CLAUDE.md, which itself requires a GH Issue + explicit user approval; this is an intentional speed-bump.)
 
@@ -114,7 +115,7 @@ The protocol is wired into existing surfaces; nothing here is a new system to st
 | `.paperclip/agents/reviewer/AGENTS.md` | Reviewer specialist learns to look for `sec-gate:approved` / `sec-veto:hold` / `sec-veto:override-cto+ceo` tokens alongside the existing three gate tokens. | Reviewer specialist owner | child Issue (R5-001) |
 | `.paperclip/agents/r2-tech-lead-execution/AGENTS.md` line 55 | Already lists "Security veto (R5)" as out-of-scope — confirms R2 may not author or clear an R5 veto. No change needed. | — | — |
 | `.paperclip/agents/r6-devops-release/AGENTS.md` line 54 | Replace "R5 — not yet activated; R6 forwards security-flavored CI failures to CTO" with "R5 active; R6 forwards security-flavored CI failures to R5." | R6 | child Issue (R5-002) |
-| `decision-log.md` | New `D-` entry for WEI-716 publication; future override invocations append their own `D-` entries (template in §5). | CTO | this PR |
+| GitHub governing Issue | Future override invocations post the CTO decision, CEO co-sign, and compensating-control Issue required by §5. | CTO + CEO | continuous |
 | `CLAUDE.md` §5 (autonomy guardrails) | No change — Sev1 fix-forward rule already implied by no-secrets / no-force-push items. | — | — |
 | `reports/run-N-summary.md` | Per PR R5 reviews, append `R5: sev=<n> tokens=<list>` so every run report grep-able for security activity. | R5 | continuous |
 | `dashboard/` | No code change in this PR; first R5 sweep is the wake-on-demand follow-up (R5-001). | R5 | child Issue R5-001 |
@@ -135,7 +136,7 @@ R5 review body:
 ```
 sec-veto:hold sev=1 finding=R5-secret-001 evidence=https://github.com/<org>/<repo>/pull/N/files#diff-<hash>
 ```
-Outcome: blocked. PR author rotates the key, removes the file, force-push of *the PR branch only* allowed (per CLAUDE.md §5: force-push of the canonical branch is forbidden; force-push of an in-review feature branch is the only safe remediation for a leaked secret; CTO records this as a one-off in decision-log). Sev1 has **no override path** — the only resolution is the fix-forward.
+Outcome: blocked. PR author rotates the key and removes the file. Any exceptional history rewrite requires explicit owner approval recorded on the governing GitHub Issue. Sev1 has **no override path** — resolution is fix-forward.
 
 **Example B — Sev2 dependency CVE.**
 PR adds `pdfkit@^0.13` which has CVE-2024-XXXXX rated 7.4.
@@ -155,9 +156,9 @@ sec-gate:approved sev=3 finding=R5-hsts-002 followup=<#issue>
 No veto. PR merges. Issue tracks fix.
 
 **Example D — Override on Sev2.**
-Sev2 storage-race finding on the `MemPalace` write path. CEO directive: ship the customer demo Friday. CTO files `D-20260512-007` with compensating control "feature flag `mempalace.unsafe-write` default off; demo uses read-only mode; race fix Issue #N due 2026-05-19". CEO comments on issue: "**override approved D-20260512-007**". CTO posts on PR:
+Sev2 storage-race finding. CTO posts the required decision comment, captures `<sha256>` and `<updated-at>`, and obtains CEO comment: "**override approved decision=<decision-comment-url> sha256=<sha256> updated=<updated-at>**". CTO posts:
 ```
-sec-veto:override-cto+ceo decision=D-20260512-007 compensating=#N
+sec-veto:override-cto+ceo decision=<decision-comment-url> decision_sha256=<sha256> decision_updated=<updated-at> compensating=#N
 ```
 Reviewer clears. R6 releases. Follow-up Issue #N is `priority:high override-followup`.
 
@@ -170,7 +171,7 @@ Reviewer clears. R6 releases. Follow-up Issue #N is `priority:high override-foll
 
 ## 10. How this doc evolves
 
-- Token-grammar changes → PR with conventional commit `docs(r5): …` and a `D-` ID.
+- Token-grammar changes → PR with conventional commit `docs(r5): …`, GitHub Issue, and decision-comment permalink.
 - New Sev examples added inline; no version bump needed.
 - When WEI-611 spec-gate bot or its R5 sibling lands → mark §4 token-text checks as bot-checked.
 - When R5 graduates from wake-on-demand to heartbeat-enabled → add a §"R5 heartbeat cadence" with the same shape as the R6 release cadence.
